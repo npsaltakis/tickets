@@ -7,11 +7,16 @@ use CodeIgniter\Exceptions\PageNotFoundException;
 
 class Home extends BaseController
 {
+    private EventModel $eventModel;
+
+    public function __construct()
+    {
+        $this->eventModel = new EventModel();
+    }
+
     public function index(): string
     {
-        $eventModel = new EventModel();
-
-        $events = $eventModel
+        $events = $this->eventModel
             ->orderBy('event_date', 'ASC')
             ->findAll();
 
@@ -23,9 +28,7 @@ class Home extends BaseController
 
     public function show(string $slug): string
     {
-        $eventModel = new EventModel();
-
-        $event = $eventModel->where('slug', $slug)->first();
+        $event = $this->eventModel->where('slug', $slug)->first();
 
         if (empty($event)) {
             throw PageNotFoundException::forPageNotFound('Event not found');
