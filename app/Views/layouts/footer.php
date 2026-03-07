@@ -1,3 +1,3 @@
-<footer class="site-footer">© 2026 Webtechsolutions.gr</footer>
+<footer class="site-footer"><?= esc(lang('App.footerCopyright')) ?></footer>
 </body>
 </html>

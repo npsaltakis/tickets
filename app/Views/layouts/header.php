@@ -1,29 +1,32 @@
 <?php helper('url'); ?>
+<?php
+$currentLocale = service('request')->getLocale();
+$selectedLanguage = $currentLocale === 'en' ? 'en' : 'gr';
+?>
 <!doctype html>
-<html lang="en">
+<html lang="<?= esc($currentLocale) ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($pageTitle ?? 'Ticketing System') ?></title>
+    <title><?= esc($pageTitle ?? lang('App.siteTitle')) ?></title>
     <link rel="stylesheet" href="<?= base_url('assets/css/styles.css') ?>">
 </head>
 <body>
 <header class="top-nav">
     <div class="top-nav-inner">
         <div class="top-nav-left">
-            <a class="brand" href="<?= base_url('/') ?>">Ticketing System</a>
+            <a class="brand" href="<?= base_url('/') ?>"><?= esc(lang('App.siteTitle')) ?></a>
             <nav aria-label="Main navigation">
                 <ul class="menu">
-                    <li><a class="menu-link is-active" href="<?= base_url('/') ?>">Κεντρική</a></li>
+                    <li><a class="menu-link is-active" href="<?= base_url('/') ?>"><?= esc(lang('App.navHome')) ?></a></li>
                 </ul>
             </nav>
         </div>
 
-        <div class="lang-switcher">
-            <select id="language" name="language">
-                <option value="gr" selected>GR</option>
-                <option value="en">EN</option>
-            </select>
+        <div class="lang-switcher" aria-label="Language switcher">
+            <a class="lang-link <?= $selectedLanguage === 'gr' ? 'is-active' : '' ?>" href="<?= esc(current_url() . '?lang=gr') ?>"><?= esc(lang('App.langGr')) ?></a>
+            <span class="lang-divider">|</span>
+            <a class="lang-link <?= $selectedLanguage === 'en' ? 'is-active' : '' ?>" href="<?= esc(current_url() . '?lang=en') ?>"><?= esc(lang('App.langEn')) ?></a>
         </div>
     </div>
 </header>

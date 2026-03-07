@@ -2,12 +2,12 @@
 
 <?= $this->section('content') ?>
 <main class="wrapper">
-    <h1>All Events</h1>
-    <p class="subtitle">Η κεντρική σελίδα με όλα τα events.</p>
+    <h1><?= esc(lang('App.eventsPageTitle')) ?></h1>
+    <p class="subtitle"><?= esc(lang('App.eventsPageSubtitle')) ?></p>
 
     <?php if (empty($events)): ?>
         <div class="empty">
-            No events.
+            <?= esc(lang('App.eventsEmpty')) ?>
         </div>
     <?php else: ?>
         <section class="grid">
@@ -25,7 +25,7 @@
                             ?>
                             <img class="event-image" src="<?= esc($imageUrl) ?>" alt="<?= esc($event['title']) ?>">
                         <?php else: ?>
-                            <div class="event-image event-image-placeholder">No image</div>
+                            <div class="event-image event-image-placeholder"><?= esc(lang('App.noImage')) ?></div>
                         <?php endif; ?>
 
                         <div class="row">
@@ -34,11 +34,11 @@
                         </div>
 
                         <p class="meta">
-                            Date: <?= esc(date('d/m/Y H:i', strtotime($event['event_date']))) ?>
+                            <?= esc(lang('App.date')) ?>: <?= esc(date('d/m/Y H:i', strtotime($event['event_date']))) ?>
                         </p>
 
                         <?php if (!empty($event['location'])): ?>
-                            <p class="meta">Location: <?= esc($event['location']) ?></p>
+                            <p class="meta"><?= esc(lang('App.location')) ?>: <?= esc($event['location']) ?></p>
                         <?php endif; ?>
 
                         <?php if (!empty($event['description'])): ?>
@@ -49,10 +49,10 @@
 
                         <?php if (($event['event_type'] ?? 'free') === 'donation'): ?>
                             <span class="pill">
-                                Donation from €<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2)) ?>
+                                <?= esc(lang('App.donationFrom')) ?> €<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2)) ?>
                             </span>
                         <?php else: ?>
-                            <span class="pill">Free Event</span>
+                            <span class="pill"><?= esc(lang('App.freeEvent')) ?></span>
                         <?php endif; ?>
                     </article>
                 </a>
