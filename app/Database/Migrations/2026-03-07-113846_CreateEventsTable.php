@@ -55,6 +55,7 @@ class CreateEventsTable extends Migration
                 'type'       => 'DECIMAL',
                 'constraint' => '10,2',
                 'default'    => 0.00,
+                'null'       => true,
             ],
             'status' => [
                 'type'       => 'ENUM',
