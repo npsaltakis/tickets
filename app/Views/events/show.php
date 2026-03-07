@@ -16,6 +16,10 @@
 
     <a class="back-link" href="<?= base_url('/') ?>">&larr; <?= esc(lang('App.backToEvents')) ?></a>
 
+    <?php if (session()->getFlashdata('event_info')): ?>
+        <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('event_info')) ?></p>
+    <?php endif; ?>
+
     <section class="event-details-card">
         <?php if ($imageUrl !== ''): ?>
             <img class="event-hero" src="<?= esc($imageUrl) ?>" alt="<?= esc($event['title']) ?>">

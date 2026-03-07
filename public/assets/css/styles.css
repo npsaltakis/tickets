@@ -495,3 +495,121 @@ h1 {
     border-color: var(--accent);
 }
 
+
+.alert-inline {
+    margin: 0 0 18px;
+}
+
+.event-form-card {
+    background: linear-gradient(180deg, var(--surface), var(--surface-2));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+}
+
+.event-form-header {
+    margin-bottom: 18px;
+}
+
+.event-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.event-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.event-field-full {
+    grid-column: 1 / -1;
+}
+
+.event-textarea {
+    resize: vertical;
+    min-height: 160px;
+}
+
+.field-hint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+.event-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.file-input {
+    padding: 8px 10px;
+}
+
+.event-datetime-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.event-datetime-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.event-datetime-inputs {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(120px, 0.8fr);
+    gap: 10px;
+}
+
+.image-preview-card {
+    position: relative;
+    width: min(100%, 320px);
+    min-height: 140px;
+    border: 1px dashed var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(15, 23, 42, 0.7);
+}
+
+.image-preview-media {
+    display: block;
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+}
+
+.image-preview-placeholder {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.image-preview-card.is-empty .image-preview-media {
+    display: none;
+}
+
+.image-preview-card.is-empty .image-preview-placeholder {
+    display: flex;
+}
+
+@media (max-width: 640px) {
+    .event-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .event-datetime-grid,
+    .event-datetime-inputs {
+        grid-template-columns: 1fr;
+    }
+
+    .image-preview-card {
+        width: 100%;
+    }
+}

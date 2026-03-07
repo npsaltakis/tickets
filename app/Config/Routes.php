@@ -6,6 +6,8 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'Home::index');
+$routes->get('events/create', 'Home::create');
+$routes->post('events', 'Home::store');
 $routes->get('events/(:segment)', 'Home::show/$1');
 
 $routes->get('login', 'LoginController::index');

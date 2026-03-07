@@ -13,9 +13,13 @@
         </div>
 
         <?php if ($isAdmin): ?>
-            <a href="#" onclick="return false;" class="admin-event-btn"><?= esc(lang('App.adminNewEventButton')) ?></a>
+            <a href="<?= base_url('events/create') ?>" class="admin-event-btn"><?= esc(lang('App.adminNewEventButton')) ?></a>
         <?php endif; ?>
     </div>
+
+    <?php if (session()->getFlashdata('login_error')): ?>
+        <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('login_error')) ?></p>
+    <?php endif; ?>
 
     <?php if (empty($events)): ?>
         <div class="empty">
