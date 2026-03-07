@@ -3,6 +3,8 @@
 return [
     'siteTitle' => 'Ticketing System',
     'navHome' => 'Κεντρική',
+    'navMyEvents' => 'My events',
+    'navLogout' => 'Αποσύνδεση',
     'langEl' => 'EL',
     'langEn' => 'EN',
 
@@ -57,6 +59,7 @@ return [
 
     'loginRequiredFields' => 'Το email και ο κωδικός είναι υποχρεωτικά.',
     'loginInvalidCredentials' => 'Λάθος email ή κωδικός.',
+    'logoutSuccess' => 'Έγινε επιτυχής αποσύνδεση.',
     'registerRequiredFields' => 'Όλα τα πεδία εγγραφής είναι υποχρεωτικά.',
     'lostRequiredFields' => 'Όλα τα πεδία επαναφοράς είναι υποχρεωτικά.',
     'lostRequiredEmail' => 'Το email είναι υποχρεωτικό.',
@@ -77,3 +80,4 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+

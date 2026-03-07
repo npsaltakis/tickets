@@ -10,6 +10,7 @@ $routes->get('events/(:segment)', 'Home::show/$1');
 
 $routes->get('login', 'LoginController::index');
 $routes->post('login', 'LoginController::authenticate');
+$routes->get('logout', 'LoginController::logout');
 $routes->get('register', 'LoginController::register');
 $routes->post('register', 'LoginController::storeRegister');
 $routes->get('lost-password', 'LoginController::lostPassword');

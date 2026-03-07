@@ -58,6 +58,13 @@ class LoginController extends BaseController
         return redirect()->to(base_url('/'));
     }
 
+    public function logout(): RedirectResponse
+    {
+        session()->destroy();
+
+        return redirect()->to(base_url('login'))->with('login_info', lang('App.logoutSuccess'));
+    }
+
     public function register(): string|RedirectResponse
     {
         if (session()->get('is_logged_in') === true) {

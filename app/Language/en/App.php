@@ -3,6 +3,8 @@
 return [
     'siteTitle' => 'Ticketing System',
     'navHome' => 'Home',
+    'navMyEvents' => 'My events',
+    'navLogout' => 'Logout',
     'langEl' => 'EL',
     'langEn' => 'EN',
 
@@ -57,6 +59,7 @@ return [
 
     'loginRequiredFields' => 'Email and password are required.',
     'loginInvalidCredentials' => 'Invalid email or password.',
+    'logoutSuccess' => 'You have logged out successfully.',
     'registerRequiredFields' => 'All register fields are required.',
     'lostRequiredFields' => 'All reset fields are required.',
     'lostRequiredEmail' => 'Email is required.',
@@ -77,3 +80,4 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
