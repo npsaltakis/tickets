@@ -24,6 +24,7 @@ return [
     'minimumDonation' => 'Minimum Donation',
     'seats' => 'Seats',
     'bookSeat' => 'Book Seat',
+    'seatsLimitError' => 'Only {max} seats available.',
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];

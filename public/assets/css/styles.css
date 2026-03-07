@@ -308,3 +308,16 @@ h1 {
     }
 }
 
+
+.field-error {
+    flex-basis: 100%;
+    margin: 0;
+    color: #fca5a5;
+    font-size: 0.82rem;
+    min-height: 1.1rem;
+}
+
+.book-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

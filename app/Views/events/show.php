@@ -5,6 +5,7 @@
     <?php
     $status = strtolower((string) ($event['status'] ?? 'inactive'));
     $capacity = isset($event['capacity']) && $event['capacity'] !== null ? (int) $event['capacity'] : 0;
+    $canBook = $capacity > 0;
     $rawImage = (string) ($event['image'] ?? '');
     $imageUrl = $rawImage !== ''
         ? (preg_match('#^https?://#i', $rawImage) ? $rawImage : base_url(ltrim($rawImage, '/')))
@@ -45,10 +46,20 @@
 
             <div class="booking-box">
                 <label class="meta" for="seats"><strong><?= esc(lang('App.seats')) ?>:</strong></label>
-                <input id="seats" class="seats-input" type="number" min="1" max="<?= esc((string) max($capacity, 1)) ?>" value="1">
-                <button type="button" class="book-btn"><?= esc(lang('App.bookSeat')) ?></button>
+                <input
+                    id="seats"
+                    class="seats-input"
+                    type="number"
+                    min="1"
+                    max="<?= esc((string) max($capacity, 1)) ?>"
+                    value="<?= esc((string) ($canBook ? 1 : 0)) ?>"
+                    <?= $canBook ? '' : 'disabled' ?>
+                    data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>">
+                <button type="button" class="book-btn" <?= $canBook ? '' : 'disabled' ?>><?= esc(lang('App.bookSeat')) ?></button>
+                <p id="seats-error" class="field-error" aria-live="polite"></p>
             </div>
         </div>
     </section>
 </main>
+<script src="<?= base_url('assets/js/event-show.js') ?>"></script>
 <?= $this->endSection() ?>

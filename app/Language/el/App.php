@@ -24,6 +24,7 @@ return [
     'minimumDonation' => 'Ελάχιστη Δωρεά',
     'seats' => 'Θέσεις',
     'bookSeat' => 'Κλείσε Θέση',
+    'seatsLimitError' => 'Μπορείς να επιλέξεις μέχρι {max} θέσεις.',
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
