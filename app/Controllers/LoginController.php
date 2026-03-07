@@ -170,11 +170,18 @@ class LoginController extends BaseController
         $emailService = service('email');
         $emailService->setTo($user['email']);
         $emailService->setSubject(lang('App.resetEmailSubject'));
-        $emailService->setMessage(
-            lang('App.resetEmailIntro') . "\n\n" .
-            $resetUrl . "\n\n" .
-            lang('App.resetEmailExpiry')
-        );
+
+        $emailMessage = implode(PHP_EOL . PHP_EOL, [
+            lang('App.resetEmailGreeting'),
+            lang('App.resetEmailRequestNotice'),
+            lang('App.resetEmailActionText'),
+            $resetUrl,
+            lang('App.resetEmailExpiry'),
+            lang('App.resetEmailIgnoreNotice'),
+            lang('App.resetEmailSignature'),
+        ]);
+
+        $emailService->setMessage($emailMessage);
 
         if (! $emailService->send()) {
             return redirect()->back()->withInput()->with('lost_error', lang('App.emailSendFailed'));
@@ -261,7 +268,7 @@ class LoginController extends BaseController
             return false;
         }
 
-        if (! empty($reset['used_at'])) {
+        if (!empty($reset['used_at'])) {
             return false;
         }
 

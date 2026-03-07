@@ -73,11 +73,17 @@ return [
     'invalidOrExpiredToken' => 'Invalid or expired reset link.',
     'resetLinkSent' => 'Reset link sent. Check your email.',
     'resetLinkSentGeneric' => 'If this email exists, a reset link has been sent.',
-    'resetEmailSubject' => 'Password Reset Request',
+    'resetEmailSubject' => 'Password Reset Instructions',
     'resetEmailIntro' => 'Click the link below to reset your password:',
-    'resetEmailExpiry' => 'This link expires in 10 minutes.',
+    'resetEmailGreeting' => 'Hello,',
+    'resetEmailRequestNotice' => 'We received a password reset request for your Ticketing System account.',
+    'resetEmailActionText' => 'To set a new password, open the secure link below:',
+    'resetEmailExpiry' => 'This link is valid for 10 minutes.',
+    'resetEmailIgnoreNotice' => 'If you did not request this, you can safely ignore this email.',
+    'resetEmailSignature' => 'Best regards,\nTicketing System Team',
     'emailSendFailed' => 'Could not send email. Please try again later.',
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
 

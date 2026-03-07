@@ -73,11 +73,17 @@ return [
     'invalidOrExpiredToken' => 'Μη έγκυρο ή ληγμένο link επαναφοράς.',
     'resetLinkSent' => 'Το link επαναφοράς στάλθηκε. Έλεγξε το email σου.',
     'resetLinkSentGeneric' => 'Αν υπάρχει αυτό το email, στάλθηκε link επαναφοράς.',
-    'resetEmailSubject' => 'Αίτημα Επαναφοράς Κωδικού',
+    'resetEmailSubject' => 'Οδηγίες Επαναφοράς Κωδικού',
     'resetEmailIntro' => 'Πάτα το παρακάτω link για να επαναφέρεις τον κωδικό σου:',
-    'resetEmailExpiry' => 'Το link λήγει σε 10 λεπτά.',
+    'resetEmailGreeting' => 'Γεια σου,',
+    'resetEmailRequestNotice' => 'Λάβαμε αίτημα επαναφοράς κωδικού για τον λογαριασμό σου στο Ticketing System.',
+    'resetEmailActionText' => 'Για να ορίσεις νέο κωδικό, άνοιξε τον παρακάτω ασφαλή σύνδεσμο:',
+    'resetEmailExpiry' => 'Ο σύνδεσμος ισχύει για 10 λεπτά.',
+    'resetEmailIgnoreNotice' => 'Αν δεν έκανες εσύ το αίτημα, αγνόησε αυτό το email.',
+    'resetEmailSignature' => 'Με εκτίμηση,\nΗ ομάδα Ticketing System',
     'emailSendFailed' => 'Δεν ήταν δυνατή η αποστολή email. Προσπάθησε ξανά αργότερα.',
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
 
