@@ -10,6 +10,7 @@ return [
 
     'eventsPageTitle' => 'Όλα τα Events',
     'eventsPageSubtitle' => 'Η κεντρική σελίδα με όλα τα events.',
+    'adminNewEventButton' => 'Νέο Event',
     'eventsEmpty' => 'Δεν υπάρχουν events.',
 
     'noImage' => 'Χωρίς εικόνα',
@@ -85,5 +86,6 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
 
 

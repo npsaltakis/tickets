@@ -2,8 +2,20 @@
 
 <?= $this->section('content') ?>
 <main class="wrapper">
-    <h1><?= esc(lang('App.eventsPageTitle')) ?></h1>
-    <p class="subtitle"><?= esc(lang('App.eventsPageSubtitle')) ?></p>
+    <?php
+    $isAdmin = session()->get('is_logged_in') === true && (string) session()->get('user_role') === 'admin';
+    ?>
+
+    <div class="events-header">
+        <div>
+            <h1><?= esc(lang('App.eventsPageTitle')) ?></h1>
+            <p class="subtitle"><?= esc(lang('App.eventsPageSubtitle')) ?></p>
+        </div>
+
+        <?php if ($isAdmin): ?>
+            <a href="#" onclick="return false;" class="admin-event-btn"><?= esc(lang('App.adminNewEventButton')) ?></a>
+        <?php endif; ?>
+    </div>
 
     <?php if (empty($events)): ?>
         <div class="empty">

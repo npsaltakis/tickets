@@ -10,6 +10,7 @@ return [
 
     'eventsPageTitle' => 'All Events',
     'eventsPageSubtitle' => 'Main page with all events.',
+    'adminNewEventButton' => 'New Event',
     'eventsEmpty' => 'No events.',
 
     'noImage' => 'No image',
@@ -85,5 +86,6 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
 
 
