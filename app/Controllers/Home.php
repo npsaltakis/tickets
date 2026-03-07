@@ -17,7 +17,7 @@ class Home extends BaseController
     public function index(): string
     {
         $events = $this->eventModel
-            ->orderBy('event_date', 'ASC')
+            ->orderBy('start_date', 'ASC')
             ->findAll();
 
         return view('events/index', [

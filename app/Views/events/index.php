@@ -15,6 +15,8 @@
                 <?php
                 $status = strtolower((string) ($event['status'] ?? 'inactive'));
                 $eventUrl = !empty($event['slug']) ? base_url('events/' . $event['slug']) : '#';
+                $startDate = $event['start_date'] ?? null;
+                $endDate = $event['end_date'] ?? null;
                 ?>
                 <a class="card-link" href="<?= esc($eventUrl) ?>">
                     <article class="card">
@@ -33,9 +35,17 @@
                             <span class="status <?= esc($status) ?>"><?= esc($status) ?></span>
                         </div>
 
-                        <p class="meta">
-                            <?= esc(lang('App.date')) ?>: <?= esc(date('d/m/Y H:i', strtotime($event['event_date']))) ?>
-                        </p>
+                        <?php if (!empty($startDate)): ?>
+                            <p class="meta">
+                                <?= esc(lang('App.startDate')) ?>: <?= esc(date('d/m/Y H:i', strtotime((string) $startDate))) ?>
+                            </p>
+                        <?php endif; ?>
+
+                        <?php if (!empty($endDate)): ?>
+                            <p class="meta">
+                                <?= esc(lang('App.endDate')) ?>: <?= esc(date('d/m/Y H:i', strtotime((string) $endDate))) ?>
+                            </p>
+                        <?php endif; ?>
 
                         <?php if (!empty($event['location'])): ?>
                             <p class="meta"><?= esc(lang('App.location')) ?>: <?= esc($event['location']) ?></p>

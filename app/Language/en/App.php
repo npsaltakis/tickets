@@ -12,6 +12,8 @@ return [
 
     'noImage' => 'No image',
     'date' => 'Date',
+    'startDate' => 'Start Date',
+    'endDate' => 'End Date',
     'location' => 'Location',
     'type' => 'Type',
     'status' => 'Status',

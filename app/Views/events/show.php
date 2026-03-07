@@ -10,6 +10,8 @@
     $imageUrl = $rawImage !== ''
         ? (preg_match('#^https?://#i', $rawImage) ? $rawImage : base_url(ltrim($rawImage, '/')))
         : '';
+    $startDate = $event['start_date'] ?? null;
+    $endDate = $event['end_date'] ?? null;
     ?>
 
     <a class="back-link" href="<?= base_url('/') ?>">&larr; <?= esc(lang('App.backToEvents')) ?></a>
@@ -27,7 +29,13 @@
                 <span class="status <?= esc($status) ?>"><?= esc($status) ?></span>
             </div>
 
-            <p class="meta"><strong><?= esc(lang('App.date')) ?>:</strong> <?= esc(date('d/m/Y H:i', strtotime($event['event_date']))) ?></p>
+            <?php if (!empty($startDate)): ?>
+                <p class="meta"><strong><?= esc(lang('App.startDate')) ?>:</strong> <?= esc(date('d/m/Y H:i', strtotime((string) $startDate))) ?></p>
+            <?php endif; ?>
+
+            <?php if (!empty($endDate)): ?>
+                <p class="meta"><strong><?= esc(lang('App.endDate')) ?>:</strong> <?= esc(date('d/m/Y H:i', strtotime((string) $endDate))) ?></p>
+            <?php endif; ?>
 
             <?php if (!empty($event['location'])): ?>
                 <p class="meta"><strong><?= esc(lang('App.location')) ?>:</strong> <?= esc($event['location']) ?></p>
