@@ -1,7 +1,7 @@
 <?php helper('url'); ?>
 <?php
 $currentLocale = service('request')->getLocale();
-$selectedLanguage = $currentLocale === 'en' ? 'en' : 'gr';
+$selectedLanguage = $currentLocale === 'en' ? 'en' : 'el';
 ?>
 <!doctype html>
 <html lang="<?= esc($currentLocale) ?>">
@@ -24,7 +24,7 @@ $selectedLanguage = $currentLocale === 'en' ? 'en' : 'gr';
         </div>
 
         <div class="lang-switcher" aria-label="Language switcher">
-            <a class="lang-link <?= $selectedLanguage === 'gr' ? 'is-active' : '' ?>" href="<?= esc(current_url() . '?lang=gr') ?>"><?= esc(lang('App.langGr')) ?></a>
+            <a class="lang-link <?= $selectedLanguage === 'el' ? 'is-active' : '' ?>" href="<?= esc(current_url() . '?lang=el') ?>"><?= esc(lang('App.langEl')) ?></a>
             <span class="lang-divider">|</span>
             <a class="lang-link <?= $selectedLanguage === 'en' ? 'is-active' : '' ?>" href="<?= esc(current_url() . '?lang=en') ?>"><?= esc(lang('App.langEn')) ?></a>
         </div>

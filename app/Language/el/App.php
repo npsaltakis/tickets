@@ -3,7 +3,7 @@
 return [
     'siteTitle' => 'Ticketing System',
     'navHome' => 'Κεντρική',
-    'langGr' => 'GR',
+    'langEl' => 'EL',
     'langEn' => 'EN',
 
     'eventsPageTitle' => 'Όλα τα Events',

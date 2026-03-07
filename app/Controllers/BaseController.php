@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use CodeIgniter\Controller;
+use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
@@ -15,9 +16,13 @@ abstract class BaseController extends Controller
 
         $session = service('session');
 
-        $requestedLang = strtolower((string) $request->getGet('lang'));
+        $requestedLang = '';
+
+        if ($request instanceof IncomingRequest) {
+            $requestedLang = strtolower((string) ($request->getGet('lang') ?? ''));
+        }
+
         $localeMap = [
-            'gr' => 'el',
             'el' => 'el',
             'en' => 'en',
         ];
@@ -28,7 +33,10 @@ abstract class BaseController extends Controller
 
         $locale = (string) ($session->get('locale') ?? config('App')->defaultLocale);
 
-        $request->setLocale($locale);
+        if ($request instanceof IncomingRequest) {
+            $request->setLocale($locale);
+        }
+
         service('language')->setLocale($locale);
     }
 }
