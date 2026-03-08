@@ -19,6 +19,7 @@ class Home extends BaseController
     public function index(): string
     {
         $events = $this->eventModel
+            ->where('status', 'active')
             ->orderBy('start_date', 'ASC')
             ->findAll();
 
