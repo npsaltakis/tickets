@@ -1,69 +1,200 @@
-# CodeIgniter 4 Application Starter
+# Tickets
 
-## What is CodeIgniter?
+Event ticketing platform built with CodeIgniter 4.
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+## Overview
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+The application supports:
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+- public event listing
+- user registration and login
+- email verification on registration
+- free event booking
+- donation-based booking with PayPal
+- user ticket history
+- admin event creation and editing
+- admin ticket reporting
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+## Main Features
 
-## Installation & updates
+### Authentication
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+- user registration
+- login / logout
+- email verification after registration
+- forgot-password flow
+- Cloudflare Turnstile on registration
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+### Events
 
-## Setup
+- homepage shows only active events
+- event detail page with booking flow
+- admin create event
+- admin edit event
+- auto-generated slug from title
+- image URL or file upload support
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+### Booking
 
-## Important Change with index.php
+#### Free events
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+- user selects seat count
+- tickets are issued immediately
+- confirmation email is sent after booking
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+#### Donation events
 
-**Please** read the user guide for a better explanation of how CI4 works!
+- user selects seat count and donation amount
+- minimum donation is enforced per event
+- PayPal create/capture flow is used
+- tickets and payments are stored only after successful capture
+- confirmation email is sent after payment
 
-## Repository Management
+### User Area
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+- `My Events` / `My Tickets` page
+- grouped tickets per event
+- ticket codes and booking details
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
+### Admin Area
 
-## Server Requirements
+- event management from admin-visible actions
+- `Report` page in top navigation
+- `Ticket Report` tab with per-event summary
+- `Ticket Codes` tab with event-specific codes list
+- DataTables export to Excel and PDF
 
-PHP version 8.2 or higher is required, with the following extensions installed:
+## Event Fields
 
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+Current event form includes:
 
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - The end of life date for PHP 8.1 was December 31, 2025.
-> - If you are still using below PHP 8.2, you should upgrade immediately.
-> - The end of life date for PHP 8.2 will be December 31, 2026.
+- title
+- slug (generated from title)
+- description
+- image URL/path or uploaded image
+- location
+- address
+- capacity
+- start date and time
+- end date and time
+- event type (`free` or `donation`)
+- minimum donation
+- status
+- information phone (optional)
+- information URL (optional)
 
-Additionally, make sure that the following extensions are enabled in your PHP:
+## Tech Stack
 
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+- PHP 8.2+
+- CodeIgniter 4
+- MySQL / MariaDB
+- jQuery DataTables
+- PayPal Orders API
+- Cloudflare Turnstile
+- Mailpit for local email testing
+
+## Local Setup
+
+1. Install dependencies:
+
+```bash
+composer install
+```
+
+2. Create your environment file:
+
+```bash
+copy env .env
+```
+
+3. Configure in `.env`:
+
+- base URL
+- database connection
+- email settings
+- Turnstile keys
+- PayPal keys
+
+4. Run migrations:
+
+```bash
+php spark migrate
+```
+
+5. Start the local server:
+
+```bash
+php spark serve
+```
+
+## Environment Variables
+
+### App / Database
+
+Configure your normal CodeIgniter app and database settings in `.env`.
+
+### Turnstile
+
+```env
+turnstile.siteKey =
+turnstile.secretKey =
+```
+
+### PayPal
+
+The code currently supports both naming styles below:
+
+```env
+paypal.clientId =
+paypal.secret =
+paypal.baseUrl = https://api-m.sandbox.paypal.com
+```
+
+or
+
+```env
+paypal_clientId =
+paypal_secret =
+PAYPAL_BASE_URL = https://api-m.sandbox.paypal.com
+```
+
+Production PayPal base URL:
+
+```env
+PAYPAL_BASE_URL = https://api-m.paypal.com
+```
+
+## Local Email Testing
+
+For local development, use Mailpit as SMTP catcher.
+
+Registration verification emails, password reset emails, and booking confirmation emails can all be tested there.
+
+## Important Routes
+
+- `/` homepage events listing
+- `/login` login page
+- `/register` registration page
+- `/verify-email` email verification endpoint
+- `/events/{slug}` event detail page
+- `/events/create` admin create event
+- `/events/{slug}/edit` admin edit event
+- `/my-events` user tickets page
+- `/report` admin report page
+
+## Reporting
+
+The admin report page includes:
+
+- event-level ticket summary
+- detailed ticket codes per selected event
+- DataTables pagination
+- rows-per-page selector
+- Excel export
+- PDF export
+
+## Notes
+
+- uploaded event images are stored under `public/assets/images/{user_id}/`
+- page-specific JavaScript lives under `public/assets/js`
+- local project notes are kept in ignored files under `docs/`
