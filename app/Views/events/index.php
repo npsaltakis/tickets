@@ -4,6 +4,7 @@
 <main class="wrapper">
     <?php
     $isAdmin = session()->get('is_logged_in') === true && (string) session()->get('user_role') === 'admin';
+    $initialVisibleEvents = 12;
     ?>
 
     <div class="events-header">
@@ -26,16 +27,17 @@
             <?= esc(lang('App.eventsEmpty')) ?>
         </div>
     <?php else: ?>
-        <section class="grid">
-            <?php foreach ($events as $event): ?>
+        <section class="grid events-grid" id="events-grid" data-batch-size="<?= esc((string) $initialVisibleEvents) ?>">
+            <?php foreach ($events as $index => $event): ?>
                 <?php
                 $status = strtolower((string) ($event['status'] ?? 'inactive'));
                 $eventUrl = !empty($event['slug']) ? base_url('events/' . $event['slug']) : '#';
                 $startDate = $event['start_date'] ?? null;
                 $endDate = $event['end_date'] ?? null;
                 $remainingSeats = isset($event['remaining_seats']) ? (int) $event['remaining_seats'] : (int) ($event['capacity'] ?? 0);
+                $isHidden = $index >= $initialVisibleEvents;
                 ?>
-                <a class="card-link" href="<?= esc($eventUrl) ?>">
+                <a class="card-link<?= $isHidden ? ' is-lazy-hidden' : '' ?>" href="<?= esc($eventUrl) ?>" data-event-card>
                     <article class="card">
                         <?php if (!empty($event['image'])): ?>
                             <?php
@@ -87,6 +89,12 @@
                 </a>
             <?php endforeach; ?>
         </section>
+
+        <div class="events-scroll-status<?= count($events) <= $initialVisibleEvents ? ' is-hidden' : '' ?>" id="events-scroll-status">
+            <span id="events-scroll-text"><?= esc(lang('App.eventsLoadMore')) ?></span>
+        </div>
+        <div class="events-scroll-sentinel<?= count($events) <= $initialVisibleEvents ? ' is-hidden' : '' ?>" id="events-scroll-sentinel" aria-hidden="true"></div>
     <?php endif; ?>
 </main>
+<script src="<?= base_url('assets/js/events-index.js') ?>"></script>
 <?= $this->endSection() ?>

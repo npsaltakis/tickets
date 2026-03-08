@@ -13,6 +13,8 @@ return [
     'eventsPageSubtitle' => 'Η κεντρική σελίδα με όλα τα events.',
     'adminNewEventButton' => 'Νέο Event',
     'eventsEmpty' => 'Δεν υπάρχουν events.',
+    'eventsLoadMore' => 'Φόρτωση περισσότερων events...',
+    'eventsAllLoaded' => 'Εμφανίστηκαν όλα τα events.',
 
     'reportPageTitle' => 'Αναφορά Εισιτηρίων | Ticketing System',
     'reportTitle' => 'Αναφορά Εισιτηρίων',
@@ -209,6 +211,7 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
 
 
 

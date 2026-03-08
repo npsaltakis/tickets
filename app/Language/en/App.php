@@ -13,6 +13,8 @@ return [
     'eventsPageSubtitle' => 'Main page with all events.',
     'adminNewEventButton' => 'New Event',
     'eventsEmpty' => 'No events.',
+    'eventsLoadMore' => 'Loading more events...',
+    'eventsAllLoaded' => 'All events are loaded.',
 
     'reportPageTitle' => 'Ticket Report | Ticketing System',
     'reportTitle' => 'Ticket Report',
@@ -209,6 +211,7 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
 
 
 
