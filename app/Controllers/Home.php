@@ -898,7 +898,7 @@ class Home extends BaseController
         unset($row);
 
         return view('events/report', [
-            'rows' => $reportRows,
+            'reportRows' => $reportRows,
             'pageTitle' => lang('App.reportPageTitle'),
         ]);
     }
@@ -986,6 +986,8 @@ class Home extends BaseController
         ]);
     }
 }
+
+
 
 
 

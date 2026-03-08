@@ -14,7 +14,7 @@
     </div>
 
     <div class="card report-card">
-        <?php if (empty($rows)): ?>
+        <?php if (empty($reportRows)): ?>
             <p><?= esc(lang('App.reportEmpty')) ?></p>
         <?php else: ?>
             <div class="report-table-wrap">
@@ -38,14 +38,15 @@
                             <th><?= esc(lang('App.startDate')) ?></th>
                             <th><?= esc(lang('App.endDate')) ?></th>
                             <th><?= esc(lang('App.location')) ?></th>
-                            <th><?= esc(lang('App.reportCapacity')) ?></th>                            <th><?= esc(lang('App.reportFreeTickets')) ?></th>
+                            <th><?= esc(lang('App.reportCapacity')) ?></th>
+                            <th><?= esc(lang('App.reportFreeTickets')) ?></th>
                             <th><?= esc(lang('App.reportPaidTickets')) ?></th>
                             <th><?= esc(lang('App.reportRemainingSeats')) ?></th>
                             <th><?= esc(lang('App.reportDonationTotal')) ?></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($rows as $row): ?>
+                        <?php foreach ($reportRows as $row): ?>
                             <?php $status = strtolower((string) ($row['status'] ?? 'inactive')); ?>
                             <tr>
                                 <td>
@@ -80,5 +81,3 @@
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 <script src="<?= base_url('assets/js/report.js') ?>"></script>
 <?= $this->endSection() ?>
-
-

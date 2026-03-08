@@ -668,11 +668,15 @@ table.dataTable thead th {
 
 .dataTables_wrapper .dataTables_filter input,
 .dataTables_wrapper .dataTables_length select {
-    background: rgba(15, 23, 42, 0.75);
+    background: rgba(15, 23, 42, 0.92) !important;
     border: 1px solid rgba(156, 163, 175, 0.24);
     border-radius: 10px;
-    color: #f8fafc;
+    color: #f8fafc !important;
     padding: 8px 10px;
+}
+.dataTables_wrapper .dataTables_length select option {
+    background: #0f172a;
+    color: #f8fafc;
 }
 
 .dataTables_wrapper .dt-buttons {
@@ -680,6 +684,10 @@ table.dataTable thead th {
     gap: 10px;
     flex-wrap: wrap;
     margin-bottom: 16px;
+    margin-right: 18px;
+}
+.dataTables_wrapper .dataTables_length {
+    margin-left: 8px;
 }
 
 button.dt-button,
@@ -791,3 +799,5 @@ a.dt-button:hover:not(.disabled) {
         grid-template-columns: 1fr;
     }
 }
+
+

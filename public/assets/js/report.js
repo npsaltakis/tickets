@@ -8,8 +8,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var $table = window.jQuery(table);
 
     $table.DataTable({
-        dom: 'Bfrtip',
-        pageLength: 25,
+        dom: 'Blfrtip',
+        paging: true,
+        lengthChange: true,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         order: [[2, 'asc']],
         buttons: [
             {
