@@ -3,7 +3,8 @@
 return [
     'siteTitle' => 'Ticketing System',
     'navHome' => 'Home',
-    'navMyEvents' => 'My events',
+    'navReport' => 'Report',
+    'navMyEvents' => 'My Tickets',
     'navLogout' => 'Logout',
     'langEl' => 'EL',
     'langEn' => 'EN',
@@ -12,17 +13,28 @@ return [
     'eventsPageSubtitle' => 'Main page with all events.',
     'adminNewEventButton' => 'New Event',
     'eventsEmpty' => 'No events.',
-    'myEventsPageTitle' => 'My Events | Ticketing System',
-    'myEventsTitle' => 'My Events',
-    'myEventsSubtitle' => 'Events you have already booked.',
-    'myEventsEmpty' => 'You have not booked any events yet.',
-    'myEventsTicketsBooked' => 'Tickets booked',
-    'myEventsBookedAt' => 'Booked at',
-    'myEventsTicketCodes' => 'Ticket codes',
-    'myEventsDonationTotal' => 'Total donation',
-    'myEventsPaymentStatus' => 'Payment',
-    'paymentStatusPaid' => 'Paid',
-    'paymentStatusFree' => 'Free',
+
+    'reportPageTitle' => 'Ticket Report | Ticketing System',
+    'reportTitle' => 'Ticket Report',
+    'reportSubtitle' => 'Overview of issued tickets for every event.',
+    'reportUnauthorized' => 'Only admins can access the reports page.',
+    'reportEmpty' => 'No events were found for the report.',
+    'reportEvent' => 'Event',
+    'reportCapacity' => 'Capacity',
+    'reportIssuedTickets' => 'Issued Tickets',
+    'reportFreeTickets' => 'Free Tickets',
+    'reportPaidTickets' => 'Paid Tickets',
+    'reportRemainingSeats' => 'Remaining Seats',
+    'reportDonationTotal' => 'Donation Total',
+    'reportSearch' => 'Search:',
+    'reportEmptyTable' => 'No data available in table',
+    'reportInfo' => 'Showing _START_ to _END_ of _TOTAL_ entries',
+    'reportInfoEmpty' => 'Showing 0 to 0 of 0 entries',
+    'reportZeroRecords' => 'No matching records found',
+    'reportLengthMenu' => 'Show _MENU_ entries',
+    'reportExportExcel' => 'Export XLS',
+    'reportExportPdf' => 'Export PDF',
+
     'myEventsPageTitle' => 'My Events | Ticketing System',
     'myEventsTitle' => 'My Events',
     'myEventsSubtitle' => 'Events you have already booked.',
@@ -181,6 +193,3 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
-
-
-

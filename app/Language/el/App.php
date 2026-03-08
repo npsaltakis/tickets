@@ -3,6 +3,7 @@
 return [
     'siteTitle' => 'Ticketing System',
     'navHome' => 'Κεντρική',
+    'navReport' => 'Report',
     'navMyEvents' => 'Τα Tickets Μου',
     'navLogout' => 'Αποσύνδεση',
     'langEl' => 'EL',
@@ -12,6 +13,28 @@ return [
     'eventsPageSubtitle' => 'Η κεντρική σελίδα με όλα τα events.',
     'adminNewEventButton' => 'Νέο Event',
     'eventsEmpty' => 'Δεν υπάρχουν events.',
+
+    'reportPageTitle' => 'Αναφορά Εισιτηρίων | Ticketing System',
+    'reportTitle' => 'Αναφορά Εισιτηρίων',
+    'reportSubtitle' => 'Συγκεντρωτική εικόνα για τα εισιτήρια που έχουν κοπεί σε κάθε event.',
+    'reportUnauthorized' => 'Μόνο οι διαχειριστές μπορούν να δουν τη σελίδα αναφορών.',
+    'reportEmpty' => 'Δεν βρέθηκαν events για την αναφορά.',
+    'reportEvent' => 'Event',
+    'reportCapacity' => 'Χωρητικότητα',
+    'reportIssuedTickets' => 'Κομμένα Εισιτήρια',
+    'reportFreeTickets' => 'Δωρεάν Εισιτήρια',
+    'reportPaidTickets' => 'Πληρωμένα Εισιτήρια',
+    'reportRemainingSeats' => 'Διαθέσιμες Θέσεις',
+    'reportDonationTotal' => 'Σύνολο Δωρεών',
+    'reportSearch' => 'Αναζήτηση:',
+    'reportEmptyTable' => 'Δεν υπάρχουν δεδομένα στον πίνακα',
+    'reportInfo' => 'Εμφάνιση _START_ έως _END_ από _TOTAL_ εγγραφές',
+    'reportInfoEmpty' => 'Εμφάνιση 0 έως 0 από 0 εγγραφές',
+    'reportZeroRecords' => 'Δεν βρέθηκαν αντίστοιχες εγγραφές',
+    'reportLengthMenu' => 'Εμφάνιση _MENU_ εγγραφών',
+    'reportExportExcel' => 'Export XLS',
+    'reportExportPdf' => 'Export PDF',
+
     'myEventsPageTitle' => 'Τα Tickets Μου | Ticketing System',
     'myEventsTitle' => 'Τα Tickets Μου',
     'myEventsSubtitle' => 'Τα events που έχεις ήδη κλείσει.',
@@ -170,6 +193,3 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
-
-
-

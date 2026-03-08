@@ -790,6 +790,41 @@ class Home extends BaseController
         return $amounts;
     }
 
+    public function report(): RedirectResponse|string
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'))->with('login_error', lang('App.reportUnauthorized'));
+        }
+
+        $db = db_connect();
+        $eventsTable = $db->prefixTable('events');
+        $ticketsTable = $db->prefixTable('tickets');
+
+        $reportRows = $db->table($eventsTable . ' events')
+            ->select("events.id, events.slug, events.title, events.location, events.start_date, events.end_date, events.capacity, events.event_type, events.status, COUNT(CASE WHEN tickets.status = 'valid' THEN tickets.id END) AS issued_tickets, SUM(CASE WHEN tickets.status = 'valid' AND tickets.payment_status = 'free' THEN 1 ELSE 0 END) AS free_tickets, SUM(CASE WHEN tickets.status = 'valid' AND tickets.payment_status = 'paid' THEN 1 ELSE 0 END) AS paid_tickets, SUM(CASE WHEN tickets.status = 'valid' THEN tickets.donation_amount ELSE 0 END) AS donation_total", false)
+            ->join($ticketsTable . ' tickets', 'tickets.event_id = events.id', 'left', false)
+            ->groupBy('events.id')
+            ->orderBy('events.start_date', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        foreach ($reportRows as &$row) {
+            $row['issued_tickets'] = (int) ($row['issued_tickets'] ?? 0);
+            $row['free_tickets'] = (int) ($row['free_tickets'] ?? 0);
+            $row['paid_tickets'] = (int) ($row['paid_tickets'] ?? 0);
+            $row['capacity'] = (int) ($row['capacity'] ?? 0);
+            $row['remaining_seats'] = max($row['capacity'] - $row['issued_tickets'], 0);
+            $row['donation_total'] = number_format((float) ($row['donation_total'] ?? 0), 2, '.', '');
+        }
+
+        unset($row);
+
+        return view('events/report', [
+            'rows' => $reportRows,
+            'pageTitle' => lang('App.reportPageTitle'),
+        ]);
+    }
+
     public function myEvents(): RedirectResponse|string
     {
         if (session()->get('is_logged_in') !== true) {
@@ -871,3 +906,7 @@ class Home extends BaseController
         ]);
     }
 }
+
+
+
+

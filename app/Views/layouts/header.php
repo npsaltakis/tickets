@@ -5,6 +5,7 @@ $selectedLanguage = $currentLocale === 'en' ? 'en' : 'el';
 
 $session = session();
 $isLoggedIn = $session->get('is_logged_in') === true;
+$isAdmin = $isLoggedIn && (string) $session->get('user_role') === 'admin';
 $userName = trim((string) ($session->get('user_name') ?? ''));
 $userEmail = (string) ($session->get('user_email') ?? '');
 $avatarTitle = $userName !== '' ? $userName : ($userEmail !== '' ? $userEmail : 'User');
@@ -25,7 +26,10 @@ $avatarTitle = $userName !== '' ? $userName : ($userEmail !== '' ? $userEmail : 
             <nav aria-label="Main navigation">
                 <ul class="menu">
                     <li><a class="menu-link is-active" href="<?= base_url('/') ?>"><?= esc(lang('App.navHome')) ?></a></li>
-                    <?php if (!$isLoggedIn): ?>
+                    <?php if ($isAdmin): ?>
+                        <li><a class="menu-link" href="<?= base_url('report') ?>"><?= esc(lang('App.navReport')) ?></a></li>
+                    <?php endif; ?>
+                    <?php if (! $isLoggedIn): ?>
                         <li><a class="menu-link" href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a></li>
                     <?php endif; ?>
                 </ul>
@@ -53,4 +57,3 @@ $avatarTitle = $userName !== '' ? $userName : ($userEmail !== '' ? $userEmail : 
         </div>
     </div>
 </header>
-
