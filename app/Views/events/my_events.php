@@ -53,6 +53,10 @@
                             <p class="meta"><?= esc(lang('App.location')) ?>: <?= esc($event['location']) ?></p>
                         <?php endif; ?>
 
+                        <?php if (!empty($event['address'])): ?>
+                            <p class="meta"><?= esc(lang('App.address')) ?>: <?= esc($event['address']) ?></p>
+                        <?php endif; ?>
+
                         <p class="meta"><?= esc(lang('App.myEventsTicketsBooked')) ?>: <?= esc((string) ($event['tickets_count'] ?? 0)) ?></p>
                         <p class="meta"><?= esc(lang('App.myEventsDonationTotal')) ?>: €<?= esc(number_format((float) ($event['donation_total'] ?? 0), 2)) ?></p>
                         <p class="meta"><?= esc(lang('App.myEventsPaymentStatus')) ?>: <?= esc($paymentLabel) ?></p>

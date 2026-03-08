@@ -3,7 +3,20 @@
 <?= $this->section('content') ?>
 <main class="wrapper">
     <?php
-    $oldSlug = (string) old('slug');
+    $isEditMode = (bool) ($isEditMode ?? false);
+    $event = is_array($event ?? null) ? $event : [];
+    $oldSlug = (string) old('slug', (string) ($event['slug'] ?? ''));
+    $imageValue = (string) old('image', (string) ($event['image'] ?? ''));
+    $startDateValue = (string) old('start_date', ! empty($event['start_date']) ? date('Y-m-d', strtotime((string) $event['start_date'])) : '');
+    $startTimeValue = (string) old('start_time', ! empty($event['start_date']) ? date('H:i', strtotime((string) $event['start_date'])) : '');
+    $endDateValue = (string) old('end_date', ! empty($event['end_date']) ? date('Y-m-d', strtotime((string) $event['end_date'])) : '');
+    $endTimeValue = (string) old('end_time', ! empty($event['end_date']) ? date('H:i', strtotime((string) $event['end_date'])) : '');
+    $selectedType = (string) old('event_type', (string) ($event['event_type'] ?? 'free'));
+    $selectedStatus = (string) old('status', (string) ($event['status'] ?? 'active'));
+    $formAction = $isEditMode ? base_url('events/' . $event['slug'] . '/update') : base_url('events');
+    $heading = $isEditMode ? lang('App.eventEditTitle') : lang('App.eventCreateTitle');
+    $subtitle = $isEditMode ? lang('App.eventEditSubtitle') : lang('App.eventCreateSubtitle');
+    $submitLabel = $isEditMode ? lang('App.eventEditSubmitButton') : lang('App.eventCreateSubmitButton');
     $timeOptions = [];
     for ($hour = 0; $hour < 24; $hour++) {
         foreach ([0, 15, 30, 45] as $minute) {
@@ -15,20 +28,20 @@
 
     <section class="event-form-card">
         <div class="event-form-header">
-            <h1 class="auth-title"><?= esc(lang('App.eventCreateTitle')) ?></h1>
-            <p class="subtitle"><?= esc(lang('App.eventCreateSubtitle')) ?></p>
+            <h1 class="auth-title"><?= esc($heading) ?></h1>
+            <p class="subtitle"><?= esc($subtitle) ?></p>
         </div>
 
         <?php if (session()->getFlashdata('event_error')): ?>
             <p class="auth-error"><?= esc((string) session()->getFlashdata('event_error')) ?></p>
         <?php endif; ?>
 
-        <form method="post" action="<?= base_url('events') ?>" class="event-form-grid" enctype="multipart/form-data">
+        <form method="post" action="<?= $formAction ?>" class="event-form-grid" enctype="multipart/form-data">
             <?= csrf_field() ?>
 
             <div class="event-field event-field-full">
                 <label for="title" class="auth-label"><?= esc(lang('App.eventCreateTitleLabel')) ?></label>
-                <input id="title" name="title" type="text" class="auth-input" value="<?= esc((string) old('title')) ?>" required>
+                <input id="title" name="title" type="text" class="auth-input" value="<?= esc((string) old('title', (string) ($event['title'] ?? ''))) ?>" required>
             </div>
 
             <div class="event-field">
@@ -39,12 +52,28 @@
 
             <div class="event-field">
                 <label for="location" class="auth-label"><?= esc(lang('App.eventCreateLocationLabel')) ?></label>
-                <input id="location" name="location" type="text" class="auth-input" value="<?= esc((string) old('location')) ?>" required>
+                <input id="location" name="location" type="text" class="auth-input" value="<?= esc((string) old('location', (string) ($event['location'] ?? ''))) ?>" required>
+            </div>
+
+            <div class="event-field event-field-full">
+                <label for="address" class="auth-label"><?= esc(lang('App.eventCreateAddressLabel')) ?></label>
+                <input id="address" name="address" type="text" class="auth-input" value="<?= esc((string) old('address', (string) ($event['address'] ?? ''))) ?>" required>
+            </div>
+
+            <div class="event-field">
+                <label for="info_phone" class="auth-label"><?= esc(lang('App.eventCreateInfoPhoneLabel')) ?></label>
+                <input id="info_phone" name="info_phone" type="text" class="auth-input" value="<?= esc((string) old('info_phone', (string) ($event['info_phone'] ?? ''))) ?>">
+            </div>
+
+            <div class="event-field">
+                <label for="info_url" class="auth-label"><?= esc(lang('App.eventCreateInfoUrlLabel')) ?></label>
+                <input id="info_url" name="info_url" type="url" class="auth-input" value="<?= esc((string) old('info_url', (string) ($event['info_url'] ?? ''))) ?>" placeholder="https://example.com/details">
+                <p class="field-hint"><?= esc(lang('App.eventCreateInfoUrlHint')) ?></p>
             </div>
 
             <div class="event-field event-field-full">
                 <label for="image" class="auth-label"><?= esc(lang('App.eventCreateImageLabel')) ?></label>
-                <input id="image" name="image" type="url" class="auth-input" value="<?= esc((string) old('image')) ?>" placeholder="https://example.com/event.jpg">
+                <input id="image" name="image" type="url" class="auth-input" value="<?= esc($imageValue) ?>" placeholder="https://example.com/event.jpg">
                 <p class="field-hint"><?= esc(lang('App.eventCreateImageHint')) ?></p>
             </div>
 
@@ -55,21 +84,20 @@
             </div>
 
             <div class="event-field event-field-full">
-                <div id="image-preview-card" class="image-preview-card is-empty">
-                    <img id="image-preview" class="image-preview-media" alt="<?= esc(lang('App.eventCreatePreviewAlt')) ?>">
+                <div id="image-preview-card" class="image-preview-card <?= $imageValue !== '' ? '' : 'is-empty' ?>">
+                    <img id="image-preview" class="image-preview-media" alt="<?= esc(lang('App.eventCreatePreviewAlt')) ?>" <?= $imageValue !== '' ? 'src="' . esc($imageValue, 'attr') . '"' : '' ?>>
                     <div id="image-preview-placeholder" class="image-preview-placeholder"><?= esc(lang('App.noImage')) ?></div>
                 </div>
             </div>
 
             <div class="event-field">
                 <label for="capacity" class="auth-label"><?= esc(lang('App.eventCreateCapacityLabel')) ?></label>
-                <input id="capacity" name="capacity" type="number" min="1" class="auth-input" value="<?= esc((string) old('capacity', '1')) ?>" required>
+                <input id="capacity" name="capacity" type="number" min="1" class="auth-input" value="<?= esc((string) old('capacity', (string) ($event['capacity'] ?? '1'))) ?>" required>
             </div>
 
             <div class="event-field">
                 <label for="event_type" class="auth-label"><?= esc(lang('App.eventCreateTypeLabel')) ?></label>
                 <select id="event_type" name="event_type" class="auth-input" required>
-                    <?php $selectedType = (string) old('event_type', 'free'); ?>
                     <option value="free" <?= $selectedType === 'free' ? 'selected' : '' ?>><?= esc(lang('App.freeEvent')) ?></option>
                     <option value="donation" <?= $selectedType === 'donation' ? 'selected' : '' ?>><?= esc(lang('App.eventCreateDonationType')) ?></option>
                 </select>
@@ -79,12 +107,11 @@
                 <div class="event-datetime-card">
                     <label for="start_date" class="auth-label"><?= esc(lang('App.startDate')) ?></label>
                     <div class="event-datetime-inputs">
-                        <input id="start_date" name="start_date" type="date" class="auth-input" value="<?= esc((string) old('start_date')) ?>" required>
+                        <input id="start_date" name="start_date" type="date" class="auth-input" value="<?= esc($startDateValue) ?>" required>
                         <select id="start_time" name="start_time" class="auth-input" required>
                             <option value=""><?= esc(lang('App.eventCreateSelectTime')) ?></option>
-                            <?php $selectedStartTime = (string) old('start_time'); ?>
                             <?php foreach ($timeOptions as $timeOption): ?>
-                                <option value="<?= esc($timeOption) ?>" <?= $selectedStartTime === $timeOption ? 'selected' : '' ?>><?= esc($timeOption) ?></option>
+                                <option value="<?= esc($timeOption) ?>" <?= $startTimeValue === $timeOption ? 'selected' : '' ?>><?= esc($timeOption) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -93,12 +120,11 @@
                 <div class="event-datetime-card">
                     <label for="end_date" class="auth-label"><?= esc(lang('App.endDate')) ?></label>
                     <div class="event-datetime-inputs">
-                        <input id="end_date" name="end_date" type="date" class="auth-input" value="<?= esc((string) old('end_date')) ?>" required>
+                        <input id="end_date" name="end_date" type="date" class="auth-input" value="<?= esc($endDateValue) ?>" required>
                         <select id="end_time" name="end_time" class="auth-input" required>
                             <option value=""><?= esc(lang('App.eventCreateSelectTime')) ?></option>
-                            <?php $selectedEndTime = (string) old('end_time'); ?>
                             <?php foreach ($timeOptions as $timeOption): ?>
-                                <option value="<?= esc($timeOption) ?>" <?= $selectedEndTime === $timeOption ? 'selected' : '' ?>><?= esc($timeOption) ?></option>
+                                <option value="<?= esc($timeOption) ?>" <?= $endTimeValue === $timeOption ? 'selected' : '' ?>><?= esc($timeOption) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -107,13 +133,12 @@
 
             <div class="event-field">
                 <label for="min_donation" class="auth-label"><?= esc(lang('App.eventCreateDonationLabel')) ?></label>
-                <input id="min_donation" name="min_donation" type="number" min="0" step="0.01" class="auth-input" value="<?= esc((string) old('min_donation')) ?>" placeholder="0.00">
+                <input id="min_donation" name="min_donation" type="number" min="0" step="0.01" class="auth-input" value="<?= esc((string) old('min_donation', (string) ($event['min_donation'] ?? ''))) ?>" placeholder="0.00">
                 <p class="field-hint"><?= esc(lang('App.eventCreateDonationHint')) ?></p>
             </div>
 
             <div class="event-field">
                 <label for="status" class="auth-label"><?= esc(lang('App.eventCreateStatusLabel')) ?></label>
-                <?php $selectedStatus = (string) old('status', 'active'); ?>
                 <select id="status" name="status" class="auth-input" required>
                     <option value="active" <?= $selectedStatus === 'active' ? 'selected' : '' ?>><?= esc(lang('App.eventStatusActive')) ?></option>
                     <option value="inactive" <?= $selectedStatus === 'inactive' ? 'selected' : '' ?>><?= esc(lang('App.eventStatusInactive')) ?></option>
@@ -123,11 +148,11 @@
 
             <div class="event-field event-field-full">
                 <label for="description" class="auth-label"><?= esc(lang('App.eventCreateDescriptionLabel')) ?></label>
-                <textarea id="description" name="description" class="auth-input event-textarea" rows="7" required><?= esc((string) old('description')) ?></textarea>
+                <textarea id="description" name="description" class="auth-input event-textarea" rows="7" required><?= esc((string) old('description', (string) ($event['description'] ?? ''))) ?></textarea>
             </div>
 
             <div class="event-actions event-field-full">
-                <button type="submit" class="book-btn auth-submit"><?= esc(lang('App.eventCreateSubmitButton')) ?></button>
+                <button type="submit" class="book-btn auth-submit"><?= esc($submitLabel) ?></button>
             </div>
         </form>
     </section>

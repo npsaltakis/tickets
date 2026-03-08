@@ -59,9 +59,22 @@ class Home extends BaseController
             return redirect()->to(base_url('/'))->with('login_error', lang('App.eventCreateUnauthorized'));
         }
 
-        return view('events/create', [
-            'pageTitle' => lang('App.eventCreatePageTitle'),
-        ]);
+        return $this->renderEventForm();
+    }
+
+    public function edit(string $slug): string|RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'))->with('login_error', lang('App.eventCreateUnauthorized'));
+        }
+
+        $event = $this->eventModel->where('slug', $slug)->first();
+
+        if (empty($event)) {
+            throw PageNotFoundException::forPageNotFound('Event not found');
+        }
+
+        return $this->renderEventForm($event);
     }
 
     public function store(): RedirectResponse
@@ -70,12 +83,46 @@ class Home extends BaseController
             return redirect()->to(base_url('/'))->with('login_error', lang('App.eventCreateUnauthorized'));
         }
 
+        return $this->saveEvent();
+    }
+
+    public function update(string $slug): RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'))->with('login_error', lang('App.eventCreateUnauthorized'));
+        }
+
+        $event = $this->eventModel->where('slug', $slug)->first();
+
+        if (empty($event)) {
+            throw PageNotFoundException::forPageNotFound('Event not found');
+        }
+
+        return $this->saveEvent($event);
+    }
+
+    private function renderEventForm(?array $event = null): string
+    {
+        $isEditMode = ! empty($event);
+
+        return view('events/create', [
+            'event' => $event,
+            'isEditMode' => $isEditMode,
+            'pageTitle' => $isEditMode ? lang('App.eventEditPageTitle') : lang('App.eventCreatePageTitle'),
+        ]);
+    }
+
+    private function saveEvent(?array $existingEvent = null): RedirectResponse
+    {
         helper('text');
 
         $title = trim((string) $this->request->getPost('title'));
         $description = trim((string) $this->request->getPost('description'));
         $imageUrl = trim((string) $this->request->getPost('image'));
         $location = trim((string) $this->request->getPost('location'));
+        $address = trim((string) $this->request->getPost('address'));
+        $infoPhone = trim((string) $this->request->getPost('info_phone'));
+        $infoUrl = trim((string) $this->request->getPost('info_url'));
         $startDatePart = trim((string) $this->request->getPost('start_date'));
         $startTimePart = trim((string) $this->request->getPost('start_time'));
         $endDatePart = trim((string) $this->request->getPost('end_date'));
@@ -90,6 +137,7 @@ class Home extends BaseController
             $title === ''
             || $description === ''
             || $location === ''
+            || $address === ''
             || $startDatePart === ''
             || $startTimePart === ''
             || $endDatePart === ''
@@ -103,6 +151,14 @@ class Home extends BaseController
 
         if (! ctype_digit($capacity) || (int) $capacity < 1) {
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidCapacity'));
+        }
+
+        if ($infoPhone !== '' && ! preg_match('/^[0-9+()\s.-]{6,25}$/', $infoPhone)) {
+            return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidInfoPhone'));
+        }
+
+        if ($infoUrl !== '' && ! filter_var($infoUrl, FILTER_VALIDATE_URL)) {
+            return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidInfoUrl'));
         }
 
         $allowedTypes = ['free', 'donation'];
@@ -136,7 +192,7 @@ class Home extends BaseController
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateImageSourceConflict'));
         }
 
-        $finalImage = null;
+        $finalImage = $existingEvent['image'] ?? null;
 
         if ($imageUrl !== '') {
             if (! filter_var($imageUrl, FILTER_VALIDATE_URL)) {
@@ -156,6 +212,38 @@ class Home extends BaseController
             }
         }
 
+        $slug = $this->generateUniqueSlug($title, isset($existingEvent['id']) ? (int) $existingEvent['id'] : null);
+
+        $payload = [
+            'title' => $title,
+            'slug' => $slug,
+            'description' => $description,
+            'image' => $finalImage,
+            'location' => $location,
+            'address' => $address,
+            'info_phone' => $infoPhone !== '' ? $infoPhone : null,
+            'info_url' => $infoUrl !== '' ? $infoUrl : null,
+            'start_date' => date('Y-m-d H:i:s', $startTimestamp),
+            'end_date' => date('Y-m-d H:i:s', $endTimestamp),
+            'capacity' => (int) $capacity,
+            'event_type' => $eventType,
+            'min_donation' => $normalizedMinDonation,
+            'status' => $status,
+        ];
+
+        if ($existingEvent === null) {
+            $this->eventModel->insert($payload);
+
+            return redirect()->to(base_url('events/' . $slug))->with('event_info', lang('App.eventCreateSuccess'));
+        }
+
+        $this->eventModel->update((int) $existingEvent['id'], $payload);
+
+        return redirect()->to(base_url('events/' . $slug))->with('event_info', lang('App.eventUpdateSuccess'));
+    }
+
+    private function generateUniqueSlug(string $title, ?int $ignoreEventId = null): string
+    {
         $baseSlug = url_title($title, '-', true);
         if ($baseSlug === '') {
             $baseSlug = 'event';
@@ -163,26 +251,16 @@ class Home extends BaseController
 
         $slug = $baseSlug;
         $counter = 2;
-        while ($this->eventModel->where('slug', $slug)->first() !== null) {
+
+        while (true) {
+            $existing = $this->eventModel->where('slug', $slug)->first();
+            if ($existing === null || ($ignoreEventId !== null && (int) ($existing['id'] ?? 0) === $ignoreEventId)) {
+                return $slug;
+            }
+
             $slug = $baseSlug . '-' . $counter;
             $counter++;
         }
-
-        $this->eventModel->insert([
-            'title' => $title,
-            'slug' => $slug,
-            'description' => $description,
-            'image' => $finalImage,
-            'location' => $location,
-            'start_date' => date('Y-m-d H:i:s', $startTimestamp),
-            'end_date' => date('Y-m-d H:i:s', $endTimestamp),
-            'capacity' => (int) $capacity,
-            'event_type' => $eventType,
-            'min_donation' => $normalizedMinDonation,
-            'status' => $status,
-        ]);
-
-        return redirect()->to(base_url('events/' . $slug))->with('event_info', lang('App.eventCreateSuccess'));
     }
 
     public function book(string $slug): RedirectResponse
@@ -844,6 +922,7 @@ class Home extends BaseController
                 'events.title',
                 'events.image',
                 'events.location',
+                'events.address',
                 'events.start_date',
                 'events.end_date',
                 'events.event_type',
@@ -871,6 +950,7 @@ class Home extends BaseController
                     'title' => (string) ($row['title'] ?? ''),
                     'image' => (string) ($row['image'] ?? ''),
                     'location' => (string) ($row['location'] ?? ''),
+                    'address' => (string) ($row['address'] ?? ''),
                     'start_date' => $row['start_date'] ?? null,
                     'end_date' => $row['end_date'] ?? null,
                     'event_type' => (string) ($row['event_type'] ?? 'free'),
@@ -906,6 +986,11 @@ class Home extends BaseController
         ]);
     }
 }
+
+
+
+
+
 
 
 

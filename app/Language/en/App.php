@@ -52,6 +52,10 @@ return [
     'startDate' => 'Start Date',
     'endDate' => 'End Date',
     'location' => 'Location',
+    'address' => 'Address',
+    'phone' => 'Phone',
+    'infoUrl' => 'Info URL',
+    'eventMoreInfo' => 'More information',
     'type' => 'Type',
     'status' => 'Status',
 
@@ -90,8 +94,11 @@ return [
     'paypalGenericError' => 'Something went wrong during PayPal checkout. Please try again.',
 
     'eventCreatePageTitle' => 'Create Event | Ticketing System',
+    'eventEditPageTitle' => 'Edit Event | Ticketing System',
     'eventCreateTitle' => 'Create New Event',
+    'eventEditTitle' => 'Edit Event',
     'eventCreateSubtitle' => 'Fill in the details below to publish a new event.',
+    'eventEditSubtitle' => 'Update the event details.',
     'eventCreateTitleLabel' => 'Event Title',
     'eventCreateSlugLabel' => 'Slug',
     'eventCreateSlugHint' => 'Generated automatically from the event title.',
@@ -102,6 +109,10 @@ return [
     'eventCreatePreviewAlt' => 'Event image preview',
     'eventCreateSelectTime' => 'Select time',
     'eventCreateLocationLabel' => 'Location',
+    'eventCreateAddressLabel' => 'Address',
+    'eventCreateInfoPhoneLabel' => 'Information Phone',
+    'eventCreateInfoUrlLabel' => 'Information URL',
+    'eventCreateInfoUrlHint' => 'Optional URL that opens in a new tab for extra event details.',
     'eventCreateCapacityLabel' => 'Capacity',
     'eventCreateTypeLabel' => 'Event Type',
     'eventCreateDonationType' => 'Donation',
@@ -110,6 +121,8 @@ return [
     'eventCreateStatusLabel' => 'Status',
     'eventCreateDescriptionLabel' => 'Description',
     'eventCreateSubmitButton' => 'Create Event',
+    'eventEditSubmitButton' => 'Save Changes',
+    'eventEditButton' => 'Edit Event',
     'eventStatusActive' => 'Active',
     'eventStatusInactive' => 'Inactive',
     'eventStatusCancelled' => 'Cancelled',
@@ -121,9 +134,12 @@ return [
     'eventCreateInvalidDonation' => 'Enter a valid minimum donation amount.',
     'eventCreateInvalidImageUrl' => 'Enter a valid image URL.',
     'eventCreateInvalidImageUpload' => 'Upload a valid image file in JPG, PNG, GIF, or WEBP format.',
+    'eventCreateInvalidInfoPhone' => 'Enter a valid information phone number.',
+    'eventCreateInvalidInfoUrl' => 'Enter a valid information URL.',
     'eventCreateImageSourceConflict' => 'Choose either an image URL or an uploaded image, not both.',
     'eventCreateUnauthorized' => 'Only admins can create events.',
     'eventCreateSuccess' => 'The event was created successfully.',
+    'eventUpdateSuccess' => 'The event was updated successfully.',
 
     'loginPageTitle' => 'Login | Ticketing System',
     'loginTitle' => 'Login',
@@ -193,3 +209,7 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
+
+
+

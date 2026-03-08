@@ -20,6 +20,9 @@ class EventModel extends Model
         'description',
         'image',
         'location',
+        'address',
+        'info_phone',
+        'info_url',
         'start_date',
         'end_date',
         'capacity',
@@ -55,3 +58,4 @@ class EventModel extends Model
     protected $beforeDelete = [];
     protected $afterDelete = [];
 }
+

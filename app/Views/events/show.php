@@ -8,6 +8,7 @@
     $canBook = $remainingSeats > 0 && $status === 'active';
     $isDonationEvent = ($event['event_type'] ?? 'free') === 'donation';
     $isLoggedIn = session()->get('is_logged_in') === true;
+    $isAdmin = $isLoggedIn && (string) session()->get('user_role') === 'admin';
     $paypalClientId = trim((string) ($paypalClientId ?? ''));
     $rawImage = (string) ($event['image'] ?? '');
     $imageUrl = $rawImage !== ''
@@ -15,6 +16,7 @@
         : '';
     $startDate = $event['start_date'] ?? null;
     $endDate = $event['end_date'] ?? null;
+    $infoUrl = trim((string) ($event['info_url'] ?? ''));
     ?>
 
     <a class="back-link" href="<?= base_url('/') ?>">&larr; <?= esc(lang('App.backToEvents')) ?></a>
@@ -40,6 +42,12 @@
                 <span class="status <?= esc($status) ?>"><?= esc($status) ?></span>
             </div>
 
+            <?php if ($isAdmin): ?>
+                <p class="event-admin-actions">
+                    <a class="book-btn event-edit-btn" href="<?= base_url('events/' . $event['slug'] . '/edit') ?>"><?= esc(lang('App.eventEditButton')) ?></a>
+                </p>
+            <?php endif; ?>
+
             <?php if (!empty($startDate)): ?>
                 <p class="meta"><strong><?= esc(lang('App.startDate')) ?>:</strong> <?= esc(date('d/m/Y H:i', strtotime((string) $startDate))) ?></p>
             <?php endif; ?>
@@ -50,6 +58,18 @@
 
             <?php if (!empty($event['location'])): ?>
                 <p class="meta"><strong><?= esc(lang('App.location')) ?>:</strong> <?= esc($event['location']) ?></p>
+            <?php endif; ?>
+
+            <?php if (!empty($event['address'])): ?>
+                <p class="meta"><strong><?= esc(lang('App.address')) ?>:</strong> <?= esc($event['address']) ?></p>
+            <?php endif; ?>
+
+            <?php if (!empty($event['info_phone'])): ?>
+                <p class="meta"><strong><?= esc(lang('App.phone')) ?>:</strong> <?= esc($event['info_phone']) ?></p>
+            <?php endif; ?>
+
+            <?php if ($infoUrl !== ''): ?>
+                <p class="meta"><strong><?= esc(lang('App.infoUrl')) ?>:</strong> <a href="<?= esc($infoUrl) ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventMoreInfo')) ?></a></p>
             <?php endif; ?>
 
             <p class="meta"><strong><?= esc(lang('App.type')) ?>:</strong> <?= esc($event['event_type'] ?? 'free') ?></p>

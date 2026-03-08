@@ -52,6 +52,10 @@ return [
     'startDate' => 'Έναρξη',
     'endDate' => 'Λήξη',
     'location' => 'Τοποθεσία',
+    'address' => 'Διεύθυνση',
+    'phone' => 'Τηλέφωνο',
+    'infoUrl' => 'URL Πληροφοριών',
+    'eventMoreInfo' => 'Περισσότερες πληροφορίες',
     'type' => 'Τύπος',
     'status' => 'Κατάσταση',
 
@@ -90,8 +94,11 @@ return [
     'paypalGenericError' => 'Κάτι πήγε λάθος κατά το PayPal checkout. Προσπάθησε ξανά.',
 
     'eventCreatePageTitle' => 'Νέο Event | Ticketing System',
+    'eventEditPageTitle' => 'Επεξεργασία Event | Ticketing System',
     'eventCreateTitle' => 'Δημιουργία Νέου Event',
+    'eventEditTitle' => 'Επεξεργασία Event',
     'eventCreateSubtitle' => 'Συμπλήρωσε τα παρακάτω στοιχεία για να δημοσιεύσεις νέο event.',
+    'eventEditSubtitle' => 'Ενημέρωσε τα στοιχεία του event.',
     'eventCreateTitleLabel' => 'Τίτλος Event',
     'eventCreateSlugLabel' => 'Slug',
     'eventCreateSlugHint' => 'Δημιουργείται αυτόματα από τον τίτλο του event.',
@@ -102,6 +109,10 @@ return [
     'eventCreatePreviewAlt' => 'Προεπισκόπηση εικόνας event',
     'eventCreateSelectTime' => 'Επίλεξε ώρα',
     'eventCreateLocationLabel' => 'Τοποθεσία',
+    'eventCreateAddressLabel' => 'Διεύθυνση',
+    'eventCreateInfoPhoneLabel' => 'Τηλέφωνο Πληροφοριών',
+    'eventCreateInfoUrlLabel' => 'URL Πληροφοριών',
+    'eventCreateInfoUrlHint' => 'Προαιρετικό URL που ανοίγει σε νέο tab για επιπλέον πληροφορίες.',
     'eventCreateCapacityLabel' => 'Χωρητικότητα',
     'eventCreateTypeLabel' => 'Τύπος Event',
     'eventCreateDonationType' => 'Δωρεά',
@@ -110,6 +121,8 @@ return [
     'eventCreateStatusLabel' => 'Κατάσταση',
     'eventCreateDescriptionLabel' => 'Περιγραφή',
     'eventCreateSubmitButton' => 'Δημιουργία Event',
+    'eventEditSubmitButton' => 'Αποθήκευση Αλλαγών',
+    'eventEditButton' => 'Επεξεργασία Event',
     'eventStatusActive' => 'Ενεργό',
     'eventStatusInactive' => 'Ανενεργό',
     'eventStatusCancelled' => 'Ακυρωμένο',
@@ -121,9 +134,12 @@ return [
     'eventCreateInvalidDonation' => 'Δώσε έγκυρο ποσό ελάχιστης δωρεάς.',
     'eventCreateInvalidImageUrl' => 'Δώσε έγκυρο image URL.',
     'eventCreateInvalidImageUpload' => 'Ανέβασε έγκυρο αρχείο εικόνας JPG, PNG, GIF ή WEBP.',
+    'eventCreateInvalidInfoPhone' => 'Δώσε έγκυρο τηλέφωνο πληροφοριών.',
+    'eventCreateInvalidInfoUrl' => 'Δώσε έγκυρο URL πληροφοριών.',
     'eventCreateImageSourceConflict' => 'Επίλεξε είτε image URL είτε upload εικόνας, όχι και τα δύο.',
     'eventCreateUnauthorized' => 'Μόνο οι διαχειριστές μπορούν να δημιουργούν events.',
     'eventCreateSuccess' => 'Το event δημιουργήθηκε επιτυχώς.',
+    'eventUpdateSuccess' => 'Το event ενημερώθηκε επιτυχώς.',
 
     'loginPageTitle' => 'Σύνδεση | Ticketing System',
     'loginTitle' => 'Σύνδεση',
@@ -193,3 +209,7 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
+
+
+

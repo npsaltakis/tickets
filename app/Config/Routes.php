@@ -10,6 +10,8 @@ $routes->get('my-events', 'Home::myEvents');
 $routes->get('report', 'Home::report');
 $routes->get('events/create', 'Home::create');
 $routes->post('events', 'Home::store');
+$routes->get('events/(:segment)/edit', 'Home::edit/$1');
+$routes->post('events/(:segment)/update', 'Home::update/$1');
 $routes->post('events/(:segment)/book', 'Home::book/$1');
 $routes->post('events/(:segment)/paypal/order', 'Home::createDonationOrder/$1');
 $routes->post('events/(:segment)/paypal/capture', 'Home::captureDonationOrder/$1');
