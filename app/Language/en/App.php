@@ -23,6 +23,9 @@ return [
 
     'donationFrom' => 'Donation from',
     'freeEvent' => 'Free Event',
+    'donationAmountLabel' => 'Donation Amount',
+    'donationAmountRequired' => 'Enter a donation amount.',
+    'donationMinimumError' => 'Minimum donation is {min}.',
 
     'backToEvents' => 'Back to events page',
     'seatsRemaining' => 'Seats remaining',
@@ -43,9 +46,14 @@ return [
     'bookingEmailStartLabel' => 'Start',
     'bookingEmailEndLabel' => 'End',
     'bookingEmailLocationLabel' => 'Location',
+    'bookingEmailDonationLabel' => 'Donation',
     'bookingEmailTicketCodesLabel' => 'Ticket codes',
     'bookingEmailFooter' => 'Keep this email for your records.',
     'donationBookingPending' => 'Donation booking will be added next. Free events already book directly.',
+    'paypalConfigurationError' => 'PayPal is not configured yet for this environment.',
+    'paypalOrderCreateFailed' => 'Could not create the PayPal order. Please try again.',
+    'paypalCaptureFailed' => 'Could not confirm the PayPal payment. Please try again.',
+    'paypalGenericError' => 'Something went wrong during PayPal checkout. Please try again.',
 
     'eventCreatePageTitle' => 'Create Event | Ticketing System',
     'eventCreateTitle' => 'Create New Event',

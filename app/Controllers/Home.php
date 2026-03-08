@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\EventModel;
+use App\Models\PaymentModel;
 use App\Models\TicketModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\Files\UploadedFile;
@@ -13,11 +14,13 @@ class Home extends BaseController
 {
     private EventModel $eventModel;
     private TicketModel $ticketModel;
+    private PaymentModel $paymentModel;
 
     public function __construct()
     {
         $this->eventModel = new EventModel();
         $this->ticketModel = new TicketModel();
+        $this->paymentModel = new PaymentModel();
     }
 
     public function index(): string
@@ -46,6 +49,7 @@ class Home extends BaseController
         return view('events/show', [
             'event' => $event,
             'pageTitle' => $event['title'] . ' | Ticketing System',
+            'paypalClientId' => $this->getPayPalClientId(),
         ]);
     }
 
@@ -97,17 +101,17 @@ class Home extends BaseController
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateRequiredFields'));
         }
 
-        if (!ctype_digit($capacity) || (int) $capacity < 1) {
+        if (! ctype_digit($capacity) || (int) $capacity < 1) {
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidCapacity'));
         }
 
         $allowedTypes = ['free', 'donation'];
-        if (!in_array($eventType, $allowedTypes, true)) {
+        if (! in_array($eventType, $allowedTypes, true)) {
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidType'));
         }
 
         $allowedStatuses = ['active', 'inactive', 'cancelled'];
-        if (!in_array($status, $allowedStatuses, true)) {
+        if (! in_array($status, $allowedStatuses, true)) {
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidStatus'));
         }
 
@@ -119,7 +123,7 @@ class Home extends BaseController
 
         $normalizedMinDonation = null;
         if ($eventType === 'donation') {
-            if ($minDonation === '' || !is_numeric($minDonation) || (float) $minDonation < 0) {
+            if ($minDonation === '' || ! is_numeric($minDonation) || (float) $minDonation < 0) {
                 return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidDonation'));
             }
 
@@ -135,7 +139,7 @@ class Home extends BaseController
         $finalImage = null;
 
         if ($imageUrl !== '') {
-            if (!filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+            if (! filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                 return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidImageUrl'));
             }
 
@@ -232,11 +236,246 @@ class Home extends BaseController
 
         $bookingMessage = lang('App.bookingSuccess');
 
-        if (! $this->sendBookingConfirmationEmail($event, $requestedSeats, $ticketCodes)) {
+        if (! $this->sendBookingConfirmationEmail($event, $requestedSeats, $ticketCodes, 0.00, 'EUR')) {
             $bookingMessage .= ' ' . lang('App.bookingEmailFailed');
         }
 
         return redirect()->to(base_url('events/' . $slug))->with('event_info', $bookingMessage);
+    }
+
+    public function createDonationOrder(string $slug)
+    {
+        $event = $this->eventModel->where('slug', $slug)->first();
+
+        if (empty($event)) {
+            return $this->response->setStatusCode(404)->setJSON(['message' => 'Event not found']);
+        }
+
+        if (session()->get('is_logged_in') !== true) {
+            return $this->response->setStatusCode(401)->setJSON(['message' => lang('App.bookingLoginRequired')]);
+        }
+
+        [$requestedSeats, $donationAmount, $error] = $this->validateDonationBookingRequest($event);
+        if ($error !== null) {
+            return $this->response->setStatusCode(422)->setJSON(['message' => $error]);
+        }
+
+        [$accessToken, $tokenError] = $this->getPayPalAccessToken();
+        if ($accessToken === null) {
+            return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalConfigurationError')]);
+        }
+
+        $customId = implode('|', [
+            'event:' . (int) $event['id'],
+            'user:' . (int) session()->get('user_id'),
+            'seats:' . $requestedSeats,
+            'donation:' . number_format($donationAmount, 2, '.', ''),
+        ]);
+
+        try {
+            $paypalResponse = service('curlrequest')->post(rtrim($this->getPayPalBaseUrl(), '/') . '/v2/checkout/orders', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'intent' => 'CAPTURE',
+                    'purchase_units' => [[
+                        'description' => 'Donation booking for ' . (string) ($event['title'] ?? 'Event'),
+                        'custom_id' => $customId,
+                        'amount' => [
+                            'currency_code' => 'EUR',
+                            'value' => number_format($donationAmount, 2, '.', ''),
+                        ],
+                    ]],
+                    'application_context' => [
+                        'shipping_preference' => 'NO_SHIPPING',
+                        'user_action' => 'PAY_NOW',
+                    ],
+                ],
+                'http_errors' => false,
+                'verify' => $this->shouldVerifySsl(),
+                'timeout' => 20,
+            ]);
+        } catch (Throwable $exception) {
+            log_message('error', 'PayPal order request failed: {message}', ['message' => $exception->getMessage()]);
+
+            return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalOrderCreateFailed')]);
+        }
+
+        $orderData = json_decode($paypalResponse->getBody(), true);
+        $orderId = is_array($orderData) ? (string) ($orderData['id'] ?? '') : '';
+
+        if ($orderId === '') {
+            log_message('error', 'PayPal order creation failed [{status}]: {body}', [
+                'status' => $paypalResponse->getStatusCode(),
+                'body' => $paypalResponse->getBody(),
+            ]);
+
+            return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalOrderCreateFailed')]);
+        }
+
+        return $this->response->setJSON(['id' => $orderId]);
+    }
+
+    public function captureDonationOrder(string $slug)
+    {
+        $event = $this->eventModel->where('slug', $slug)->first();
+
+        if (empty($event)) {
+            return $this->response->setStatusCode(404)->setJSON(['message' => 'Event not found']);
+        }
+
+        if (session()->get('is_logged_in') !== true) {
+            return $this->response->setStatusCode(401)->setJSON(['message' => lang('App.bookingLoginRequired')]);
+        }
+
+        $orderId = trim($this->getRequestValue('order_id'));
+        if ($orderId === '') {
+            log_message('error', 'PayPal capture missing order_id. post={post} raw={raw} method={method} contentType={contentType}', [
+                'post' => json_encode($this->request->getPost()),
+                'raw' => json_encode($this->request->getRawInput()),
+                'method' => $this->request->getMethod(),
+                'contentType' => $this->request->getHeaderLine('Content-Type'),
+            ]);
+
+            return $this->response->setStatusCode(422)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
+        }
+
+        [$accessToken, $tokenError] = $this->getPayPalAccessToken();
+        if ($accessToken === null) {
+            return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalConfigurationError')]);
+        }
+
+        try {
+            $paypalResponse = service('curlrequest')->post(rtrim($this->getPayPalBaseUrl(), '/') . '/v2/checkout/orders/' . urlencode($orderId) . '/capture', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => new \stdClass(),
+                'http_errors' => false,
+                'verify' => $this->shouldVerifySsl(),
+                'timeout' => 20,
+            ]);
+        } catch (Throwable $exception) {
+            log_message('error', 'PayPal capture request failed: {message}', ['message' => $exception->getMessage()]);
+
+            return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
+        }
+
+        $captureData = json_decode($paypalResponse->getBody(), true);
+        $purchaseUnit = is_array($captureData) ? ($captureData['purchase_units'][0] ?? null) : null;
+        $capture = is_array($purchaseUnit) ? ($purchaseUnit['payments']['captures'][0] ?? null) : null;
+
+        if (! is_array($purchaseUnit) || ! is_array($capture) || (string) ($capture['status'] ?? '') !== 'COMPLETED') {
+            log_message('error', 'PayPal capture failed [{status}]: {body}', [
+                'status' => $paypalResponse->getStatusCode(),
+                'body' => $paypalResponse->getBody(),
+            ]);
+
+            return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
+        }
+
+        $captureId = (string) ($capture['id'] ?? '');
+        if ($captureId === '') {
+            log_message('error', 'PayPal capture missing capture id: {body}', [
+                'body' => $paypalResponse->getBody(),
+            ]);
+
+            return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
+        }
+
+        if ($this->paymentModel->where('paypal_transaction_id', $captureId)->first() !== null) {
+            session()->setFlashdata('event_info', lang('App.bookingSuccess'));
+
+            return $this->response->setJSON([
+                'redirectUrl' => base_url('events/' . $slug),
+            ]);
+        }
+
+        $customId = (string) ($purchaseUnit['custom_id'] ?? '');
+        if ($customId === '') {
+            $orderDetails = $this->getPayPalOrderDetails($orderId, $accessToken);
+            $customId = (string) ($orderDetails['purchase_units'][0]['custom_id'] ?? '');
+
+            log_message('error', 'PayPal capture missing custom_id in capture response. order_details={details}', [
+                'details' => json_encode($orderDetails),
+            ]);
+        }
+
+        $bookingData = $this->parsePayPalCustomId($customId);
+
+        if (
+            empty($bookingData)
+            || (int) ($bookingData['event_id'] ?? 0) !== (int) $event['id']
+            || (int) ($bookingData['user_id'] ?? 0) !== (int) session()->get('user_id')
+        ) {
+            log_message('error', 'PayPal booking data mismatch. custom_id={customId} parsed={parsed} event={eventId} user={userId}', [
+                'customId' => $customId,
+                'parsed' => json_encode($bookingData),
+                'eventId' => (int) $event['id'],
+                'userId' => (int) session()->get('user_id'),
+            ]);
+
+            return $this->response->setStatusCode(422)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
+        }
+
+        $requestedSeats = (int) ($bookingData['seats'] ?? 0);
+        $donationAmount = (float) ($capture['amount']['value'] ?? 0);
+        $currency = (string) ($capture['amount']['currency_code'] ?? 'EUR');
+
+        if ($requestedSeats < 1 || $donationAmount <= 0) {
+            log_message('error', 'PayPal capture invalid values. seats={seats} amount={amount} currency={currency} body={body}', [
+                'seats' => $requestedSeats,
+                'amount' => $donationAmount,
+                'currency' => $currency,
+                'body' => $paypalResponse->getBody(),
+            ]);
+
+            return $this->response->setStatusCode(422)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
+        }
+
+        $remainingSeats = $this->getRemainingSeats($event);
+        if ($requestedSeats > $remainingSeats) {
+            return $this->response->setStatusCode(409)->setJSON(['message' => lang('App.bookingEventUnavailable')]);
+        }
+
+        $ticketCodes = [];
+        $splitAmounts = $this->splitAmountAcrossSeats($donationAmount, $requestedSeats);
+
+        for ($i = 0; $i < $requestedSeats; $i++) {
+            $ticketCode = $this->generateTicketCode();
+            $ticketCodes[] = $ticketCode;
+
+            $ticketId = $this->ticketModel->insert([
+                'event_id' => $event['id'],
+                'user_id' => (int) session()->get('user_id'),
+                'ticket_code' => $ticketCode,
+                'donation_amount' => $splitAmounts[$i],
+                'payment_status' => 'paid',
+                'status' => 'valid',
+            ], true);
+
+            $this->paymentModel->insert([
+                'ticket_id' => (int) $ticketId,
+                'paypal_transaction_id' => $captureId,
+                'amount' => $splitAmounts[$i],
+                'currency' => $currency,
+                'payment_status' => 'completed',
+            ]);
+        }
+
+        $bookingMessage = lang('App.bookingSuccess');
+        if (! $this->sendBookingConfirmationEmail($event, $requestedSeats, $ticketCodes, $donationAmount, $currency)) {
+            $bookingMessage .= ' ' . lang('App.bookingEmailFailed');
+        }
+
+        session()->setFlashdata('event_info', $bookingMessage);
+
+        return $this->response->setJSON([
+            'redirectUrl' => base_url('events/' . $slug),
+        ]);
     }
 
     private function storeEventImage(UploadedFile $uploadedImage): ?string
@@ -244,7 +483,7 @@ class Home extends BaseController
         $extension = strtolower((string) $uploadedImage->getExtension());
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
-        if (!in_array($extension, $allowedExtensions, true)) {
+        if (! in_array($extension, $allowedExtensions, true)) {
             return null;
         }
 
@@ -256,7 +495,7 @@ class Home extends BaseController
         $relativeDirectory = 'assets/images/' . $userId;
         $targetDirectory = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativeDirectory);
 
-        if (!is_dir($targetDirectory) && !mkdir($targetDirectory, 0775, true) && !is_dir($targetDirectory)) {
+        if (! is_dir($targetDirectory) && ! mkdir($targetDirectory, 0775, true) && ! is_dir($targetDirectory)) {
             return null;
         }
 
@@ -302,7 +541,7 @@ class Home extends BaseController
         return $ticketCode;
     }
 
-    private function sendBookingConfirmationEmail(array $event, int $requestedSeats, array $ticketCodes): bool
+    private function sendBookingConfirmationEmail(array $event, int $requestedSeats, array $ticketCodes, float $donationAmount, string $currency): bool
     {
         $recipientEmail = trim((string) session()->get('user_email'));
         if ($recipientEmail === '') {
@@ -310,12 +549,11 @@ class Home extends BaseController
         }
 
         $userName = trim((string) session()->get('user_name'));
-        $startDate = !empty($event['start_date']) ? date('d/m/Y H:i', strtotime((string) $event['start_date'])) : '-';
-        $endDate = !empty($event['end_date']) ? date('d/m/Y H:i', strtotime((string) $event['end_date'])) : '-';
+        $startDate = ! empty($event['start_date']) ? date('d/m/Y H:i', strtotime((string) $event['start_date'])) : '-';
+        $endDate = ! empty($event['end_date']) ? date('d/m/Y H:i', strtotime((string) $event['end_date'])) : '-';
         $location = trim((string) ($event['location'] ?? ''));
         $ticketCodesText = implode(PHP_EOL, $ticketCodes);
-
-        $message = implode(PHP_EOL . PHP_EOL, [
+        $messageParts = [
             lang('App.bookingEmailGreeting') . ($userName !== '' ? ' ' . $userName : ''),
             lang('App.bookingEmailIntro'),
             lang('App.bookingEmailEventLabel') . ': ' . (string) ($event['title'] ?? '-'),
@@ -323,19 +561,232 @@ class Home extends BaseController
             lang('App.bookingEmailStartLabel') . ': ' . $startDate,
             lang('App.bookingEmailEndLabel') . ': ' . $endDate,
             lang('App.bookingEmailLocationLabel') . ': ' . ($location !== '' ? $location : '-'),
-            lang('App.bookingEmailTicketCodesLabel') . ':' . PHP_EOL . $ticketCodesText,
-            lang('App.bookingEmailFooter'),
-        ]);
+        ];
+
+        if ($donationAmount > 0) {
+            $messageParts[] = lang('App.bookingEmailDonationLabel') . ': ' . $currency . ' ' . number_format($donationAmount, 2);
+        }
+
+        $messageParts[] = lang('App.bookingEmailTicketCodesLabel') . ':' . PHP_EOL . $ticketCodesText;
+        $messageParts[] = lang('App.bookingEmailFooter');
 
         try {
             $emailService = service('email');
             $emailService->setTo($recipientEmail);
             $emailService->setSubject(lang('App.bookingEmailSubject'));
-            $emailService->setMessage($message);
+            $emailService->setMessage(implode(PHP_EOL . PHP_EOL, $messageParts));
 
             return $emailService->send();
         } catch (Throwable) {
             return false;
         }
+    }
+
+    private function validateDonationBookingRequest(array $event): array
+    {
+        if ((string) ($event['status'] ?? '') !== 'active') {
+            return [0, 0.0, lang('App.bookingEventUnavailable')];
+        }
+
+        if (($event['event_type'] ?? 'free') !== 'donation') {
+            return [0, 0.0, lang('App.donationBookingPending')];
+        }
+
+        $requestedSeats = (int) $this->getRequestValue('seats');
+        if ($requestedSeats < 1) {
+            return [0, 0.0, lang('App.bookingInvalidSeatCount')];
+        }
+
+        $remainingSeats = $this->getRemainingSeats($event);
+        if ($requestedSeats > $remainingSeats) {
+            return [0, 0.0, strtr(lang('App.seatsLimitError'), ['{max}' => (string) $remainingSeats])];
+        }
+
+        $donationAmountRaw = trim($this->getRequestValue('donation_amount'));
+        if ($donationAmountRaw === '' || ! is_numeric($donationAmountRaw)) {
+            return [0, 0.0, lang('App.donationAmountRequired')];
+        }
+
+        $donationAmount = (float) $donationAmountRaw;
+        $minimumDonation = (float) ($event['min_donation'] ?? 0);
+
+        if ($donationAmount < $minimumDonation) {
+            return [0, 0.0, strtr(lang('App.donationMinimumError'), [
+                '{min}' => number_format($minimumDonation, 2),
+            ])];
+        }
+
+        return [$requestedSeats, $donationAmount, null];
+    }
+
+    private function getRequestValue(string $key): string
+    {
+        $postValue = $this->request->getPost($key);
+        if ($postValue !== null && $postValue !== '') {
+            return is_scalar($postValue) ? trim((string) $postValue) : '';
+        }
+
+        $varValue = $this->request->getVar($key);
+        if ($varValue !== null && $varValue !== '') {
+            return is_scalar($varValue) ? trim((string) $varValue) : '';
+        }
+
+        $rawInput = $this->request->getRawInput();
+        if (is_array($rawInput) && array_key_exists($key, $rawInput)) {
+            $rawValue = $rawInput[$key];
+            return is_scalar($rawValue) ? trim((string) $rawValue) : '';
+        }
+
+        $jsonBody = $this->request->getJSON(true);
+        if (is_array($jsonBody) && array_key_exists($key, $jsonBody)) {
+            $jsonValue = $jsonBody[$key];
+            return is_scalar($jsonValue) ? trim((string) $jsonValue) : '';
+        }
+
+        $body = (string) $this->request->getBody();
+        if ($body !== '') {
+            parse_str($body, $parsedBody);
+            if (is_array($parsedBody) && array_key_exists($key, $parsedBody)) {
+                $parsedValue = $parsedBody[$key];
+                return is_scalar($parsedValue) ? trim((string) $parsedValue) : '';
+            }
+        }
+
+        return '';
+    }
+
+    private function getPayPalOrderDetails(string $orderId, string $accessToken): array
+    {
+        try {
+            $response = service('curlrequest')->get(rtrim($this->getPayPalBaseUrl(), '/') . '/v2/checkout/orders/' . urlencode($orderId), [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Content-Type' => 'application/json',
+                ],
+                'http_errors' => false,
+                'verify' => $this->shouldVerifySsl(),
+                'timeout' => 20,
+            ]);
+        } catch (Throwable $exception) {
+            log_message('error', 'PayPal order details request failed: {message}', ['message' => $exception->getMessage()]);
+
+            return [];
+        }
+
+        $data = json_decode($response->getBody(), true);
+        if (! is_array($data)) {
+            log_message('error', 'PayPal order details invalid response [{status}]: {body}', [
+                'status' => $response->getStatusCode(),
+                'body' => $response->getBody(),
+            ]);
+
+            return [];
+        }
+
+        return $data;
+    }
+
+    private function getPayPalAccessToken(): array
+    {
+        $clientId = $this->getPayPalClientId();
+        $secret = $this->getPayPalSecret();
+        $baseUrl = rtrim($this->getPayPalBaseUrl(), '/');
+
+        if ($clientId === '' || $secret === '' || $baseUrl === '') {
+            log_message('error', 'PayPal environment is incomplete. clientId={clientId} secret={secret} baseUrl={baseUrl}', [
+                'clientId' => $clientId !== '' ? 'set' : 'missing',
+                'secret' => $secret !== '' ? 'set' : 'missing',
+                'baseUrl' => $baseUrl !== '' ? $baseUrl : 'missing',
+            ]);
+
+            return [null, 'config'];
+        }
+
+        try {
+            $response = service('curlrequest')->post($baseUrl . '/v1/oauth2/token', [
+                'headers' => [
+                    'Authorization' => 'Basic ' . base64_encode($clientId . ':' . $secret),
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
+                'form_params' => [
+                    'grant_type' => 'client_credentials',
+                ],
+                'http_errors' => false,
+                'verify' => $this->shouldVerifySsl(),
+                'timeout' => 20,
+            ]);
+        } catch (Throwable $exception) {
+            log_message('error', 'PayPal token request exception: {message}', ['message' => $exception->getMessage()]);
+
+            return [null, 'request'];
+        }
+
+        $data = json_decode($response->getBody(), true);
+        $accessToken = is_array($data) ? ($data['access_token'] ?? null) : null;
+
+        if (! is_string($accessToken) || $accessToken === '') {
+            log_message('error', 'PayPal token request failed [{status}]: {body}', [
+                'status' => $response->getStatusCode(),
+                'body' => $response->getBody(),
+            ]);
+
+            return [null, 'token'];
+        }
+
+        return [$accessToken, null];
+    }
+
+    private function shouldVerifySsl(): bool
+    {
+        return env('CI_ENVIRONMENT', 'production') === 'production';
+    }
+
+    private function getPayPalClientId(): string
+    {
+        return trim((string) (env('paypal.clientId') ?: env('paypal_clientId', '')));
+    }
+
+    private function getPayPalSecret(): string
+    {
+        return trim((string) (env('paypal.secret') ?: env('paypal_secret', '')));
+    }
+
+    private function getPayPalBaseUrl(): string
+    {
+        return trim((string) (env('paypal.baseUrl') ?: env('PAYPAL_BASE_URL', '')));
+    }
+
+    private function parsePayPalCustomId(string $customId): array
+    {
+        $parts = explode('|', $customId);
+        $data = [];
+
+        foreach ($parts as $part) {
+            [$key, $value] = array_pad(explode(':', $part, 2), 2, null);
+            if ($key !== null && $value !== null) {
+                $data[$key] = $value;
+            }
+        }
+
+        return [
+            'event_id' => isset($data['event']) ? (int) $data['event'] : 0,
+            'user_id' => isset($data['user']) ? (int) $data['user'] : 0,
+            'seats' => isset($data['seats']) ? (int) $data['seats'] : 0,
+            'donation' => isset($data['donation']) ? (float) $data['donation'] : 0.0,
+        ];
+    }
+
+    private function splitAmountAcrossSeats(float $totalAmount, int $seats): array
+    {
+        $totalCents = (int) round($totalAmount * 100);
+        $baseCents = intdiv($totalCents, $seats);
+        $remainder = $totalCents % $seats;
+        $amounts = [];
+
+        for ($i = 0; $i < $seats; $i++) {
+            $amounts[] = number_format(($baseCents + ($i < $remainder ? 1 : 0)) / 100, 2, '.', '');
+        }
+
+        return $amounts;
     }
 }

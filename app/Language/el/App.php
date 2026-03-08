@@ -23,6 +23,9 @@ return [
 
     'donationFrom' => 'Δωρεά από',
     'freeEvent' => 'Δωρεάν Event',
+    'donationAmountLabel' => 'Ποσό Δωρεάς',
+    'donationAmountRequired' => 'Δώσε ποσό δωρεάς.',
+    'donationMinimumError' => 'Η ελάχιστη δωρεά είναι {min}.',
 
     'backToEvents' => 'Πίσω στη σελίδα events',
     'seatsRemaining' => 'Διαθέσιμες θέσεις',
@@ -43,9 +46,14 @@ return [
     'bookingEmailStartLabel' => 'Έναρξη',
     'bookingEmailEndLabel' => 'Λήξη',
     'bookingEmailLocationLabel' => 'Τοποθεσία',
+    'bookingEmailDonationLabel' => 'Δωρεά',
     'bookingEmailTicketCodesLabel' => 'Κωδικοί εισιτηρίων',
     'bookingEmailFooter' => 'Κράτησε αυτό το email για τα στοιχεία της κράτησής σου.',
     'donationBookingPending' => 'Το donation booking θα προστεθεί αμέσως μετά. Προς το παρόν τα free events κλείνουν απευθείας.',
+    'paypalConfigurationError' => 'Το PayPal δεν έχει ρυθμιστεί ακόμη για αυτό το περιβάλλον.',
+    'paypalOrderCreateFailed' => 'Δεν ήταν δυνατή η δημιουργία της PayPal παραγγελίας. Προσπάθησε ξανά.',
+    'paypalCaptureFailed' => 'Δεν ήταν δυνατή η επιβεβαίωση της PayPal πληρωμής. Προσπάθησε ξανά.',
+    'paypalGenericError' => 'Κάτι πήγε λάθος κατά το PayPal checkout. Προσπάθησε ξανά.',
 
     'eventCreatePageTitle' => 'Νέο Event | Ticketing System',
     'eventCreateTitle' => 'Δημιουργία Νέου Event',
