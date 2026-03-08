@@ -82,6 +82,7 @@ return [
     'registerButton' => 'Register',
     'firstNameLabel' => 'First Name',
     'lastNameLabel' => 'Last Name',
+    'turnstileValidationFailed' => 'Please complete the security check and try again.',
 
     'lostPasswordPageTitle' => 'Lost Password | Ticketing System',
     'lostPasswordTitle' => 'Lost Password',

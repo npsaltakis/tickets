@@ -28,6 +28,12 @@
             <label for="confirm_password" class="auth-label"><?= esc(lang('App.confirmPasswordLabel')) ?></label>
             <input id="confirm_password" name="confirm_password" type="password" class="auth-input" required autocomplete="new-password">
 
+            <?php if (!empty($turnstileSiteKey)): ?>
+                <div class="turnstile-wrapper">
+                    <div class="cf-turnstile" data-sitekey="<?= esc((string) $turnstileSiteKey, 'attr') ?>"></div>
+                </div>
+            <?php endif; ?>
+
             <button type="submit" class="book-btn auth-submit"><?= esc(lang('App.registerButton')) ?></button>
         </form>
 
@@ -36,4 +42,7 @@
         </div>
     </section>
 </main>
+<?php if (!empty($turnstileSiteKey)): ?>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<?php endif; ?>
 <?= $this->endSection() ?>

@@ -82,6 +82,7 @@ return [
     'registerButton' => 'Εγγραφή',
     'firstNameLabel' => 'Όνομα',
     'lastNameLabel' => 'Επώνυμο',
+    'turnstileValidationFailed' => 'Ο έλεγχος ασφαλείας απέτυχε. Προσπάθησε ξανά.',
 
     'lostPasswordPageTitle' => 'Ανάκτηση Κωδικού | Ticketing System',
     'lostPasswordTitle' => 'Ανάκτηση Κωδικού',

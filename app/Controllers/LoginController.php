@@ -7,6 +7,7 @@ use App\Models\PasswordResetModel;
 use App\Models\UserModel;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\I18n\Time;
+use Throwable;
 
 class LoginController extends BaseController
 {
@@ -81,6 +82,7 @@ class LoginController extends BaseController
 
         return view('auth/register', [
             'pageTitle' => lang('App.registerPageTitle'),
+            'turnstileSiteKey' => (string) env('turnstile.siteKey', ''),
         ]);
     }
 
@@ -91,9 +93,14 @@ class LoginController extends BaseController
         $email = trim((string) $this->request->getPost('email'));
         $password = (string) $this->request->getPost('password');
         $confirmPassword = (string) $this->request->getPost('confirm_password');
+        $turnstileToken = trim((string) $this->request->getPost('cf-turnstile-response'));
 
         if ($firstName === '' || $lastName === '' || $email === '' || $password === '' || $confirmPassword === '') {
             return redirect()->back()->withInput()->with('register_error', lang('App.registerRequiredFields'));
+        }
+
+        if (! $this->verifyTurnstileToken($turnstileToken)) {
+            return redirect()->back()->withInput()->with('register_error', lang('App.turnstileValidationFailed'));
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -383,5 +390,33 @@ class LoginController extends BaseController
         }
 
         return hash_equals((string) $verification['token_hash'], hash('sha256', $token));
+    }
+
+    private function verifyTurnstileToken(string $token): bool
+    {
+        $siteKey = (string) env('turnstile.siteKey', '');
+        $secretKey = (string) env('turnstile.secretKey', '');
+
+        if ($siteKey === '' || $secretKey === '' || $token === '') {
+            return false;
+        }
+
+        try {
+            $response = service('curlrequest')->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+                'form_params' => [
+                    'secret' => $secretKey,
+                    'response' => $token,
+                    'remoteip' => $this->request->getIPAddress(),
+                ],
+                'http_errors' => false,
+                'timeout' => 10,
+            ]);
+
+            $body = json_decode($response->getBody(), true);
+
+            return is_array($body) && ($body['success'] ?? false) === true;
+        } catch (Throwable) {
+            return false;
+        }
     }
 }
