@@ -209,8 +209,29 @@ return [
     'resetEmailSignature' => 'Με εκτίμηση,\nΗ ομάδα Ticketing System',
     'emailSendFailed' => 'Δεν ήταν δυνατή η αποστολή email. Προσπάθησε ξανά αργότερα.',
 
+    'reportSummaryTab' => 'Ticket Report',
+    'reportCodesTab' => 'Ticket Codes',
+    'reportTicketsTitle' => 'Κωδικοί Εισιτηρίων',
+    'reportTicketsSubtitle' => 'Επέλεξε event για να δεις όλα τα ticket codes που έχουν εκδοθεί.',
+    'reportSelectEvent' => 'Επιλογή Event',
+    'reportSelectEventPlaceholder' => 'Διάλεξε event',
+    'reportEventSearchPlaceholder' => 'Αναζήτηση event...',
+    'reportEventSearchNoResults' => 'Δεν βρέθηκαν events',
+    'reportLoadTickets' => 'Φόρτωση',
+    'reportSelectEventHelp' => 'Επέλεξε ένα event για να εμφανιστούν όλα τα ticket codes του.',
+    'reportTicketsEmpty' => 'Δεν υπάρχουν valid tickets για αυτό το event.',
+    'reportTicketCode' => 'Ticket Code',
+    'reportCustomer' => 'Πελάτης',
+    'reportCustomerEmail' => 'Email',
+    'reportPaymentStatus' => 'Κατάσταση Πληρωμής',
+    'reportDonationAmount' => 'Ποσό',
+    'reportBookedAt' => 'Ημερομηνία Κράτησης',
+
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
+
+
 
 
 

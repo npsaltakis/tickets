@@ -209,8 +209,29 @@ return [
     'resetEmailSignature' => 'Best regards,\nTicketing System Team',
     'emailSendFailed' => 'Could not send email. Please try again later.',
 
+    'reportSummaryTab' => 'Ticket Report',
+    'reportCodesTab' => 'Ticket Codes',
+    'reportTicketsTitle' => 'Ticket Codes',
+    'reportTicketsSubtitle' => 'Select an event to view all issued ticket codes.',
+    'reportSelectEvent' => 'Select Event',
+    'reportSelectEventPlaceholder' => 'Choose an event',
+    'reportEventSearchPlaceholder' => 'Search event...',
+    'reportEventSearchNoResults' => 'No matching events',
+    'reportLoadTickets' => 'Load',
+    'reportSelectEventHelp' => 'Select an event to display all of its ticket codes.',
+    'reportTicketsEmpty' => 'There are no valid tickets for this event.',
+    'reportTicketCode' => 'Ticket Code',
+    'reportCustomer' => 'Customer',
+    'reportCustomerEmail' => 'Email',
+    'reportPaymentStatus' => 'Payment Status',
+    'reportDonationAmount' => 'Amount',
+    'reportBookedAt' => 'Booked At',
+
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
+
+
 
 
 

@@ -877,6 +877,7 @@ class Home extends BaseController
         $db = db_connect();
         $eventsTable = $db->prefixTable('events');
         $ticketsTable = $db->prefixTable('tickets');
+        $usersTable = $db->prefixTable('users');
 
         $reportRows = $db->table($eventsTable . ' events')
             ->select("events.id, events.slug, events.title, events.location, events.start_date, events.end_date, events.capacity, events.event_type, events.status, COUNT(CASE WHEN tickets.status = 'valid' THEN tickets.id END) AS issued_tickets, SUM(CASE WHEN tickets.status = 'valid' AND tickets.payment_status = 'free' THEN 1 ELSE 0 END) AS free_tickets, SUM(CASE WHEN tickets.status = 'valid' AND tickets.payment_status = 'paid' THEN 1 ELSE 0 END) AS paid_tickets, SUM(CASE WHEN tickets.status = 'valid' THEN tickets.donation_amount ELSE 0 END) AS donation_total", false)
@@ -897,12 +898,51 @@ class Home extends BaseController
 
         unset($row);
 
+        $selectedEventId = (int) ($this->request->getGet('event_id') ?? 0);
+        $selectedEvent = null;
+        $ticketRows = [];
+
+        foreach ($reportRows as $row) {
+            if ((int) ($row['id'] ?? 0) === $selectedEventId) {
+                $selectedEvent = $row;
+                break;
+            }
+        }
+
+        if ($selectedEvent !== null) {
+            $ticketRows = $db->table($ticketsTable . ' tickets')
+                ->select([
+                    'tickets.ticket_code',
+                    'tickets.payment_status',
+                    'tickets.donation_amount',
+                    'tickets.created_at AS booked_at',
+                    'users.first_name',
+                    'users.last_name',
+                    'users.email',
+                ])
+                ->join($usersTable . ' users', 'users.id = tickets.user_id', 'left', false)
+                ->where('tickets.event_id', $selectedEventId)
+                ->where('tickets.status', 'valid')
+                ->orderBy('tickets.created_at', 'DESC')
+                ->get()
+                ->getResultArray();
+
+            foreach ($ticketRows as &$ticketRow) {
+                $ticketRow['customer_name'] = trim(((string) ($ticketRow['first_name'] ?? '')) . ' ' . ((string) ($ticketRow['last_name'] ?? '')));
+                $ticketRow['donation_amount'] = number_format((float) ($ticketRow['donation_amount'] ?? 0), 2, '.', '');
+            }
+
+            unset($ticketRow);
+        }
+
         return view('events/report', [
             'reportRows' => $reportRows,
+            'selectedEventId' => $selectedEventId,
+            'selectedEvent' => $selectedEvent,
+            'ticketRows' => $ticketRows,
             'pageTitle' => lang('App.reportPageTitle'),
         ]);
     }
-
     public function myEvents(): RedirectResponse|string
     {
         if (session()->get('is_logged_in') !== true) {
@@ -986,6 +1026,8 @@ class Home extends BaseController
         ]);
     }
 }
+
+
 
 
 
