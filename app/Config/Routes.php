@@ -15,6 +15,7 @@ $routes->post('login', 'LoginController::authenticate');
 $routes->get('logout', 'LoginController::logout');
 $routes->get('register', 'LoginController::register');
 $routes->post('register', 'LoginController::storeRegister');
+$routes->get('verify-email', 'LoginController::verifyEmail');
 $routes->get('lost-password', 'LoginController::lostPassword');
 $routes->post('lost-password', 'LoginController::sendResetLink');
 $routes->get('reset-password', 'LoginController::resetPasswordForm');

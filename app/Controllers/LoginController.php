@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\EmailVerificationModel;
 use App\Models\PasswordResetModel;
 use App\Models\UserModel;
 use CodeIgniter\HTTP\RedirectResponse;
@@ -11,11 +12,13 @@ class LoginController extends BaseController
 {
     private UserModel $userModel;
     private PasswordResetModel $passwordResetModel;
+    private EmailVerificationModel $emailVerificationModel;
 
     public function __construct()
     {
         $this->userModel = new UserModel();
         $this->passwordResetModel = new PasswordResetModel();
+        $this->emailVerificationModel = new EmailVerificationModel();
     }
 
     public function index(): string|RedirectResponse
@@ -38,12 +41,17 @@ class LoginController extends BaseController
             return redirect()->back()->withInput()->with('login_error', lang('App.loginRequiredFields'));
         }
 
-        $user = $this->userModel
-            ->where('email', $email)
-            ->where('status', 'active')
-            ->first();
+        $user = $this->userModel->where('email', $email)->first();
 
         if (empty($user) || !password_verify($password, (string) $user['password'])) {
+            return redirect()->back()->withInput()->with('login_error', lang('App.loginInvalidCredentials'));
+        }
+
+        if ((string) ($user['status'] ?? '') !== 'active') {
+            if ((string) ($user['status'] ?? '') === 'inactive') {
+                return redirect()->back()->withInput()->with('login_error', lang('App.verifyEmailRequired'));
+            }
+
             return redirect()->back()->withInput()->with('login_error', lang('App.loginInvalidCredentials'));
         }
 
@@ -106,16 +114,97 @@ class LoginController extends BaseController
             return redirect()->back()->withInput()->with('register_error', lang('App.emailAlreadyExists'));
         }
 
-        $this->userModel->insert([
+        $userId = $this->userModel->insert([
             'first_name' => $firstName,
             'last_name' => $lastName,
             'email' => $email,
             'password' => password_hash($password, PASSWORD_DEFAULT),
             'role' => 'client',
+            'status' => 'inactive',
+        ], true);
+
+        if (!is_int($userId) && !ctype_digit((string) $userId)) {
+            return redirect()->back()->withInput()->with('register_error', lang('App.registerEmailVerificationFailed'));
+        }
+
+        $userId = (int) $userId;
+        $selector = bin2hex(random_bytes(8));
+        $token = bin2hex(random_bytes(32));
+        $tokenHash = hash('sha256', $token);
+        $expiresAt = Time::now()->addMinutes(10)->toDateTimeString();
+
+        $this->emailVerificationModel->where('user_id', $userId)->delete();
+
+        $this->emailVerificationModel->insert([
+            'user_id' => $userId,
+            'selector' => $selector,
+            'token_hash' => $tokenHash,
+            'expires_at' => $expiresAt,
+            'used_at' => null,
+        ]);
+
+        $verificationUrl = base_url('verify-email?selector=' . urlencode($selector) . '&token=' . urlencode($token));
+
+        $emailService = service('email');
+        $emailService->setTo($email);
+        $emailService->setSubject(lang('App.verifyEmailSubject'));
+
+        $emailMessage = implode(PHP_EOL . PHP_EOL, [
+            lang('App.verifyEmailGreeting'),
+            lang('App.verifyEmailRequestNotice'),
+            lang('App.verifyEmailActionText'),
+            $verificationUrl,
+            lang('App.verifyEmailExpiry'),
+            lang('App.verifyEmailIgnoreNotice'),
+            lang('App.verifyEmailSignature'),
+        ]);
+
+        $emailService->setMessage($emailMessage);
+
+        if (! $emailService->send()) {
+            $this->emailVerificationModel->where('user_id', $userId)->delete();
+            $this->userModel->delete($userId);
+
+            return redirect()->back()->withInput()->with('register_error', lang('App.registerEmailVerificationFailed'));
+        }
+
+        return redirect()->to(base_url('login'))->with('login_info', lang('App.registerVerificationSent'));
+    }
+
+    public function verifyEmail(): RedirectResponse
+    {
+        if (session()->get('is_logged_in') === true) {
+            return redirect()->to(base_url('/'));
+        }
+
+        $selector = trim((string) $this->request->getGet('selector'));
+        $token = trim((string) $this->request->getGet('token'));
+
+        if ($selector === '' || $token === '') {
+            return redirect()->to(base_url('login'))->with('login_error', lang('App.invalidOrExpiredVerificationToken'));
+        }
+
+        $verification = $this->emailVerificationModel->where('selector', $selector)->first();
+
+        if (! $this->isValidVerificationToken($verification, $token)) {
+            return redirect()->to(base_url('login'))->with('login_error', lang('App.invalidOrExpiredVerificationToken'));
+        }
+
+        $user = $this->userModel->find($verification['user_id']);
+
+        if (empty($user)) {
+            return redirect()->to(base_url('login'))->with('login_error', lang('App.userNotFound'));
+        }
+
+        $this->userModel->update($user['id'], [
             'status' => 'active',
         ]);
 
-        return redirect()->to(base_url('login'))->with('login_info', lang('App.registerSuccess'));
+        $this->emailVerificationModel->update($verification['id'], [
+            'used_at' => Time::now()->toDateTimeString(),
+        ]);
+
+        return redirect()->to(base_url('login'))->with('login_info', lang('App.verifyEmailSuccess'));
     }
 
     public function lostPassword(): string|RedirectResponse
@@ -277,5 +366,22 @@ class LoginController extends BaseController
         }
 
         return hash_equals((string) $reset['token_hash'], hash('sha256', $token));
+    }
+
+    private function isValidVerificationToken(?array $verification, string $token): bool
+    {
+        if (empty($verification)) {
+            return false;
+        }
+
+        if (!empty($verification['used_at'])) {
+            return false;
+        }
+
+        if ((string) $verification['expires_at'] < Time::now()->toDateTimeString()) {
+            return false;
+        }
+
+        return hash_equals((string) $verification['token_hash'], hash('sha256', $token));
     }
 }
