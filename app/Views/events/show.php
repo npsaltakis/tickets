@@ -4,8 +4,8 @@
 <main class="wrapper">
     <?php
     $status = strtolower((string) ($event['status'] ?? 'inactive'));
-    $capacity = isset($event['capacity']) && $event['capacity'] !== null ? (int) $event['capacity'] : 0;
-    $canBook = $capacity > 0;
+    $remainingSeats = isset($event['remaining_seats']) ? (int) $event['remaining_seats'] : 0;
+    $canBook = $remainingSeats > 0 && $status === 'active';
     $rawImage = (string) ($event['image'] ?? '');
     $imageUrl = $rawImage !== ''
         ? (preg_match('#^https?://#i', $rawImage) ? $rawImage : base_url(ltrim($rawImage, '/')))
@@ -18,6 +18,10 @@
 
     <?php if (session()->getFlashdata('event_info')): ?>
         <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('event_info')) ?></p>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('event_error')): ?>
+        <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('event_error')) ?></p>
     <?php endif; ?>
 
     <section class="event-details-card">
@@ -46,7 +50,7 @@
             <?php endif; ?>
 
             <p class="meta"><strong><?= esc(lang('App.type')) ?>:</strong> <?= esc($event['event_type'] ?? 'free') ?></p>
-            <p class="meta"><strong><?= esc(lang('App.seatsRemaining')) ?>:</strong> <?= esc((string) $capacity) ?></p>
+            <p class="meta"><strong><?= esc(lang('App.seatsRemaining')) ?>:</strong> <?= esc((string) $remainingSeats) ?></p>
 
             <?php if (($event['event_type'] ?? 'free') === 'donation'): ?>
                 <p class="meta"><strong><?= esc(lang('App.minimumDonation')) ?>:</strong> €<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2)) ?></p>
@@ -56,20 +60,22 @@
                 <p class="event-description"><?= esc($event['description']) ?></p>
             <?php endif; ?>
 
-            <div class="booking-box">
+            <form method="post" action="<?= base_url('events/' . $event['slug'] . '/book') ?>" class="booking-box">
+                <?= csrf_field() ?>
                 <label class="meta" for="seats"><strong><?= esc(lang('App.seats')) ?>:</strong></label>
                 <input
                     id="seats"
+                    name="seats"
                     class="seats-input"
                     type="number"
                     min="1"
-                    max="<?= esc((string) max($capacity, 1)) ?>"
+                    max="<?= esc((string) max($remainingSeats, 1)) ?>"
                     value="<?= esc((string) ($canBook ? 1 : 0)) ?>"
                     <?= $canBook ? '' : 'disabled' ?>
                     data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>">
-                <button type="button" class="book-btn" <?= $canBook ? '' : 'disabled' ?>><?= esc(lang('App.bookSeat')) ?></button>
+                <button type="submit" class="book-btn" <?= $canBook ? '' : 'disabled' ?>><?= esc(lang('App.bookSeat')) ?></button>
                 <p id="seats-error" class="field-error" aria-live="polite"></p>
-            </div>
+            </form>
         </div>
     </section>
 </main>

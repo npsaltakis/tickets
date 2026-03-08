@@ -3,17 +3,21 @@
 namespace App\Controllers;
 
 use App\Models\EventModel;
+use App\Models\TicketModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\Files\UploadedFile;
 use CodeIgniter\HTTP\RedirectResponse;
+use Throwable;
 
 class Home extends BaseController
 {
     private EventModel $eventModel;
+    private TicketModel $ticketModel;
 
     public function __construct()
     {
         $this->eventModel = new EventModel();
+        $this->ticketModel = new TicketModel();
     }
 
     public function index(): string
@@ -24,7 +28,7 @@ class Home extends BaseController
             ->findAll();
 
         return view('events/index', [
-            'events' => $events,
+            'events' => $this->attachRemainingSeats($events),
             'pageTitle' => 'All Events | Ticketing System',
         ]);
     }
@@ -36,6 +40,8 @@ class Home extends BaseController
         if (empty($event)) {
             throw PageNotFoundException::forPageNotFound('Event not found');
         }
+
+        $event['remaining_seats'] = $this->getRemainingSeats($event);
 
         return view('events/show', [
             'event' => $event,
@@ -175,6 +181,64 @@ class Home extends BaseController
         return redirect()->to(base_url('events/' . $slug))->with('event_info', lang('App.eventCreateSuccess'));
     }
 
+    public function book(string $slug): RedirectResponse
+    {
+        $event = $this->eventModel->where('slug', $slug)->first();
+
+        if (empty($event)) {
+            throw PageNotFoundException::forPageNotFound('Event not found');
+        }
+
+        if (session()->get('is_logged_in') !== true) {
+            return redirect()->to(base_url('login'))->with('login_info', lang('App.bookingLoginRequired'));
+        }
+
+        if ((string) ($event['status'] ?? '') !== 'active') {
+            return redirect()->back()->with('event_error', lang('App.bookingEventUnavailable'));
+        }
+
+        $requestedSeats = (int) $this->request->getPost('seats');
+        if ($requestedSeats < 1) {
+            return redirect()->back()->with('event_error', lang('App.bookingInvalidSeatCount'));
+        }
+
+        $remainingSeats = $this->getRemainingSeats($event);
+        if ($requestedSeats > $remainingSeats) {
+            return redirect()->back()->with('event_error', strtr(lang('App.seatsLimitError'), [
+                '{max}' => (string) $remainingSeats,
+            ]));
+        }
+
+        if (($event['event_type'] ?? 'free') !== 'free') {
+            return redirect()->back()->with('event_error', lang('App.donationBookingPending'));
+        }
+
+        $userId = (int) session()->get('user_id');
+        $ticketCodes = [];
+
+        for ($i = 0; $i < $requestedSeats; $i++) {
+            $ticketCode = $this->generateTicketCode();
+            $ticketCodes[] = $ticketCode;
+
+            $this->ticketModel->insert([
+                'event_id' => $event['id'],
+                'user_id' => $userId,
+                'ticket_code' => $ticketCode,
+                'donation_amount' => 0.00,
+                'payment_status' => 'free',
+                'status' => 'valid',
+            ]);
+        }
+
+        $bookingMessage = lang('App.bookingSuccess');
+
+        if (! $this->sendBookingConfirmationEmail($event, $requestedSeats, $ticketCodes)) {
+            $bookingMessage .= ' ' . lang('App.bookingEmailFailed');
+        }
+
+        return redirect()->to(base_url('events/' . $slug))->with('event_info', $bookingMessage);
+    }
+
     private function storeEventImage(UploadedFile $uploadedImage): ?string
     {
         $extension = strtolower((string) $uploadedImage->getExtension());
@@ -205,5 +269,73 @@ class Home extends BaseController
     private function isAdmin(): bool
     {
         return session()->get('is_logged_in') === true && (string) session()->get('user_role') === 'admin';
+    }
+
+    private function attachRemainingSeats(array $events): array
+    {
+        foreach ($events as &$event) {
+            $event['remaining_seats'] = $this->getRemainingSeats($event);
+        }
+
+        unset($event);
+
+        return $events;
+    }
+
+    private function getRemainingSeats(array $event): int
+    {
+        $capacity = isset($event['capacity']) ? (int) $event['capacity'] : 0;
+        $bookedSeats = $this->ticketModel
+            ->where('event_id', $event['id'])
+            ->where('status', 'valid')
+            ->countAllResults();
+
+        return max($capacity - $bookedSeats, 0);
+    }
+
+    private function generateTicketCode(): string
+    {
+        do {
+            $ticketCode = strtoupper(bin2hex(random_bytes(6)));
+        } while ($this->ticketModel->where('ticket_code', $ticketCode)->first() !== null);
+
+        return $ticketCode;
+    }
+
+    private function sendBookingConfirmationEmail(array $event, int $requestedSeats, array $ticketCodes): bool
+    {
+        $recipientEmail = trim((string) session()->get('user_email'));
+        if ($recipientEmail === '') {
+            return false;
+        }
+
+        $userName = trim((string) session()->get('user_name'));
+        $startDate = !empty($event['start_date']) ? date('d/m/Y H:i', strtotime((string) $event['start_date'])) : '-';
+        $endDate = !empty($event['end_date']) ? date('d/m/Y H:i', strtotime((string) $event['end_date'])) : '-';
+        $location = trim((string) ($event['location'] ?? ''));
+        $ticketCodesText = implode(PHP_EOL, $ticketCodes);
+
+        $message = implode(PHP_EOL . PHP_EOL, [
+            lang('App.bookingEmailGreeting') . ($userName !== '' ? ' ' . $userName : ''),
+            lang('App.bookingEmailIntro'),
+            lang('App.bookingEmailEventLabel') . ': ' . (string) ($event['title'] ?? '-'),
+            lang('App.bookingEmailSeatsLabel') . ': ' . $requestedSeats,
+            lang('App.bookingEmailStartLabel') . ': ' . $startDate,
+            lang('App.bookingEmailEndLabel') . ': ' . $endDate,
+            lang('App.bookingEmailLocationLabel') . ': ' . ($location !== '' ? $location : '-'),
+            lang('App.bookingEmailTicketCodesLabel') . ':' . PHP_EOL . $ticketCodesText,
+            lang('App.bookingEmailFooter'),
+        ]);
+
+        try {
+            $emailService = service('email');
+            $emailService->setTo($recipientEmail);
+            $emailService->setSubject(lang('App.bookingEmailSubject'));
+            $emailService->setMessage($message);
+
+            return $emailService->send();
+        } catch (Throwable) {
+            return false;
+        }
     }
 }

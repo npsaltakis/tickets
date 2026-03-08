@@ -33,6 +33,7 @@
                 $eventUrl = !empty($event['slug']) ? base_url('events/' . $event['slug']) : '#';
                 $startDate = $event['start_date'] ?? null;
                 $endDate = $event['end_date'] ?? null;
+                $remainingSeats = isset($event['remaining_seats']) ? (int) $event['remaining_seats'] : (int) ($event['capacity'] ?? 0);
                 ?>
                 <a class="card-link" href="<?= esc($eventUrl) ?>">
                     <article class="card">
@@ -66,6 +67,8 @@
                         <?php if (!empty($event['location'])): ?>
                             <p class="meta"><?= esc(lang('App.location')) ?>: <?= esc($event['location']) ?></p>
                         <?php endif; ?>
+
+                        <p class="meta"><?= esc(lang('App.seatsRemaining')) ?>: <?= esc((string) $remainingSeats) ?></p>
 
                         <?php if (!empty($event['description'])): ?>
                             <?php $description = (string) $event['description']; ?>
