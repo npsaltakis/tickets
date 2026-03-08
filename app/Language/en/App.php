@@ -12,6 +12,28 @@ return [
     'eventsPageSubtitle' => 'Main page with all events.',
     'adminNewEventButton' => 'New Event',
     'eventsEmpty' => 'No events.',
+    'myEventsPageTitle' => 'My Events | Ticketing System',
+    'myEventsTitle' => 'My Events',
+    'myEventsSubtitle' => 'Events you have already booked.',
+    'myEventsEmpty' => 'You have not booked any events yet.',
+    'myEventsTicketsBooked' => 'Tickets booked',
+    'myEventsBookedAt' => 'Booked at',
+    'myEventsTicketCodes' => 'Ticket codes',
+    'myEventsDonationTotal' => 'Total donation',
+    'myEventsPaymentStatus' => 'Payment',
+    'paymentStatusPaid' => 'Paid',
+    'paymentStatusFree' => 'Free',
+    'myEventsPageTitle' => 'My Events | Ticketing System',
+    'myEventsTitle' => 'My Events',
+    'myEventsSubtitle' => 'Events you have already booked.',
+    'myEventsEmpty' => 'You have not booked any events yet.',
+    'myEventsTicketsBooked' => 'Tickets booked',
+    'myEventsBookedAt' => 'Booked at',
+    'myEventsTicketCodes' => 'Ticket codes',
+    'myEventsDonationTotal' => 'Total donation',
+    'myEventsPaymentStatus' => 'Payment',
+    'paymentStatusPaid' => 'Paid',
+    'paymentStatusFree' => 'Free',
 
     'noImage' => 'No image',
     'date' => 'Date',
@@ -159,3 +181,6 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
+
+

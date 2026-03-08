@@ -789,4 +789,85 @@ class Home extends BaseController
 
         return $amounts;
     }
+
+    public function myEvents(): RedirectResponse|string
+    {
+        if (session()->get('is_logged_in') !== true) {
+            return redirect()->to(base_url('login'))->with('login_info', lang('App.bookingLoginRequired'));
+        }
+
+        $userId = (int) session()->get('user_id');
+        $rows = $this->ticketModel
+            ->select([
+                'tickets.id AS ticket_id',
+                'tickets.ticket_code',
+                'tickets.donation_amount',
+                'tickets.payment_status',
+                'tickets.created_at AS booked_at',
+                'events.id AS event_id',
+                'events.slug',
+                'events.title',
+                'events.image',
+                'events.location',
+                'events.start_date',
+                'events.end_date',
+                'events.event_type',
+                'events.status',
+            ])
+            ->join('events', 'events.id = tickets.event_id')
+            ->where('tickets.user_id', $userId)
+            ->where('tickets.status', 'valid')
+            ->orderBy('events.start_date', 'ASC')
+            ->orderBy('tickets.created_at', 'DESC')
+            ->findAll();
+
+        $events = [];
+
+        foreach ($rows as $row) {
+            $eventId = (int) ($row['event_id'] ?? 0);
+            if ($eventId < 1) {
+                continue;
+            }
+
+            if (! isset($events[$eventId])) {
+                $events[$eventId] = [
+                    'event_id' => $eventId,
+                    'slug' => (string) ($row['slug'] ?? ''),
+                    'title' => (string) ($row['title'] ?? ''),
+                    'image' => (string) ($row['image'] ?? ''),
+                    'location' => (string) ($row['location'] ?? ''),
+                    'start_date' => $row['start_date'] ?? null,
+                    'end_date' => $row['end_date'] ?? null,
+                    'event_type' => (string) ($row['event_type'] ?? 'free'),
+                    'status' => (string) ($row['status'] ?? 'inactive'),
+                    'tickets_count' => 0,
+                    'donation_total' => 0.0,
+                    'booked_at' => $row['booked_at'] ?? null,
+                    'ticket_codes' => [],
+                    'payment_statuses' => [],
+                ];
+            }
+
+            $events[$eventId]['tickets_count']++;
+            $events[$eventId]['donation_total'] += (float) ($row['donation_amount'] ?? 0);
+            $events[$eventId]['ticket_codes'][] = (string) ($row['ticket_code'] ?? '');
+            $events[$eventId]['payment_statuses'][(string) ($row['payment_status'] ?? '')] = true;
+
+            if (! empty($row['booked_at']) && (empty($events[$eventId]['booked_at']) || strtotime((string) $row['booked_at']) > strtotime((string) $events[$eventId]['booked_at']))) {
+                $events[$eventId]['booked_at'] = $row['booked_at'];
+            }
+        }
+
+        foreach ($events as &$event) {
+            $event['donation_total'] = number_format((float) $event['donation_total'], 2, '.', '');
+            $event['payment_summary'] = isset($event['payment_statuses']['paid']) ? 'paid' : 'free';
+        }
+
+        unset($event);
+
+        return view('events/my_events', [
+            'events' => array_values($events),
+            'pageTitle' => lang('App.myEventsPageTitle'),
+        ]);
+    }
 }

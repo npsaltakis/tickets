@@ -6,6 +6,7 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'Home::index');
+$routes->get('my-events', 'Home::myEvents');
 $routes->get('events/create', 'Home::create');
 $routes->post('events', 'Home::store');
 $routes->post('events/(:segment)/book', 'Home::book/$1');

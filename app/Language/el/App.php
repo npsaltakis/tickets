@@ -3,7 +3,7 @@
 return [
     'siteTitle' => 'Ticketing System',
     'navHome' => 'Κεντρική',
-    'navMyEvents' => 'My events',
+    'navMyEvents' => 'Τα Tickets Μου',
     'navLogout' => 'Αποσύνδεση',
     'langEl' => 'EL',
     'langEn' => 'EN',
@@ -12,6 +12,17 @@ return [
     'eventsPageSubtitle' => 'Η κεντρική σελίδα με όλα τα events.',
     'adminNewEventButton' => 'Νέο Event',
     'eventsEmpty' => 'Δεν υπάρχουν events.',
+    'myEventsPageTitle' => 'Τα Tickets Μου | Ticketing System',
+    'myEventsTitle' => 'Τα Tickets Μου',
+    'myEventsSubtitle' => 'Τα events που έχεις ήδη κλείσει.',
+    'myEventsEmpty' => 'Δεν έχεις κλείσει ακόμη κάποιο event.',
+    'myEventsTicketsBooked' => 'Εισιτήρια που έκλεισες',
+    'myEventsBookedAt' => 'Ημερομηνία κράτησης',
+    'myEventsTicketCodes' => 'Κωδικοί εισιτηρίων',
+    'myEventsDonationTotal' => 'Συνολική δωρεά',
+    'myEventsPaymentStatus' => 'Πληρωμή',
+    'paymentStatusPaid' => 'Πληρωμένο',
+    'paymentStatusFree' => 'Δωρεάν',
 
     'noImage' => 'Χωρίς εικόνα',
     'date' => 'Ημερομηνία',
@@ -159,3 +170,6 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
+
+

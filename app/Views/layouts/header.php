@@ -45,7 +45,7 @@ $avatarTitle = $userName !== '' ? $userName : ($userEmail !== '' ? $userEmail : 
                         <img src="<?= base_url('assets/images/avatar-default.svg') ?>" alt="User avatar" class="user-avatar-icon">
                     </summary>
                     <div class="user-dropdown">
-                        <a href="#" class="user-dropdown-link" onclick="return false;"><?= esc(lang('App.navMyEvents')) ?></a>
+                        <a href="<?= base_url('my-events') ?>" class="user-dropdown-link"><?= esc(lang('App.navMyEvents')) ?></a>
                         <a href="<?= base_url('logout') ?>" class="user-dropdown-link user-dropdown-logout"><?= esc(lang('App.navLogout')) ?></a>
                     </div>
                 </details>
@@ -53,3 +53,4 @@ $avatarTitle = $userName !== '' ? $userName : ($userEmail !== '' ? $userEmail : 
         </div>
     </div>
 </header>
+
