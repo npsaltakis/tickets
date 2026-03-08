@@ -720,3 +720,15 @@ a.dt-button:hover:not(.disabled) {
         float: none !important;
     }
 }
+
+.event-info-link {
+    color: #f8fafc;
+    text-decoration: underline;
+    text-decoration-color: rgba(245, 158, 11, 0.65);
+    text-underline-offset: 3px;
+    font-weight: 600;
+}
+
+.event-info-link:hover {
+    color: #fbbf24;
+}

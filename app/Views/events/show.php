@@ -69,7 +69,7 @@
             <?php endif; ?>
 
             <?php if ($infoUrl !== ''): ?>
-                <p class="meta"><strong><?= esc(lang('App.infoUrl')) ?>:</strong> <a href="<?= esc($infoUrl) ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventMoreInfo')) ?></a></p>
+                <p class="meta"><strong><?= esc(lang('App.infoUrl')) ?>:</strong> <a class="event-info-link" href="<?= esc($infoUrl) ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventMoreInfo')) ?></a></p>
             <?php endif; ?>
 
             <p class="meta"><strong><?= esc(lang('App.type')) ?>:</strong> <?= esc($event['event_type'] ?? 'free') ?></p>
@@ -155,3 +155,4 @@
 <?php endif; ?>
 <script src="<?= base_url('assets/js/event-show.js') ?>"></script>
 <?= $this->endSection() ?>
+
