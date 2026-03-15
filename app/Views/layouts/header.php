@@ -2,6 +2,7 @@
 <?php
 $currentLocale = service('request')->getLocale();
 $selectedLanguage = $currentLocale === 'en' ? 'en' : 'el';
+$currentPath = trim((string) service('request')->getUri()->getPath(), '/');
 
 $session = session();
 $isLoggedIn = $session->get('is_logged_in') === true;
@@ -25,12 +26,12 @@ $avatarTitle = $userName !== '' ? $userName : ($userEmail !== '' ? $userEmail : 
             <a class="brand" href="<?= base_url('/') ?>"><?= esc(lang('App.siteTitle')) ?></a>
             <nav aria-label="Main navigation">
                 <ul class="menu">
-                    <li><a class="menu-link is-active" href="<?= base_url('/') ?>"><?= esc(lang('App.navHome')) ?></a></li>
+                    <li><a class="menu-link <?= $currentPath === '' ? 'is-active' : '' ?>" href="<?= base_url('/') ?>"><?= esc(lang('App.navHome')) ?></a></li>
                     <?php if ($isAdmin): ?>
-                        <li><a class="menu-link" href="<?= base_url('report') ?>"><?= esc(lang('App.navReport')) ?></a></li>
+                        <li><a class="menu-link <?= $currentPath === 'report' ? 'is-active' : '' ?>" href="<?= base_url('report') ?>"><?= esc(lang('App.navReport')) ?></a></li>
                     <?php endif; ?>
                     <?php if (! $isLoggedIn): ?>
-                        <li><a class="menu-link" href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a></li>
+                        <li><a class="menu-link <?= $currentPath === 'login' ? 'is-active' : '' ?>" href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a></li>
                     <?php endif; ?>
                 </ul>
             </nav>

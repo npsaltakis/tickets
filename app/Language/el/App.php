@@ -233,6 +233,10 @@ return [
     'reportDonationAmount' => 'Ποσό',
     'reportBookedAt' => 'Ημερομηνία Κράτησης',
 
+    'footerContact' => 'Επικοινωνία',
+    'footerAbout' => 'Σχετικά με Εμάς',
+    'footerGdpr' => 'GDPR',
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
 
