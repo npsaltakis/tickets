@@ -233,6 +233,10 @@ return [
     'reportDonationAmount' => 'Amount',
     'reportBookedAt' => 'Booked At',
 
+    'footerContact' => 'Contact',
+    'footerAbout' => 'About Us',
+    'footerGdpr' => 'GDPR',
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
 
