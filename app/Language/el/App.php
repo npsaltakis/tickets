@@ -229,11 +229,3 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
-
-
-
-
-
-
-
-

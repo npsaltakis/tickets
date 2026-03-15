@@ -10,6 +10,7 @@
     $isLoggedIn = session()->get('is_logged_in') === true;
     $isAdmin = $isLoggedIn && (string) session()->get('user_role') === 'admin';
     $paypalClientId = trim((string) ($paypalClientId ?? ''));
+    $paypalLocale = service('request')->getLocale() === 'en' ? 'en_US' : 'el_GR';
     $rawImage = (string) ($event['image'] ?? '');
     $imageUrl = $rawImage !== ''
         ? (preg_match('#^https?://#i', $rawImage) ? $rawImage : base_url(ltrim($rawImage, '/')))
@@ -157,8 +158,7 @@
     </section>
 </main>
 <?php if ($isDonationEvent && $paypalClientId !== '' && $isLoggedIn && $canBook): ?>
-    <script src="https://www.paypal.com/sdk/js?client-id=<?= esc($paypalClientId) ?>&currency=EUR&intent=capture"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=<?= esc($paypalClientId) ?>&currency=EUR&intent=capture&locale=<?= esc($paypalLocale) ?>"></script>
 <?php endif; ?>
 <script src="<?= base_url('assets/js/event-show.js') ?>"></script>
 <?= $this->endSection() ?>
-

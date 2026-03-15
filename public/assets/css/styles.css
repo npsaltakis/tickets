@@ -306,6 +306,9 @@ h1 {
     margin-top: 18px;
     color: #f8fafc;
     color-scheme: light;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(241, 245, 249, 0.9) 82%, rgba(255, 255, 255, 0.96) 100%);
+    border-radius: 14px;
+    padding: 14px;
 }
 
 #paypal-button-container {
@@ -316,6 +319,8 @@ h1 {
 #paypal-button-container > div {
     max-width: 100%;
 }
+
+
 
 .book-btn {
     border: 1px solid transparent;
@@ -1016,7 +1021,3 @@ a.dt-button:hover:not(.disabled) {
     font-size: 0.9rem;
     padding: 4px 2px;
 }
-
-
-
-
