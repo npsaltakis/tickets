@@ -109,28 +109,34 @@
                     data-min-donation="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', ''), 'attr') ?>"
                     data-min-message="<?= esc(lang('App.donationMinimumError'), 'attr') ?>"
                     data-paypal-error="<?= esc(lang('App.paypalGenericError'), 'attr') ?>">
-                    <label class="meta" for="seats"><strong><?= esc(lang('App.seats')) ?>:</strong></label>
-                    <input
-                        id="seats"
-                        name="seats"
-                        class="seats-input"
-                        type="number"
-                        min="1"
-                        max="<?= esc((string) max($remainingSeats, 1)) ?>"
-                        value="<?= esc((string) ($canBook ? 1 : 0)) ?>"
-                        <?= $canBook ? '' : 'disabled' ?>
-                        data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>">
+                    <div class="donation-booking-controls">
+                        <div class="donation-booking-field">
+                            <label class="meta" for="seats"><strong><?= esc(lang('App.seats')) ?>:</strong></label>
+                            <input
+                                id="seats"
+                                name="seats"
+                                class="seats-input"
+                                type="number"
+                                min="1"
+                                max="<?= esc((string) max($remainingSeats, 1)) ?>"
+                                value="<?= esc((string) ($canBook ? 1 : 0)) ?>"
+                                <?= $canBook ? '' : 'disabled' ?>
+                                data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>">
+                        </div>
 
-                    <label class="meta" for="donation_amount"><strong><?= esc(lang('App.donationAmountLabel')) ?>:</strong></label>
-                    <input
-                        id="donation_amount"
-                        name="donation_amount"
-                        class="seats-input donation-input"
-                        type="number"
-                        min="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', '')) ?>"
-                        step="0.01"
-                        value="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', '')) ?>"
-                        <?= $canBook && $isLoggedIn && $paypalClientId !== '' ? '' : 'disabled' ?>>
+                        <div class="donation-booking-field">
+                            <label class="meta" for="donation_amount"><strong><?= esc(lang('App.donationAmountLabel')) ?>:</strong></label>
+                            <input
+                                id="donation_amount"
+                                name="donation_amount"
+                                class="seats-input donation-input"
+                                type="number"
+                                min="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', '')) ?>"
+                                step="0.01"
+                                value="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', '')) ?>"
+                                <?= $canBook && $isLoggedIn && $paypalClientId !== '' ? '' : 'disabled' ?>>
+                        </div>
+                    </div>
 
                     <div class="booking-paypal-block">
                         <?php if (!$isLoggedIn): ?>
