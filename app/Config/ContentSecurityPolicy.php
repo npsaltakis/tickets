@@ -52,21 +52,21 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string|null
      */
-    public $defaultSrc;
+    public $defaultSrc = ['self'];
 
     /**
      * Lists allowed scripts' URLs.
      *
      * @var list<string>|string
      */
-    public $scriptSrc = 'self';
+    public $scriptSrc = ['self'];
 
     /**
      * Specifies valid sources for JavaScript <script> elements.
      *
      * @var list<string>|string
      */
-    public array|string $scriptSrcElem = 'self';
+    public array|string $scriptSrcElem = ['self', 'https://www.paypal.com', 'https://challenges.cloudflare.com', 'https://code.jquery.com', 'https://cdn.datatables.net', 'https://cdnjs.cloudflare.com'];
 
     /**
      * Specifies valid sources for JavaScript inline event
@@ -74,21 +74,21 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public array|string $scriptSrcAttr = 'self';
+    public array|string $scriptSrcAttr = ['unsafe-inline'];
 
     /**
      * Lists allowed stylesheets' URLs.
      *
      * @var list<string>|string
      */
-    public $styleSrc = 'self';
+    public $styleSrc = ['self'];
 
     /**
      * Specifies valid sources for stylesheets <link> elements.
      *
      * @var list<string>|string
      */
-    public array|string $styleSrcElem = 'self';
+    public array|string $styleSrcElem = ['self', 'https://cdn.datatables.net'];
 
     /**
      * Specifies valid sources for stylesheets inline
@@ -96,14 +96,14 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public array|string $styleSrcAttr = 'self';
+    public array|string $styleSrcAttr = ['self'];
 
     /**
      * Defines the origins from which images can be loaded.
      *
      * @var list<string>|string
      */
-    public $imageSrc = 'self';
+    public $imageSrc = ['self', 'data:', 'blob:', 'https:'];
 
     /**
      * Restricts the URLs that can appear in a page's `<base>` element.
@@ -112,14 +112,14 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string|null
      */
-    public $baseURI;
+    public $baseURI = 'self';
 
     /**
      * Lists the URLs for workers and embedded frame contents
      *
      * @var list<string>|string
      */
-    public $childSrc = 'self';
+    public $childSrc = ['self', 'https://www.paypal.com', 'https://challenges.cloudflare.com', 'https://www.google.com'];
 
     /**
      * Limits the origins that you can connect to (via XHR,
@@ -127,14 +127,14 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public $connectSrc = 'self';
+    public $connectSrc = ['self', 'https://www.paypal.com', 'https://*.paypal.com', 'https://challenges.cloudflare.com'];
 
     /**
      * Specifies the origins that can serve web fonts.
      *
      * @var list<string>|string
      */
-    public $fontSrc;
+    public $fontSrc = ['self', 'data:', 'https://cdn.datatables.net'];
 
     /**
      * Lists valid endpoints for submission from `<form>` tags.
@@ -159,7 +159,7 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string|null
      */
-    public $frameSrc;
+    public $frameSrc = ['self', 'https://www.paypal.com', 'https://challenges.cloudflare.com', 'https://www.google.com'];
 
     /**
      * Restricts the origins allowed to deliver video and audio.
@@ -173,7 +173,7 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public $objectSrc = 'self';
+    public $objectSrc = 'none';
 
     /**
      * @var list<string>|string|null
@@ -183,7 +183,7 @@ class ContentSecurityPolicy extends BaseConfig
     /**
      * @var list<string>|string
      */
-    public array|string $workerSrc = [];
+    public array|string $workerSrc = ['self', 'blob:'];
 
     /**
      * Limits the kinds of plugins a page may invoke.

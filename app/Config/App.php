@@ -18,5 +18,5 @@ class App extends BaseConfig
     public string $charset = 'UTF-8';
     public bool $forceGlobalSecureRequests = false;
     public array $proxyIPs = [];
-    public bool $CSPEnabled = false;
+    public bool $CSPEnabled = true;
 }

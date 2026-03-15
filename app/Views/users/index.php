@@ -1,6 +1,12 @@
 <?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
+<?php
+$assetVersion = static function (string $relativePath): string {
+    $fullPath = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+    return is_file($fullPath) ? (string) filemtime($fullPath) : (string) time();
+};
+?>
 <main class="wrapper users-page">
     <div class="events-header users-header">
         <div>
@@ -73,7 +79,7 @@
                                             </form>
                                         <?php endif; ?>
 
-                                        <form method="post" action="<?= base_url('users/' . (int) $user['id'] . '/delete') ?>" onsubmit="return confirm('<?= esc(lang('App.usersDeleteConfirm'), 'js') ?>');">
+                                        <form method="post" action="<?= base_url('users/' . (int) $user['id'] . '/delete') ?>" data-confirm-action data-confirm-message="<?= esc(lang('App.usersDeleteConfirm'), 'attr') ?>">
                                             <?= csrf_field() ?>
                                             <button type="submit" class="auth-link-btn admin-action-btn admin-action-btn--danger"><?= esc(lang('App.usersDeleteButton')) ?></button>
                                         </form>
@@ -87,4 +93,5 @@
         <?php endif; ?>
     </section>
 </main>
+<script src="<?= base_url('assets/js/users-index.js') ?>?v=<?= esc($assetVersion('assets/js/users-index.js')) ?>"></script>
 <?= $this->endSection() ?>
