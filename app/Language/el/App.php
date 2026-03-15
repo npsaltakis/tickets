@@ -58,6 +58,8 @@ return [
     'phone' => 'Τηλέφωνο',
     'infoUrl' => 'URL Πληροφοριών',
     'eventMoreInfo' => 'Περισσότερες πληροφορίες',
+    'eventMapTitle' => 'Χάρτης τοποθεσίας',
+    'eventOpenMap' => 'Άνοιγμα στους Χάρτες',
     'type' => 'Τύπος',
     'status' => 'Κατάσταση',
 
@@ -229,3 +231,4 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+

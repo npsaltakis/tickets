@@ -58,6 +58,8 @@ return [
     'phone' => 'Phone',
     'infoUrl' => 'Info URL',
     'eventMoreInfo' => 'More information',
+    'eventMapTitle' => 'Location map',
+    'eventOpenMap' => 'Open in Maps',
     'type' => 'Type',
     'status' => 'Status',
 
@@ -229,3 +231,4 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
+
