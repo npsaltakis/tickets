@@ -168,9 +168,9 @@ $assetVersion = static function (string $relativePath): string {
                         </div>
                     </div>
 
-                    <div class="booking-paypal-block">
+                    <div class="booking-paypal-block<?= !$isLoggedIn ? ' booking-paypal-block--auth' : '' ?><?= $paypalClientId === '' ? ' booking-paypal-block--message' : '' ?>">
                         <?php if (!$isLoggedIn): ?>
-                            <p class="meta"><?= esc(lang('App.bookingLoginRequired')) ?></p>
+                            <p class="booking-auth-message"><?= esc(lang('App.bookingLoginRequired')) ?></p>
                             <a class="auth-link-btn" href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a>
                         <?php elseif ($paypalClientId === ''): ?>
                             <p class="auth-error"><?= esc(lang('App.paypalConfigurationError')) ?></p>
@@ -191,5 +191,7 @@ $assetVersion = static function (string $relativePath): string {
 <?php endif; ?>
 <script src="<?= base_url('assets/js/event-show.js') ?>?v=<?= esc($assetVersion('assets/js/event-show.js')) ?>"></script>
 <?= $this->endSection() ?>
+
+
 
 
