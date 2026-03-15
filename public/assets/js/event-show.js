@@ -46,10 +46,9 @@
         return value;
     };
 
-    seatsInput.addEventListener('input', validateSeats);
-    seatsInput.addEventListener('change', validateSeats);
-
     if (!donationBooking || !donationInput) {
+        seatsInput.addEventListener('input', validateSeats);
+        seatsInput.addEventListener('change', validateSeats);
         return;
     }
 
@@ -58,6 +57,26 @@
     const paypalErrorMessage = donationBooking.dataset.paypalError || 'Something went wrong with PayPal.';
     const createOrderUrl = donationBooking.dataset.createOrderUrl;
     const captureOrderUrl = donationBooking.dataset.captureOrderUrl;
+
+    const getMinimumTotalDonation = (seats) => {
+        const normalizedSeats = Number.isFinite(seats) && seats > 0 ? seats : minSeats;
+        return minDonation * normalizedSeats;
+    };
+
+    const syncDonationAmount = (seats, force = false) => {
+        const minimumTotalDonation = getMinimumTotalDonation(seats);
+        const currentValue = Number(donationInput.value);
+        const isAutoSynced = donationInput.dataset.autoSynced !== 'false';
+
+        donationInput.min = minimumTotalDonation.toFixed(2);
+
+        if (force || isAutoSynced || !Number.isFinite(currentValue) || currentValue < minimumTotalDonation) {
+            donationInput.value = minimumTotalDonation.toFixed(2);
+            donationInput.dataset.autoSynced = 'true';
+        }
+
+        return minimumTotalDonation;
+    };
 
     const readJsonResponse = async (response) => {
         const rawText = await response.text();
@@ -80,21 +99,28 @@
     const validateDonation = () => {
         const rawValue = donationInput.value.trim();
         const value = Number(rawValue);
+        const minimumTotalDonation = getMinimumTotalDonation(validateSeats());
 
         if (!Number.isFinite(value)) {
-            setError(minMessageTemplate.replace('{min}', minDonation.toFixed(2)));
+            setError(minMessageTemplate.replace('{min}', minimumTotalDonation.toFixed(2)));
             return null;
         }
 
-        if (value < minDonation) {
-            setError(minMessageTemplate.replace('{min}', minDonation.toFixed(2)));
+        if (value < minimumTotalDonation) {
+            setError(minMessageTemplate.replace('{min}', minimumTotalDonation.toFixed(2)));
             return null;
         }
 
         setError('');
         donationInput.value = value.toFixed(2);
+        donationInput.dataset.autoSynced = value === minimumTotalDonation ? 'true' : 'false';
 
         return value;
+    };
+
+    const handleSeatsChange = () => {
+        const seats = validateSeats();
+        syncDonationAmount(seats);
     };
 
     donationInput.addEventListener('input', () => {
@@ -103,7 +129,17 @@
         }
 
         lastDetailedError = '';
+
+        const currentSeats = validateSeats();
+        const minimumTotalDonation = getMinimumTotalDonation(currentSeats);
+        const currentValue = Number(donationInput.value);
+        donationInput.dataset.autoSynced = Number.isFinite(currentValue) && currentValue === minimumTotalDonation ? 'true' : 'false';
     });
+
+    seatsInput.addEventListener('input', handleSeatsChange);
+    seatsInput.addEventListener('change', handleSeatsChange);
+
+    syncDonationAmount(validateSeats(), true);
 
     if (!window.paypal || !createOrderUrl || !captureOrderUrl) {
         return;
