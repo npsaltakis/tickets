@@ -79,6 +79,13 @@ $assetVersion = static function (string $relativePath): string {
                                             </form>
                                         <?php endif; ?>
 
+                                        <?php if ((string) ($user['status'] ?? '') === 'inactive'): ?>
+                                            <form method="post" action="<?= base_url('users/' . (int) $user['id'] . '/resend-verification') ?>">
+                                                <?= csrf_field() ?>
+                                                <button type="submit" class="auth-link-btn admin-action-btn admin-action-btn--info"><?= esc(lang('App.usersResendVerificationButton')) ?></button>
+                                            </form>
+                                        <?php endif; ?>
+
                                         <form method="post" action="<?= base_url('users/' . (int) $user['id'] . '/delete') ?>" data-confirm-action data-confirm-message="<?= esc(lang('App.usersDeleteConfirm'), 'attr') ?>">
                                             <?= csrf_field() ?>
                                             <button type="submit" class="auth-link-btn admin-action-btn admin-action-btn--danger"><?= esc(lang('App.usersDeleteButton')) ?></button>

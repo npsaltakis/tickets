@@ -2,16 +2,20 @@
 
 namespace App\Controllers;
 
+use App\Models\EmailVerificationModel;
 use App\Models\UserModel;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\I18n\Time;
 
 class UserAdminController extends BaseController
 {
     private UserModel $userModel;
+    private EmailVerificationModel $emailVerificationModel;
 
     public function __construct()
     {
         $this->userModel = new UserModel();
+        $this->emailVerificationModel = new EmailVerificationModel();
     }
 
     public function index(): RedirectResponse|string
@@ -202,6 +206,87 @@ class UserAdminController extends BaseController
 
         return redirect()->to(base_url('users'))->with('users_info', lang('App.usersDeleteSuccess'));
     }
+
+
+    public function resendVerification(int $userId): RedirectResponse
+    {
+        if ($redirect = $this->ensureAdmin()) {
+            return $redirect;
+        }
+
+        $user = $this->userModel->find($userId);
+        if ($user === null) {
+            return redirect()->to(base_url('users'))->with('users_error', lang('App.usersNotFound'));
+        }
+
+        if ((string) ($user['status'] ?? '') !== 'inactive') {
+            return redirect()->to(base_url('users'))->with('users_error', lang('App.usersVerificationResendInvalidStatus'));
+        }
+
+        $selector = bin2hex(random_bytes(8));
+        $token = bin2hex(random_bytes(32));
+        $tokenHash = hash('sha256', $token);
+        $expiresAt = Time::now()->addMinutes(10)->toDateTimeString();
+
+        $this->emailVerificationModel->where('user_id', $userId)->delete();
+        $this->emailVerificationModel->insert([
+            'user_id' => $userId,
+            'selector' => $selector,
+            'token_hash' => $tokenHash,
+            'expires_at' => $expiresAt,
+            'used_at' => null,
+        ]);
+
+        if (! $this->sendVerificationEmail($userId, (string) ($user['email'] ?? ''), $selector, $token)) {
+            return redirect()->to(base_url('users'))->with('users_error', lang('App.usersVerificationResendFailed'));
+        }
+
+        $this->logAdminAction('user_resend_verification', 'user', [
+            'target_user_id' => $userId,
+            'email' => (string) ($user['email'] ?? ''),
+        ]);
+
+        return redirect()->to(base_url('users'))->with('users_info', lang('App.usersVerificationResendSuccess'));
+    }
+
+    private function sendVerificationEmail(int $userId, string $email, string $selector, string $token): bool
+    {
+        $verificationUrl = base_url('verify-email?selector=' . urlencode($selector) . '&token=' . urlencode($token));
+
+        $emailService = service('email');
+        $emailService->setTo($email);
+        $emailService->setSubject($this->bilingualSubject('App.verifyEmailSubject'));
+        $emailService->setMailType('html');
+        $emailService->setMessage(
+            '<p>' . esc($this->localizedLine('App.verifyEmailGreeting', [], 'el')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailRequestNotice', [], 'el')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailActionText', [], 'el')) . '</p>'
+            . '<p><a href="' . esc($verificationUrl, 'attr') . '">' . esc($verificationUrl) . '</a></p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailExpiry', [], 'el')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailIgnoreNotice', [], 'el')) . '</p>'
+            . '<p>' . nl2br(esc($this->localizedLine('App.verifyEmailSignature', [], 'el'))) . '</p>'
+            . '<hr>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailGreeting', [], 'en')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailRequestNotice', [], 'en')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailActionText', [], 'en')) . '</p>'
+            . '<p><a href="' . esc($verificationUrl, 'attr') . '">' . esc($verificationUrl) . '</a></p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailExpiry', [], 'en')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailIgnoreNotice', [], 'en')) . '</p>'
+            . '<p>' . nl2br(esc($this->localizedLine('App.verifyEmailSignature', [], 'en'))) . '</p>'
+        );
+
+        if ($emailService->send()) {
+            return true;
+        }
+
+        log_message('error', 'Admin resend verification failed for user {userId} ({email}).', [
+            'userId' => $userId,
+            'email' => $email,
+        ]);
+
+        return false;
+    }
+
 
     private function getLoginLockedUntil(string $email): ?int
     {

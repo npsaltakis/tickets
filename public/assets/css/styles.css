@@ -439,6 +439,7 @@ h1 {
     font-size: 0.9rem;
 }
 
+
 .auth-links {
     margin-top: 14px;
     display: flex;
@@ -1864,6 +1865,11 @@ a.dt-button:hover:not(.disabled) {
 .admin-action-btn--warn:hover {
     border-color: rgba(251, 191, 36, 0.38);
     color: #fde68a;
+}
+
+.admin-action-btn--info:hover {
+    border-color: rgba(56, 189, 248, 0.38);
+    color: #bae6fd;
 }
 
 .admin-action-btn--danger:hover {

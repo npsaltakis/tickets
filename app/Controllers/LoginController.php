@@ -183,48 +183,19 @@ class LoginController extends BaseController
             'used_at' => null,
         ]);
 
-        $verificationUrl = base_url('verify-email?selector=' . urlencode($selector) . '&token=' . urlencode($token));
+        $verificationSent = $this->sendVerificationEmail($userId, $email, $selector, $token);
 
-        $emailService = service('email');
-        $emailService->setTo($email);
-        $emailService->setSubject($this->bilingualSubject('App.verifyEmailSubject'));
-
-        $emailMessage = $this->buildBilingualEmail([
-            $this->localizedLine('App.verifyEmailGreeting', [], 'el'),
-            $this->localizedLine('App.verifyEmailRequestNotice', [], 'el'),
-            $this->localizedLine('App.verifyEmailActionText', [], 'el'),
-            $verificationUrl,
-            $this->localizedLine('App.verifyEmailExpiry', [], 'el'),
-            $this->localizedLine('App.verifyEmailIgnoreNotice', [], 'el'),
-            $this->localizedLine('App.verifyEmailSignature', [], 'el'),
-        ], [
-            $this->localizedLine('App.verifyEmailGreeting', [], 'en'),
-            $this->localizedLine('App.verifyEmailRequestNotice', [], 'en'),
-            $this->localizedLine('App.verifyEmailActionText', [], 'en'),
-            $verificationUrl,
-            $this->localizedLine('App.verifyEmailExpiry', [], 'en'),
-            $this->localizedLine('App.verifyEmailIgnoreNotice', [], 'en'),
-            $this->localizedLine('App.verifyEmailSignature', [], 'en'),
-        ]);
-
-        $emailService->setMessage($emailMessage);
-
-        if (! $emailService->send()) {
-            $this->emailVerificationModel->where('user_id', $userId)->delete();
-            $this->userModel->delete($userId);
-
-            return redirect()->back()->withInput()->with('register_error', lang('App.registerEmailVerificationFailed'));
+        if (! $verificationSent) {
+            return redirect()->to(base_url('login'))
+                ->with('login_error', lang('App.registerEmailVerificationFailedKeepUser'));
         }
 
-        return redirect()->to(base_url('login'))->with('login_info', lang('App.registerVerificationSent'));
+        return redirect()->to(base_url('login'))
+            ->with('login_info', lang('App.registerVerificationSent'));
     }
 
     public function verifyEmail(): RedirectResponse
     {
-        if (session()->get('is_logged_in') === true) {
-            return redirect()->to(base_url('/'));
-        }
-
         $selector = trim((string) $this->request->getGet('selector'));
         $token = trim((string) $this->request->getGet('token'));
 
@@ -253,168 +224,6 @@ class LoginController extends BaseController
         ]);
 
         return redirect()->to(base_url('login'))->with('login_info', lang('App.verifyEmailSuccess'));
-    }
-
-    public function lostPassword(): string|RedirectResponse
-    {
-        if (session()->get('is_logged_in') === true) {
-            return redirect()->to(base_url('/'));
-        }
-
-        return view('auth/lost_password', [
-            'pageTitle' => lang('App.lostPasswordPageTitle'),
-        ]);
-    }
-
-    public function sendResetLink(): RedirectResponse
-    {
-        $email = trim((string) $this->request->getPost('email'));
-
-        if ($email === '') {
-            return redirect()->back()->withInput()->with('lost_error', lang('App.lostRequiredEmail'));
-        }
-
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return redirect()->back()->withInput()->with('lost_error', lang('App.invalidEmail'));
-        }
-
-        $resetLockInfo = $this->getResetLockInfo($email);
-        if ($resetLockInfo !== null) {
-            return redirect()->back()->withInput()->with('lost_error', strtr(lang('App.resetBlocked'), [
-                '{minutes}' => (string) $resetLockInfo['minutes'],
-            ]));
-        }
-
-        $user = $this->userModel
-            ->where('email', $email)
-            ->where('status', 'active')
-            ->first();
-
-        if (empty($user)) {
-            $this->recordFailedResetAttempt($email);
-            return redirect()->back()->with('lost_info', lang('App.resetLinkSentGeneric'));
-        }
-
-        $this->clearResetAttempts($email);
-
-        $selector = bin2hex(random_bytes(8));
-        $token = bin2hex(random_bytes(32));
-        $tokenHash = hash('sha256', $token);
-        $expiresAt = Time::now()->addMinutes(10)->toDateTimeString();
-
-        $this->passwordResetModel->where('user_id', $user['id'])->delete();
-
-        $this->passwordResetModel->insert([
-            'user_id' => $user['id'],
-            'selector' => $selector,
-            'token_hash' => $tokenHash,
-            'expires_at' => $expiresAt,
-            'used_at' => null,
-        ]);
-
-        $resetUrl = base_url('reset-password?selector=' . urlencode($selector) . '&token=' . urlencode($token));
-
-        $emailService = service('email');
-        $emailService->setTo($user['email']);
-        $emailService->setSubject($this->bilingualSubject('App.resetEmailSubject'));
-
-        $emailMessage = $this->buildBilingualEmail([
-            $this->localizedLine('App.resetEmailGreeting', [], 'el'),
-            $this->localizedLine('App.resetEmailRequestNotice', [], 'el'),
-            $this->localizedLine('App.resetEmailActionText', [], 'el'),
-            $resetUrl,
-            $this->localizedLine('App.resetEmailExpiry', [], 'el'),
-            $this->localizedLine('App.resetEmailIgnoreNotice', [], 'el'),
-            $this->localizedLine('App.resetEmailSignature', [], 'el'),
-        ], [
-            $this->localizedLine('App.resetEmailGreeting', [], 'en'),
-            $this->localizedLine('App.resetEmailRequestNotice', [], 'en'),
-            $this->localizedLine('App.resetEmailActionText', [], 'en'),
-            $resetUrl,
-            $this->localizedLine('App.resetEmailExpiry', [], 'en'),
-            $this->localizedLine('App.resetEmailIgnoreNotice', [], 'en'),
-            $this->localizedLine('App.resetEmailSignature', [], 'en'),
-        ]);
-
-        $emailService->setMessage($emailMessage);
-
-        if (! $emailService->send()) {
-            return redirect()->back()->withInput()->with('lost_error', lang('App.emailSendFailed'));
-        }
-
-        return redirect()->back()->with('lost_info', lang('App.resetLinkSent'));
-    }
-
-    public function resetPasswordForm(): string|RedirectResponse
-    {
-        if (session()->get('is_logged_in') === true) {
-            return redirect()->to(base_url('/'));
-        }
-
-        $selector = trim((string) $this->request->getGet('selector'));
-        $token = trim((string) $this->request->getGet('token'));
-
-        if ($selector === '' || $token === '') {
-            return redirect()->to(base_url('lost-password'))->with('lost_error', lang('App.invalidOrExpiredToken'));
-        }
-
-        $reset = $this->passwordResetModel->where('selector', $selector)->first();
-
-        if (! $this->isValidResetToken($reset, $token)) {
-            return redirect()->to(base_url('lost-password'))->with('lost_error', lang('App.invalidOrExpiredToken'));
-        }
-
-        return view('auth/reset_password', [
-            'pageTitle' => lang('App.resetPasswordPageTitle'),
-            'selector' => $selector,
-            'token' => $token,
-        ]);
-    }
-
-    public function updatePasswordWithToken(): RedirectResponse
-    {
-        $selector = trim((string) $this->request->getPost('selector'));
-        $token = trim((string) $this->request->getPost('token'));
-        $newPassword = (string) $this->request->getPost('new_password');
-        $confirmPassword = (string) $this->request->getPost('confirm_password');
-
-        if ($selector === '' || $token === '') {
-            return redirect()->to(base_url('lost-password'))->with('lost_error', lang('App.invalidOrExpiredToken'));
-        }
-
-        if ($newPassword === '' || $confirmPassword === '') {
-            return redirect()->back()->withInput()->with('reset_error', lang('App.lostRequiredFields'));
-        }
-
-        if (strlen($newPassword) < 6) {
-            return redirect()->back()->withInput()->with('reset_error', lang('App.passwordTooShort'));
-        }
-
-        if ($newPassword !== $confirmPassword) {
-            return redirect()->back()->withInput()->with('reset_error', lang('App.passwordsDoNotMatch'));
-        }
-
-        $reset = $this->passwordResetModel->where('selector', $selector)->first();
-
-        if (! $this->isValidResetToken($reset, $token)) {
-            return redirect()->to(base_url('lost-password'))->with('lost_error', lang('App.invalidOrExpiredToken'));
-        }
-
-        $user = $this->userModel->find($reset['user_id']);
-
-        if (empty($user)) {
-            return redirect()->to(base_url('lost-password'))->with('lost_error', lang('App.userNotFound'));
-        }
-
-        $this->userModel->update($user['id'], [
-            'password' => password_hash($newPassword, PASSWORD_DEFAULT),
-        ]);
-
-        $this->passwordResetModel->update($reset['id'], [
-            'used_at' => Time::now()->toDateTimeString(),
-        ]);
-
-        return redirect()->to(base_url('login'))->with('login_info', lang('App.passwordResetSuccess'));
     }
 
     private function getLoginCacheKey(string $email, string $suffix): string
@@ -576,6 +385,44 @@ class LoginController extends BaseController
         $cache = cache();
         $cache->delete($this->getResetCacheKey($email, 'attempts'));
         $cache->delete($this->getResetCacheKey($email, 'lock'));
+    }
+
+    private function sendVerificationEmail(int $userId, string $email, string $selector, string $token): bool
+    {
+        $verificationUrl = base_url('verify-email?selector=' . urlencode($selector) . '&token=' . urlencode($token));
+
+        $emailService = service('email');
+        $emailService->setTo($email);
+        $emailService->setSubject($this->bilingualSubject('App.verifyEmailSubject'));
+        $emailService->setMailType('html');
+        $emailService->setMessage(
+            '<p>' . esc($this->localizedLine('App.verifyEmailGreeting', [], 'el')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailRequestNotice', [], 'el')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailActionText', [], 'el')) . '</p>'
+            . '<p><a href="' . esc($verificationUrl, 'attr') . '">' . esc($verificationUrl) . '</a></p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailExpiry', [], 'el')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailIgnoreNotice', [], 'el')) . '</p>'
+            . '<p>' . nl2br(esc($this->localizedLine('App.verifyEmailSignature', [], 'el'))) . '</p>'
+            . '<hr>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailGreeting', [], 'en')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailRequestNotice', [], 'en')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailActionText', [], 'en')) . '</p>'
+            . '<p><a href="' . esc($verificationUrl, 'attr') . '">' . esc($verificationUrl) . '</a></p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailExpiry', [], 'en')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailIgnoreNotice', [], 'en')) . '</p>'
+            . '<p>' . nl2br(esc($this->localizedLine('App.verifyEmailSignature', [], 'en'))) . '</p>'
+        );
+
+        if ($emailService->send()) {
+            return true;
+        }
+
+        log_message('error', 'Verification email send failed for user {userId} ({email}).', [
+            'userId' => $userId,
+            'email' => $email,
+        ]);
+
+        return false;
     }
 
     private function isValidResetToken(?array $reset, string $token): bool

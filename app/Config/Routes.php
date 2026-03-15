@@ -16,6 +16,7 @@ $routes->post('users/(:num)/update', 'UserAdminController::update/$1');
 $routes->post('users/(:num)/block', 'UserAdminController::block/$1');
 $routes->post('users/(:num)/unblock', 'UserAdminController::unblock/$1');
 $routes->post('users/(:num)/delete', 'UserAdminController::delete/$1');
+$routes->post('users/(:num)/resend-verification', 'UserAdminController::resendVerification/$1');
 $routes->get('gdpr', 'PagesController::gdpr');
 $routes->get('privacy-policy', 'PagesController::privacy');
 $routes->get('terms', 'PagesController::terms');
