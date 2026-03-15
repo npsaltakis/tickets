@@ -75,6 +75,8 @@ return [
     'eventOnlineAccessSentByEmail' => 'The join link has been sent to your booking email.',
     'eventOnlineAccessLocked' => 'The join link is not shown publicly. It is sent only by email after booking.',
     'eventOnlineAccessUnavailable' => 'No online access details have been added for this event yet.',
+    'eventYourTicketsTitle' => 'Your tickets',
+    'eventYourTicketsHelp' => 'The codes below belong to your valid bookings for this event.',
 
     'donationFrom' => 'Donation from',
     'freeEvent' => 'Free Event',

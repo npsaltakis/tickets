@@ -15,6 +15,7 @@ $assetVersion = static function (string $relativePath): string {
     $isLoggedIn = session()->get('is_logged_in') === true;
     $isAdmin = $isLoggedIn && (string) session()->get('user_role') === 'admin';
     $hasOnlineAccess = (bool) ($hasOnlineAccess ?? false);
+    $userTicketCodes = array_values(array_filter((array) ($userTicketCodes ?? [])));
     $paypalClientId = trim((string) ($paypalClientId ?? ''));
     $paypalLocale = service('request')->getLocale() === 'en' ? 'en_US' : 'el_GR';
     $rawImage = (string) ($event['image'] ?? '');
@@ -111,6 +112,16 @@ $assetVersion = static function (string $relativePath): string {
                 <p class="event-description"><?= esc($event['description']) ?></p>
             <?php endif; ?>
 
+            <?php if (!empty($userTicketCodes)): ?>
+                <section class="event-access-card">
+                    <div class="event-map-header">
+                        <h2 class="event-map-title"><?= esc(lang('App.eventYourTicketsTitle')) ?></h2>
+                    </div>
+                    <p class="meta"><?= esc(lang('App.eventYourTicketsHelp')) ?></p>
+                    <p class="ticket-code-list"><?= esc(implode(', ', $userTicketCodes)) ?></p>
+                </section>
+            <?php endif; ?>
+
             <?php if ($showOnlineSection): ?>
                 <section class="event-access-card">
                     <div class="event-map-header">
@@ -118,7 +129,11 @@ $assetVersion = static function (string $relativePath): string {
                     </div>
 
                     <?php if ($hasOnlineAccess): ?>
-                        <p class="meta"><?= esc(lang('App.eventOnlineAccessSentByEmail')) ?></p>
+                        <?php if ($onlineUrl !== ''): ?>
+                            <p class="meta"><a class="event-access-link" href="<?= esc($onlineUrl) ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventJoinOnline')) ?></a></p>
+                        <?php else: ?>
+                            <p class="meta"><?= esc(lang('App.eventOnlineAccessSentByEmail')) ?></p>
+                        <?php endif; ?>
                         <?php if ($onlineAccessNotes !== ''): ?>
                             <p class="event-access-note"><?= nl2br(esc($onlineAccessNotes)) ?></p>
                         <?php endif; ?>

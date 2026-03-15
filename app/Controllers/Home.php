@@ -50,15 +50,25 @@ class Home extends EventBaseController
         $isLoggedIn = session()->get('is_logged_in') === true;
         $isAdmin = $isLoggedIn && (string) session()->get('user_role') === 'admin';
         $hasOnlineAccess = false;
+        $userTicketCodes = [];
 
         if ($isAdmin) {
             $hasOnlineAccess = true;
         } elseif ($isLoggedIn) {
-            $hasOnlineAccess = $this->ticketModel
+            $userTickets = $this->ticketModel
+                ->select('ticket_code')
                 ->where('event_id', (int) $event['id'])
                 ->where('user_id', (int) session()->get('user_id'))
                 ->where('status', 'valid')
-                ->countAllResults() > 0;
+                ->orderBy('created_at', 'DESC')
+                ->findAll();
+
+            $userTicketCodes = array_values(array_filter(array_map(
+                static fn(array $ticket): string => (string) ($ticket['ticket_code'] ?? ''),
+                $userTickets
+            )));
+
+            $hasOnlineAccess = $userTicketCodes !== [];
         }
 
         return view('events/show', [
@@ -66,6 +76,7 @@ class Home extends EventBaseController
             'pageTitle' => $event['title'] . ' | Ticketing System',
             'paypalClientId' => $this->getPayPalClientId(),
             'hasOnlineAccess' => $hasOnlineAccess,
+            'userTicketCodes' => $userTicketCodes,
         ]);
     }
 }

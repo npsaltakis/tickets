@@ -75,6 +75,8 @@ return [
     'eventOnlineAccessSentByEmail' => 'Ο σύνδεσμος παρακολούθησης έχει σταλεί στο email της κράτησής σου.',
     'eventOnlineAccessLocked' => 'Ο σύνδεσμος παρακολούθησης δεν εμφανίζεται δημόσια. Στέλνεται μόνο με email μετά την κράτηση.',
     'eventOnlineAccessUnavailable' => 'Δεν έχουν προστεθεί ακόμη online οδηγίες για αυτό το event.',
+    'eventYourTicketsTitle' => 'Τα εισιτήριά σου',
+    'eventYourTicketsHelp' => 'Οι παρακάτω κωδικοί ανήκουν στις valid κρατήσεις σου για αυτό το event.',
 
     'donationFrom' => 'Δωρεά από',
     'freeEvent' => 'Δωρεάν Event',
