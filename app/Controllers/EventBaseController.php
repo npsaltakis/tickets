@@ -473,6 +473,11 @@ abstract class EventBaseController extends BaseController
         }
     }
 
+    protected function hasAcceptedBookingTerms(): bool
+    {
+        return $this->getRequestValue('accept_terms') === '1';
+    }
+
     protected function validateDonationBookingRequest(array $event): array
     {
         if ((string) ($event['status'] ?? '') !== 'active') {

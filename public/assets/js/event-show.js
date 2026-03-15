@@ -11,7 +11,10 @@
     const limitTemplate = seatsInput.dataset.limitMessage || 'Only {max} seats available.';
     const donationBooking = document.getElementById('donation-booking');
     const bookingError = document.getElementById('booking-error');
+    const consentError = document.getElementById('booking-consent-error');
     const donationInput = document.getElementById('donation_amount');
+    const freeBookingForm = document.getElementById('free-booking-form');
+    const consentCheckbox = document.getElementById('donation_booking_consent') || document.getElementById('booking_consent');
     let lastDetailedError = '';
 
     const setError = (message) => {
@@ -20,6 +23,30 @@
         if (bookingError) {
             bookingError.textContent = lastDetailedError;
         }
+    };
+
+    const consentMessage = (consentCheckbox && consentCheckbox.dataset.errorMessage) || (donationBooking && donationBooking.dataset.consentMessage) || 'You must accept the terms of use and the privacy policy before continuing.';
+
+    const validateConsent = () => {
+        if (!consentCheckbox || consentCheckbox.disabled) {
+            if (consentError) {
+                consentError.textContent = '';
+            }
+            return true;
+        }
+
+        if (!consentCheckbox.checked) {
+            if (consentError) {
+                consentError.textContent = consentMessage;
+            }
+            return false;
+        }
+
+        if (consentError) {
+            consentError.textContent = '';
+        }
+
+        return true;
     };
 
     const validateSeats = () => {
@@ -46,9 +73,24 @@
         return value;
     };
 
+    if (consentCheckbox) {
+        consentCheckbox.addEventListener('change', validateConsent);
+    }
+
     if (!donationBooking || !donationInput) {
         seatsInput.addEventListener('input', validateSeats);
         seatsInput.addEventListener('change', validateSeats);
+
+        if (freeBookingForm) {
+            freeBookingForm.addEventListener('submit', (event) => {
+                validateSeats();
+
+                if (!validateConsent()) {
+                    event.preventDefault();
+                }
+            });
+        }
+
         return;
     }
 
@@ -155,13 +197,14 @@
             const seats = validateSeats();
             const donationAmount = validateDonation();
 
-            if (!seats || donationAmount === null) {
+            if (!validateConsent() || !seats || donationAmount === null) {
                 throw new Error('Validation failed');
             }
 
             const body = new URLSearchParams();
             body.set('seats', String(seats));
             body.set('donation_amount', donationAmount.toFixed(2));
+            body.set('accept_terms', '1');
 
             const response = await fetch(createOrderUrl, {
                 method: 'POST',

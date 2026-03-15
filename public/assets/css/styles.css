@@ -1682,3 +1682,107 @@ a.dt-button:hover:not(.disabled) {
     content: '';
 }
 
+
+
+.footer-menu-link {
+    text-decoration: none;
+    transition: color 120ms ease, opacity 120ms ease;
+}
+
+.footer-menu-link:hover {
+    color: #7dd3fc;
+    opacity: 1;
+}
+
+.legal-page {
+    display: grid;
+    gap: 22px;
+}
+
+.legal-hero {
+    display: grid;
+    gap: 10px;
+    max-width: 760px;
+}
+
+.legal-kicker {
+    margin: 0;
+    color: #7dd3fc;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.legal-subtitle {
+    max-width: 760px;
+}
+
+.legal-updated {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+.legal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.legal-card {
+    background: linear-gradient(180deg, var(--surface), var(--surface-2));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+}
+
+.legal-card h2 {
+    margin: 0 0 10px;
+    font-size: 1.05rem;
+    color: #f8fafc;
+}
+
+.legal-card p {
+    margin: 0;
+    color: #d1d5db;
+    line-height: 1.7;
+}
+
+.legal-card-wide {
+    max-width: none;
+}
+
+@media (max-width: 768px) {
+    .legal-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+.booking-consent {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 14px;
+    color: #dbe4f0;
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+.booking-consent input {
+    margin-top: 3px;
+    accent-color: var(--accent);
+}
+
+.booking-consent a {
+    color: #7dd3fc;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.booking-consent a:hover {
+    color: #bae6fd;
+}

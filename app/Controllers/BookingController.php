@@ -24,6 +24,10 @@ class BookingController extends EventBaseController
             return redirect()->back()->with('event_error', lang('App.bookingEventUnavailable'));
         }
 
+        if (! $this->hasAcceptedBookingTerms()) {
+            return redirect()->back()->withInput()->with('event_error', lang('App.eventBookingConsentError'));
+        }
+
         $requestedSeats = (int) $this->request->getPost('seats');
         if ($requestedSeats < 1) {
             return redirect()->back()->with('event_error', lang('App.bookingInvalidSeatCount'));
@@ -76,6 +80,10 @@ class BookingController extends EventBaseController
 
         if (session()->get('is_logged_in') !== true) {
             return $this->response->setStatusCode(401)->setJSON(['message' => lang('App.bookingLoginRequired')]);
+        }
+
+        if (! $this->hasAcceptedBookingTerms()) {
+            return $this->response->setStatusCode(422)->setJSON(['message' => lang('App.eventBookingConsentError')]);
         }
 
         [$requestedSeats, $donationAmount, $error] = $this->validateDonationBookingRequest($event);

@@ -2,7 +2,7 @@
     <div class="top-nav-inner footer-inner-shell">
         <div class="footer-menu-card">
             <nav class="footer-menu" aria-label="Footer menu">
-                <span class="footer-menu-item"><?= esc(lang('App.footerGdpr')) ?></span>
+                <a class="footer-menu-item footer-menu-link" href="<?= base_url('gdpr') ?>"><?= esc(lang('App.footerGdpr')) ?></a>
                 <span class="footer-menu-item"><?= esc(lang('App.footerAbout')) ?></span>
                 <span class="footer-menu-item"><?= esc(lang('App.footerContact')) ?></span>
             </nav>

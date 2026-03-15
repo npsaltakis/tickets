@@ -163,7 +163,7 @@ $assetVersion = static function (string $relativePath): string {
             <?php endif; ?>
 
             <?php if (!$isDonationEvent): ?>
-                <form method="post" action="<?= base_url('events/' . $event['slug'] . '/book') ?>" class="booking-box">
+                <form method="post" action="<?= base_url('events/' . $event['slug'] . '/book') ?>" class="booking-box" id="free-booking-form">
                     <?= csrf_field() ?>
                     <label class="meta" for="seats"><strong><?= esc(lang('App.seats')) ?>:</strong></label>
                     <input
@@ -176,8 +176,13 @@ $assetVersion = static function (string $relativePath): string {
                         value="<?= esc((string) ($canBook ? 1 : 0)) ?>"
                         <?= $canBook ? '' : 'disabled' ?>
                         data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>">
+                    <label class="booking-consent" for="booking_consent">
+                        <input id="booking_consent" name="accept_terms" type="checkbox" value="1" data-error-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>" <?= $canBook ? '' : 'disabled' ?>>
+                        <span><?= esc(lang('App.eventBookingConsentLabelStart')) ?><a href="<?= base_url('terms') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventBookingConsentTerms')) ?></a><?= esc(lang('App.eventBookingConsentMiddle')) ?><a href="<?= base_url('privacy-policy') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventBookingConsentPrivacy')) ?></a>.</span>
+                    </label>
                     <button type="submit" class="book-btn" <?= $canBook ? '' : 'disabled' ?>><?= esc(lang('App.bookSeat')) ?></button>
                     <p id="seats-error" class="field-error" aria-live="polite"></p>
+                    <p id="booking-consent-error" class="field-error" aria-live="polite"></p>
                 </form>
             <?php else: ?>
                 <section
@@ -187,7 +192,8 @@ $assetVersion = static function (string $relativePath): string {
                     data-capture-order-url="<?= esc(base_url('events/' . $event['slug'] . '/paypal/capture'), 'attr') ?>"
                     data-min-donation="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', ''), 'attr') ?>"
                     data-min-message="<?= esc(lang('App.donationMinimumError'), 'attr') ?>"
-                    data-paypal-error="<?= esc(lang('App.paypalGenericError'), 'attr') ?>">
+                    data-paypal-error="<?= esc(lang('App.paypalGenericError'), 'attr') ?>"
+                    data-consent-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>">
                     <div class="donation-booking-controls">
                         <div class="donation-booking-field">
                             <label class="meta" for="seats"><strong><?= esc(lang('App.seats')) ?>:</strong></label>
@@ -217,6 +223,11 @@ $assetVersion = static function (string $relativePath): string {
                         </div>
                     </div>
 
+                    <label class="booking-consent" for="donation_booking_consent">
+                        <input id="donation_booking_consent" name="accept_terms" type="checkbox" value="1" data-error-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>" <?= $canBook && $isLoggedIn && $paypalClientId !== '' ? '' : 'disabled' ?>>
+                        <span><?= esc(lang('App.eventBookingConsentLabelStart')) ?><a href="<?= base_url('terms') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventBookingConsentTerms')) ?></a><?= esc(lang('App.eventBookingConsentMiddle')) ?><a href="<?= base_url('privacy-policy') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventBookingConsentPrivacy')) ?></a>.</span>
+                    </label>
+
                     <div class="booking-paypal-block<?= !$isLoggedIn ? ' booking-paypal-block--auth' : '' ?><?= $paypalClientId === '' ? ' booking-paypal-block--message' : '' ?>">
                         <?php if (!$isLoggedIn): ?>
                             <p class="booking-auth-message"><?= esc(lang('App.bookingLoginRequired')) ?></p>
@@ -229,6 +240,7 @@ $assetVersion = static function (string $relativePath): string {
                     </div>
 
                     <p id="seats-error" class="field-error" aria-live="polite"></p>
+                    <p id="booking-consent-error" class="field-error" aria-live="polite"></p>
                     <p id="booking-error" class="field-error" aria-live="polite"></p>
                 </section>
             <?php endif; ?>
