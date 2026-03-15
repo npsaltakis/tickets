@@ -398,13 +398,24 @@ class LoginController extends BaseController
     {
         $cache = cache();
         $lockedUntil = (int) ($cache->get($this->getLoginCacheKey($email, 'lock')) ?? 0);
+        $summaryKey = $this->getLoginEmailLockKey($email);
 
         if ($lockedUntil <= time()) {
             if ($lockedUntil > 0) {
                 $cache->delete($this->getLoginCacheKey($email, 'lock'));
             }
 
+            $summaryLockedUntil = (int) ($cache->get($summaryKey) ?? 0);
+            if ($summaryLockedUntil > 0 && $summaryLockedUntil <= time()) {
+                $cache->delete($summaryKey);
+            }
+
             return null;
+        }
+
+        $summaryLockedUntil = (int) ($cache->get($summaryKey) ?? 0);
+        if ($summaryLockedUntil < $lockedUntil) {
+            $cache->save($summaryKey, $lockedUntil, max(1, $lockedUntil - time()));
         }
 
         return [
@@ -418,11 +429,14 @@ class LoginController extends BaseController
         $cache = cache();
         $attemptKey = $this->getLoginCacheKey($email, 'attempts');
         $lockKey = $this->getLoginCacheKey($email, 'lock');
+        $summaryKey = $this->getLoginEmailLockKey($email);
         $attempts = (int) ($cache->get($attemptKey) ?? 0) + 1;
 
         if ($attempts >= self::LOGIN_MAX_ATTEMPTS) {
+            $lockedUntil = time() + self::LOGIN_LOCK_SECONDS;
             $cache->delete($attemptKey);
-            $cache->save($lockKey, time() + self::LOGIN_LOCK_SECONDS, self::LOGIN_LOCK_SECONDS);
+            $cache->save($lockKey, $lockedUntil, self::LOGIN_LOCK_SECONDS);
+            $cache->save($summaryKey, $lockedUntil, self::LOGIN_LOCK_SECONDS);
             return;
         }
 
@@ -434,6 +448,12 @@ class LoginController extends BaseController
         $cache = cache();
         $cache->delete($this->getLoginCacheKey($email, 'attempts'));
         $cache->delete($this->getLoginCacheKey($email, 'lock'));
+        $cache->delete($this->getLoginEmailLockKey($email));
+    }
+
+    private function getLoginEmailLockKey(string $email): string
+    {
+        return 'login_user_lock_' . sha1(strtolower($email));
     }
 
     private function isValidResetToken(?array $reset, string $token): bool

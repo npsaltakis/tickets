@@ -1884,3 +1884,10 @@ a.dt-button:hover:not(.disabled) {
         min-width: 760px;
     }
 }
+
+.users-lock-meta {
+    margin-top: 8px;
+    color: #fbbf24;
+    font-size: 0.82rem;
+    font-weight: 600;
+}

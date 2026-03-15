@@ -26,6 +26,12 @@ class UserAdminController extends BaseController
             ->orderBy('created_at', 'DESC')
             ->findAll();
 
+        foreach ($users as &$user) {
+            $user['login_locked_until'] = $this->getLoginLockedUntil((string) ($user['email'] ?? ''));
+        }
+
+        unset($user);
+
         return view('users/index', [
             'users' => $users,
             'pageTitle' => lang('App.usersPageTitle'),
@@ -168,6 +174,28 @@ class UserAdminController extends BaseController
         $this->userModel->delete($userId);
 
         return redirect()->to(base_url('users'))->with('users_info', lang('App.usersDeleteSuccess'));
+    }
+
+    private function getLoginLockedUntil(string $email): ?int
+    {
+        $email = trim(strtolower($email));
+        if ($email === '') {
+            return null;
+        }
+
+        $cache = cache();
+        $key = 'login_user_lock_' . sha1($email);
+        $lockedUntil = (int) ($cache->get($key) ?? 0);
+
+        if ($lockedUntil <= time()) {
+            if ($lockedUntil > 0) {
+                $cache->delete($key);
+            }
+
+            return null;
+        }
+
+        return $lockedUntil;
     }
 
     private function renderUserForm(?array $user = null): string

@@ -371,6 +371,7 @@ return [
     'usersSelfBlockError' => 'You cannot block your own account.',
     'usersSelfDeleteError' => 'You cannot delete your own account.',
     'usersLastAdminError' => 'You cannot remove, block, or downgrade the last active admin.',
+    'usersLoginLockedUntil' => 'Login lock until',
 ];
 
 

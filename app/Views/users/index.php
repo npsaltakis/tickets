@@ -42,12 +42,20 @@
                             $status = (string) ($user['status'] ?? 'inactive');
                             $role = (string) ($user['role'] ?? 'client');
                             $statusKey = 'App.usersStatus' . ucfirst($status === 'banned' ? 'Blocked' : $status);
+                            $loginLockedUntil = isset($user['login_locked_until']) ? (int) $user['login_locked_until'] : 0;
                             ?>
                             <tr>
                                 <td><strong><?= esc($fullName !== '' ? $fullName : '-') ?></strong></td>
                                 <td><?= esc((string) ($user['email'] ?? '-')) ?></td>
                                 <td><span class="table-pill table-pill--role"><?= esc(lang('App.usersRole' . ucfirst($role))) ?></span></td>
-                                <td><span class="status <?= esc($status === 'banned' ? 'cancelled' : $status) ?>"><?= esc(lang($statusKey)) ?></span></td>
+                                <td>
+                                    <span class="status <?= esc($status === 'banned' ? 'cancelled' : $status) ?>"><?= esc(lang($statusKey)) ?></span>
+                                    <?php if ($loginLockedUntil > 0): ?>
+                                        <div class="users-lock-meta">
+                                            <?= esc(lang('App.usersLoginLockedUntil')) ?>: <?= esc(date('d/m/Y H:i', $loginLockedUntil)) ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
                                 <td><?= esc(! empty($user['created_at']) ? date('d/m/Y H:i', strtotime((string) $user['created_at'])) : '-') ?></td>
                                 <td>
                                     <div class="admin-actions">

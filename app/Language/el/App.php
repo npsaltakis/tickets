@@ -371,6 +371,7 @@ return [
     'usersSelfBlockError' => 'Δεν μπορείς να μπλοκάρεις τον εαυτό σου.',
     'usersSelfDeleteError' => 'Δεν μπορείς να διαγράψεις τον εαυτό σου.',
     'usersLastAdminError' => 'Δεν μπορείς να αφαιρέσεις, να μπλοκάρεις ή να υποβαθμίσεις τον τελευταίο ενεργό admin.',
+    'usersLoginLockedUntil' => 'Login lock έως',
 ];
 
 
