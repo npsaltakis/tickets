@@ -1078,7 +1078,7 @@ a.dt-button:hover:not(.disabled) {
 }
 
 .events-search-box {
-    max-width: 520px;
+    width: 100%;
     display: grid;
     gap: 8px;
 }
@@ -1106,4 +1106,6 @@ a.dt-button:hover:not(.disabled) {
 .events-search-empty.is-hidden {
     display: none;
 }
+
+
 

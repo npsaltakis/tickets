@@ -17,7 +17,6 @@
 
     <div class="events-toolbar">
         <div class="events-search-box">
-            <label class="auth-label" for="events-search"><?= esc(lang('App.eventsSearchLabel')) ?></label>
             <input
                 id="events-search"
                 class="auth-input events-search-input"
@@ -63,4 +62,6 @@
 </main>
 <script src="<?= base_url('assets/js/events-index.js') ?>"></script>
 <?= $this->endSection() ?>
+
+
 
