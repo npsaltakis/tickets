@@ -99,6 +99,8 @@
     const paypalErrorMessage = donationBooking.dataset.paypalError || 'Something went wrong with PayPal.';
     const createOrderUrl = donationBooking.dataset.createOrderUrl;
     const captureOrderUrl = donationBooking.dataset.captureOrderUrl;
+    const csrfHeaderName = donationBooking.dataset.csrfHeader || 'X-CSRF-TOKEN';
+    const csrfToken = donationBooking.dataset.csrfToken || '';
 
     const getMinimumTotalDonation = (seats) => {
         const normalizedSeats = Number.isFinite(seats) && seats > 0 ? seats : minSeats;
@@ -211,6 +213,7 @@
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                     'X-Requested-With': 'XMLHttpRequest',
+                    [csrfHeaderName]: csrfToken,
                 },
                 credentials: 'same-origin',
                 body: body.toString(),
@@ -243,6 +246,7 @@
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                     'X-Requested-With': 'XMLHttpRequest',
+                    [csrfHeaderName]: csrfToken,
                 },
                 credentials: 'same-origin',
                 body: body.toString(),

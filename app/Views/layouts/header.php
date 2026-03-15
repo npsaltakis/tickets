@@ -7,6 +7,7 @@ $assetVersion = static function (string $relativePath): string {
 $currentLocale = service('request')->getLocale();
 $selectedLanguage = $currentLocale === 'en' ? 'en' : 'el';
 $currentPath = trim((string) service('request')->getUri()->getPath(), '/');
+$isUsersSection = $currentPath === 'users' || str_starts_with($currentPath, 'users/');
 
 $session = session();
 $isLoggedIn = $session->get('is_logged_in') === true;
@@ -33,6 +34,7 @@ $avatarTitle = $userName !== '' ? $userName : ($userEmail !== '' ? $userEmail : 
                     <li><a class="menu-link <?= $currentPath === '' ? 'is-active' : '' ?>" href="<?= base_url('/') ?>"><?= esc(lang('App.navHome')) ?></a></li>
                     <?php if ($isAdmin): ?>
                         <li><a class="menu-link <?= $currentPath === 'report' ? 'is-active' : '' ?>" href="<?= base_url('report') ?>"><?= esc(lang('App.navReport')) ?></a></li>
+                        <li><a class="menu-link <?= $isUsersSection ? 'is-active' : '' ?>" href="<?= base_url('users') ?>"><?= esc(lang('App.navUsers')) ?></a></li>
                     <?php endif; ?>
                     <?php if (! $isLoggedIn): ?>
                         <li><a class="menu-link <?= $currentPath === 'login' ? 'is-active' : '' ?>" href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a></li>

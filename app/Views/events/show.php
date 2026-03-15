@@ -194,7 +194,10 @@ $assetVersion = static function (string $relativePath): string {
                     data-min-donation="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', ''), 'attr') ?>"
                     data-min-message="<?= esc(lang('App.donationMinimumError'), 'attr') ?>"
                     data-paypal-error="<?= esc(lang('App.paypalGenericError'), 'attr') ?>"
-                    data-consent-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>">
+                    data-consent-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>"
+                    data-csrf-header="<?= esc(csrf_header(), 'attr') ?>"
+                    data-csrf-token="<?= esc(csrf_hash(), 'attr') ?>"
+                    data-csrf-name="<?= esc(csrf_token(), 'attr') ?>">
                     <div class="donation-booking-controls">
                         <div class="donation-booking-field">
                             <label class="meta" for="seats"><strong><?= esc(lang('App.seats')) ?>:</strong></label>

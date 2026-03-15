@@ -14,6 +14,8 @@ class LoginController extends BaseController
     private UserModel $userModel;
     private PasswordResetModel $passwordResetModel;
     private EmailVerificationModel $emailVerificationModel;
+    private const LOGIN_MAX_ATTEMPTS = 5;
+    private const LOGIN_LOCK_SECONDS = 900;
 
     public function __construct()
     {
@@ -42,9 +44,18 @@ class LoginController extends BaseController
             return redirect()->back()->withInput()->with('login_error', lang('App.loginRequiredFields'));
         }
 
+        $lockInfo = $this->getLoginLockInfo($email);
+        if ($lockInfo !== null) {
+            return redirect()->back()->withInput()->with('login_error', strtr(lang('App.loginBlocked'), [
+                '{minutes}' => (string) $lockInfo['minutes'],
+            ]));
+        }
+
         $user = $this->userModel->where('email', $email)->first();
 
         if (empty($user) || !password_verify($password, (string) $user['password'])) {
+            $this->recordFailedLoginAttempt($email);
+
             return redirect()->back()->withInput()->with('login_error', lang('App.loginInvalidCredentials'));
         }
 
@@ -56,7 +67,11 @@ class LoginController extends BaseController
             return redirect()->back()->withInput()->with('login_error', lang('App.loginInvalidCredentials'));
         }
 
-        session()->set([
+        $this->clearLoginAttempts($email);
+
+        $session = session();
+        $session->regenerate();
+        $session->set([
             'is_logged_in' => true,
             'user_id' => $user['id'],
             'user_name' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')),
@@ -251,7 +266,7 @@ class LoginController extends BaseController
             ->first();
 
         if (empty($user)) {
-            return redirect()->back()->with('lost_info', lang('App.resetLinkSentGeneric'));
+            return redirect()->back()->withInput()->with('lost_error', lang('App.lostUserNotFound'));
         }
 
         $selector = bin2hex(random_bytes(8));
@@ -372,6 +387,53 @@ class LoginController extends BaseController
         ]);
 
         return redirect()->to(base_url('login'))->with('login_info', lang('App.passwordResetSuccess'));
+    }
+
+    private function getLoginCacheKey(string $email, string $suffix): string
+    {
+        return 'login_' . $suffix . '_' . sha1(strtolower($email) . '|' . $this->request->getIPAddress());
+    }
+
+    private function getLoginLockInfo(string $email): ?array
+    {
+        $cache = cache();
+        $lockedUntil = (int) ($cache->get($this->getLoginCacheKey($email, 'lock')) ?? 0);
+
+        if ($lockedUntil <= time()) {
+            if ($lockedUntil > 0) {
+                $cache->delete($this->getLoginCacheKey($email, 'lock'));
+            }
+
+            return null;
+        }
+
+        return [
+            'until' => $lockedUntil,
+            'minutes' => max(1, (int) ceil(($lockedUntil - time()) / 60)),
+        ];
+    }
+
+    private function recordFailedLoginAttempt(string $email): void
+    {
+        $cache = cache();
+        $attemptKey = $this->getLoginCacheKey($email, 'attempts');
+        $lockKey = $this->getLoginCacheKey($email, 'lock');
+        $attempts = (int) ($cache->get($attemptKey) ?? 0) + 1;
+
+        if ($attempts >= self::LOGIN_MAX_ATTEMPTS) {
+            $cache->delete($attemptKey);
+            $cache->save($lockKey, time() + self::LOGIN_LOCK_SECONDS, self::LOGIN_LOCK_SECONDS);
+            return;
+        }
+
+        $cache->save($attemptKey, $attempts, self::LOGIN_LOCK_SECONDS);
+    }
+
+    private function clearLoginAttempts(string $email): void
+    {
+        $cache = cache();
+        $cache->delete($this->getLoginCacheKey($email, 'attempts'));
+        $cache->delete($this->getLoginCacheKey($email, 'lock'));
     }
 
     private function isValidResetToken(?array $reset, string $token): bool

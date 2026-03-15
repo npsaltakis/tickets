@@ -1786,3 +1786,101 @@ a.dt-button:hover:not(.disabled) {
 .booking-consent a:hover {
     color: #bae6fd;
 }
+
+.users-page {
+    display: grid;
+    gap: 22px;
+}
+
+.users-card {
+    overflow: hidden;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+    text-align: left;
+    vertical-align: top;
+}
+
+.admin-table th {
+    color: #f8fafc;
+    font-size: 0.9rem;
+}
+
+.admin-table td {
+    color: #dbe4f0;
+    font-size: 0.92rem;
+}
+
+.table-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(94, 234, 212, 0.2);
+    background: rgba(45, 212, 191, 0.08);
+    color: #ccfbf1;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.admin-actions form {
+    margin: 0;
+}
+
+.admin-action-link,
+.admin-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 12px;
+    background: rgba(148, 163, 184, 0.08);
+}
+
+.admin-action-btn {
+    cursor: pointer;
+}
+
+.admin-action-btn--success:hover {
+    border-color: rgba(74, 222, 128, 0.38);
+    color: #dcfce7;
+}
+
+.admin-action-btn--warn:hover {
+    border-color: rgba(251, 191, 36, 0.38);
+    color: #fde68a;
+}
+
+.admin-action-btn--danger:hover {
+    border-color: rgba(248, 113, 113, 0.38);
+    color: #fecaca;
+}
+
+.users-form-card {
+    max-width: 720px;
+}
+
+.users-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 768px) {
+    .admin-table {
+        min-width: 760px;
+    }
+}
