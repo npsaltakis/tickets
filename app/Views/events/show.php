@@ -1,4 +1,9 @@
-<?= $this->extend('layouts/main') ?>
+<?php
+$assetVersion = static function (string $relativePath): string {
+    $fullPath = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+    return is_file($fullPath) ? (string) filemtime($fullPath) : (string) time();
+};
+?><?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
 <main class="wrapper">
@@ -184,6 +189,7 @@
 <?php if ($isDonationEvent && $paypalClientId !== '' && $isLoggedIn && $canBook): ?>
     <script src="https://www.paypal.com/sdk/js?client-id=<?= esc($paypalClientId) ?>&currency=EUR&intent=capture&locale=<?= esc($paypalLocale) ?>"></script>
 <?php endif; ?>
-<script src="<?= base_url('assets/js/event-show.js') ?>"></script>
+<script src="<?= base_url('assets/js/event-show.js') ?>?v=<?= esc($assetVersion('assets/js/event-show.js')) ?>"></script>
 <?= $this->endSection() ?>
+
 

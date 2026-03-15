@@ -1,4 +1,9 @@
-<?= $this->extend('layouts/main') ?>
+<?php
+$assetVersion = static function (string $relativePath): string {
+    $fullPath = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+    return is_file($fullPath) ? (string) filemtime($fullPath) : (string) time();
+};
+?><?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
 <main class="wrapper">
@@ -157,5 +162,6 @@
         </form>
     </section>
 </main>
-<script src="<?= base_url('assets/js/event-create.js') ?>"></script>
+<script src="<?= base_url('assets/js/event-create.js') ?>?v=<?= esc($assetVersion('assets/js/event-create.js')) ?>"></script>
 <?= $this->endSection() ?>
+

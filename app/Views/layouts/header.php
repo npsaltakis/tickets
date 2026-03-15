@@ -1,5 +1,9 @@
 <?php helper('url'); ?>
 <?php
+$assetVersion = static function (string $relativePath): string {
+    $fullPath = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+    return is_file($fullPath) ? (string) filemtime($fullPath) : (string) time();
+};
 $currentLocale = service('request')->getLocale();
 $selectedLanguage = $currentLocale === 'en' ? 'en' : 'el';
 $currentPath = trim((string) service('request')->getUri()->getPath(), '/');
@@ -17,7 +21,7 @@ $avatarTitle = $userName !== '' ? $userName : ($userEmail !== '' ? $userEmail : 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($pageTitle ?? lang('App.siteTitle')) ?></title>
-    <link rel="stylesheet" href="<?= base_url('assets/css/styles.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/css/styles.css') ?>?v=<?= esc($assetVersion('assets/css/styles.css')) ?>">
 </head>
 <body>
 <header class="top-nav">
