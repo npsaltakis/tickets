@@ -27,6 +27,9 @@ class EventModel extends Model
         'end_date',
         'capacity',
         'event_type',
+        'event_format',
+        'online_url',
+        'online_access_notes',
         'min_donation',
         'status',
     ];
@@ -58,4 +61,3 @@ class EventModel extends Model
     protected $beforeDelete = [];
     protected $afterDelete = [];
 }
-

@@ -1,4 +1,9 @@
-<?= $this->extend('layouts/main') ?>
+<?php
+$assetVersion = static function (string $relativePath): string {
+    $fullPath = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+    return is_file($fullPath) ? (string) filemtime($fullPath) : (string) time();
+};
+?><?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
@@ -192,5 +197,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-<script src="<?= base_url('assets/js/report.js') ?>"></script>
+<script src="<?= base_url('assets/js/report.js') ?>?v=<?= esc($assetVersion('assets/js/report.js')) ?>"></script>
 <?= $this->endSection() ?>
+

@@ -5,6 +5,9 @@
     const imageUploadInput = document.getElementById('image_upload');
     const previewCard = document.getElementById('image-preview-card');
     const previewImage = document.getElementById('image-preview');
+    const eventFormatSelect = document.getElementById('event_format');
+    const addressInput = document.getElementById('address');
+    const addressFieldWrapper = document.getElementById('address-field-wrapper');
     const initialSlug = slugInput?.dataset.initialSlug ?? '';
     let objectUrl = null;
 
@@ -74,11 +77,27 @@
         setPreview(imageUrl);
     };
 
+    const syncEventFormat = () => {
+        if (!eventFormatSelect || !addressInput || !addressFieldWrapper) {
+            return;
+        }
+
+        const selectedFormat = eventFormatSelect.value;
+        const addressRequired = selectedFormat === 'physical' || selectedFormat === 'hybrid';
+
+        addressInput.required = addressRequired;
+        addressFieldWrapper.classList.toggle('is-optional', !addressRequired);
+    };
+
     titleInput.addEventListener('input', updateSlug);
     imageInput.addEventListener('input', updatePreview);
     imageInput.addEventListener('change', updatePreview);
     imageInput.addEventListener('blur', updatePreview);
     imageUploadInput.addEventListener('change', updatePreview);
+
+    if (eventFormatSelect) {
+        eventFormatSelect.addEventListener('change', syncEventFormat);
+    }
 
     if (initialSlug) {
         slugInput.value = initialSlug;
@@ -86,5 +105,6 @@
         updateSlug();
     }
 
+    syncEventFormat();
     updatePreview();
 })();
