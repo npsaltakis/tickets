@@ -311,28 +311,41 @@ abstract class EventBaseController extends BaseController
         $endDate = ! empty($event['end_date']) ? date('d/m/Y H:i', strtotime((string) $event['end_date'])) : '-';
         $location = trim((string) ($event['location'] ?? ''));
         $ticketCodesText = implode(PHP_EOL, $ticketCodes);
-        $messageParts = [
-            lang('App.bookingEmailGreeting') . ($userName !== '' ? ' ' . $userName : ''),
-            lang('App.bookingEmailIntro'),
-            lang('App.bookingEmailEventLabel') . ': ' . (string) ($event['title'] ?? '-'),
-            lang('App.bookingEmailSeatsLabel') . ': ' . $requestedSeats,
-            lang('App.bookingEmailStartLabel') . ': ' . $startDate,
-            lang('App.bookingEmailEndLabel') . ': ' . $endDate,
-            lang('App.bookingEmailLocationLabel') . ': ' . ($location !== '' ? $location : '-'),
+        $greekMessageParts = [
+            $this->localizedLine('App.bookingEmailGreeting', [], 'el') . ($userName !== '' ? ' ' . $userName : ''),
+            $this->localizedLine('App.bookingEmailIntro', [], 'el'),
+            $this->localizedLine('App.bookingEmailEventLabel', [], 'el') . ': ' . (string) ($event['title'] ?? '-'),
+            $this->localizedLine('App.bookingEmailSeatsLabel', [], 'el') . ': ' . $requestedSeats,
+            $this->localizedLine('App.bookingEmailStartLabel', [], 'el') . ': ' . $startDate,
+            $this->localizedLine('App.bookingEmailEndLabel', [], 'el') . ': ' . $endDate,
+            $this->localizedLine('App.bookingEmailLocationLabel', [], 'el') . ': ' . ($location !== '' ? $location : '-'),
+        ];
+
+        $englishMessageParts = [
+            $this->localizedLine('App.bookingEmailGreeting', [], 'en') . ($userName !== '' ? ' ' . $userName : ''),
+            $this->localizedLine('App.bookingEmailIntro', [], 'en'),
+            $this->localizedLine('App.bookingEmailEventLabel', [], 'en') . ': ' . (string) ($event['title'] ?? '-'),
+            $this->localizedLine('App.bookingEmailSeatsLabel', [], 'en') . ': ' . $requestedSeats,
+            $this->localizedLine('App.bookingEmailStartLabel', [], 'en') . ': ' . $startDate,
+            $this->localizedLine('App.bookingEmailEndLabel', [], 'en') . ': ' . $endDate,
+            $this->localizedLine('App.bookingEmailLocationLabel', [], 'en') . ': ' . ($location !== '' ? $location : '-'),
         ];
 
         if ($donationAmount > 0) {
-            $messageParts[] = lang('App.bookingEmailDonationLabel') . ': ' . $currency . ' ' . number_format($donationAmount, 2);
+            $greekMessageParts[] = $this->localizedLine('App.bookingEmailDonationLabel', [], 'el') . ': ' . $currency . ' ' . number_format($donationAmount, 2);
+            $englishMessageParts[] = $this->localizedLine('App.bookingEmailDonationLabel', [], 'en') . ': ' . $currency . ' ' . number_format($donationAmount, 2);
         }
 
-        $messageParts[] = lang('App.bookingEmailTicketCodesLabel') . ':' . PHP_EOL . $ticketCodesText;
-        $messageParts[] = lang('App.bookingEmailFooter');
+        $greekMessageParts[] = $this->localizedLine('App.bookingEmailTicketCodesLabel', [], 'el') . ':' . PHP_EOL . $ticketCodesText;
+        $greekMessageParts[] = $this->localizedLine('App.bookingEmailFooter', [], 'el');
+        $englishMessageParts[] = $this->localizedLine('App.bookingEmailTicketCodesLabel', [], 'en') . ':' . PHP_EOL . $ticketCodesText;
+        $englishMessageParts[] = $this->localizedLine('App.bookingEmailFooter', [], 'en');
 
         try {
             $emailService = service('email');
             $emailService->setTo($recipientEmail);
-            $emailService->setSubject(lang('App.bookingEmailSubject'));
-            $emailService->setMessage(implode(PHP_EOL . PHP_EOL, $messageParts));
+            $emailService->setSubject($this->bilingualSubject('App.bookingEmailSubject'));
+            $emailService->setMessage($this->buildBilingualEmail($greekMessageParts, $englishMessageParts));
 
             return $emailService->send();
         } catch (Throwable) {

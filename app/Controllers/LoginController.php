@@ -154,16 +154,24 @@ class LoginController extends BaseController
 
         $emailService = service('email');
         $emailService->setTo($email);
-        $emailService->setSubject(lang('App.verifyEmailSubject'));
+        $emailService->setSubject($this->bilingualSubject('App.verifyEmailSubject'));
 
-        $emailMessage = implode(PHP_EOL . PHP_EOL, [
-            lang('App.verifyEmailGreeting'),
-            lang('App.verifyEmailRequestNotice'),
-            lang('App.verifyEmailActionText'),
+        $emailMessage = $this->buildBilingualEmail([
+            $this->localizedLine('App.verifyEmailGreeting', [], 'el'),
+            $this->localizedLine('App.verifyEmailRequestNotice', [], 'el'),
+            $this->localizedLine('App.verifyEmailActionText', [], 'el'),
             $verificationUrl,
-            lang('App.verifyEmailExpiry'),
-            lang('App.verifyEmailIgnoreNotice'),
-            lang('App.verifyEmailSignature'),
+            $this->localizedLine('App.verifyEmailExpiry', [], 'el'),
+            $this->localizedLine('App.verifyEmailIgnoreNotice', [], 'el'),
+            $this->localizedLine('App.verifyEmailSignature', [], 'el'),
+        ], [
+            $this->localizedLine('App.verifyEmailGreeting', [], 'en'),
+            $this->localizedLine('App.verifyEmailRequestNotice', [], 'en'),
+            $this->localizedLine('App.verifyEmailActionText', [], 'en'),
+            $verificationUrl,
+            $this->localizedLine('App.verifyEmailExpiry', [], 'en'),
+            $this->localizedLine('App.verifyEmailIgnoreNotice', [], 'en'),
+            $this->localizedLine('App.verifyEmailSignature', [], 'en'),
         ]);
 
         $emailService->setMessage($emailMessage);
@@ -265,16 +273,24 @@ class LoginController extends BaseController
 
         $emailService = service('email');
         $emailService->setTo($user['email']);
-        $emailService->setSubject(lang('App.resetEmailSubject'));
+        $emailService->setSubject($this->bilingualSubject('App.resetEmailSubject'));
 
-        $emailMessage = implode(PHP_EOL . PHP_EOL, [
-            lang('App.resetEmailGreeting'),
-            lang('App.resetEmailRequestNotice'),
-            lang('App.resetEmailActionText'),
+        $emailMessage = $this->buildBilingualEmail([
+            $this->localizedLine('App.resetEmailGreeting', [], 'el'),
+            $this->localizedLine('App.resetEmailRequestNotice', [], 'el'),
+            $this->localizedLine('App.resetEmailActionText', [], 'el'),
             $resetUrl,
-            lang('App.resetEmailExpiry'),
-            lang('App.resetEmailIgnoreNotice'),
-            lang('App.resetEmailSignature'),
+            $this->localizedLine('App.resetEmailExpiry', [], 'el'),
+            $this->localizedLine('App.resetEmailIgnoreNotice', [], 'el'),
+            $this->localizedLine('App.resetEmailSignature', [], 'el'),
+        ], [
+            $this->localizedLine('App.resetEmailGreeting', [], 'en'),
+            $this->localizedLine('App.resetEmailRequestNotice', [], 'en'),
+            $this->localizedLine('App.resetEmailActionText', [], 'en'),
+            $resetUrl,
+            $this->localizedLine('App.resetEmailExpiry', [], 'en'),
+            $this->localizedLine('App.resetEmailIgnoreNotice', [], 'en'),
+            $this->localizedLine('App.resetEmailSignature', [], 'en'),
         ]);
 
         $emailService->setMessage($emailMessage);

@@ -39,4 +39,23 @@ abstract class BaseController extends Controller
 
         service('language')->setLocale($locale);
     }
+
+    protected function localizedLine(string $key, array $args = [], string $locale = 'el'): string
+    {
+        return lang($key, $args, $locale);
+    }
+
+    protected function bilingualSubject(string $key, array $args = []): string
+    {
+        return $this->localizedLine($key, $args, 'el') . ' / ' . $this->localizedLine($key, $args, 'en');
+    }
+
+    protected function buildBilingualEmail(array $greekLines, array $englishLines): string
+    {
+        return implode(PHP_EOL . PHP_EOL, array_merge(
+            $greekLines,
+            ['----------------------------------------'],
+            $englishLines
+        ));
+    }
 }
