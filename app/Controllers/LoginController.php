@@ -617,7 +617,18 @@ class LoginController extends BaseController
         $siteKey = (string) env('turnstile.siteKey', '');
         $secretKey = (string) env('turnstile.secretKey', '');
 
-        if ($siteKey === '' || $secretKey === '' || $token === '') {
+        if ($token === '') {
+            return false;
+        }
+
+        // Keep production strict, but don't let local development get blocked
+        // by Turnstile verification/network issues after the widget already passed.
+        if (ENVIRONMENT !== 'production') {
+            return true;
+        }
+
+        if ($siteKey === '' || $secretKey === '') {
+            log_message('error', 'Turnstile verification skipped because keys are missing in production.');
             return false;
         }
 
@@ -634,8 +645,25 @@ class LoginController extends BaseController
 
             $body = json_decode($response->getBody(), true);
 
-            return is_array($body) && ($body['success'] ?? false) === true;
-        } catch (Throwable) {
+            if (! is_array($body)) {
+                log_message('error', 'Turnstile verification returned a non-JSON response.');
+                return false;
+            }
+
+            if (($body['success'] ?? false) === true) {
+                return true;
+            }
+
+            log_message('error', 'Turnstile verification failed: {response}', [
+                'response' => json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            ]);
+
+            return false;
+        } catch (Throwable $exception) {
+            log_message('error', 'Turnstile verification exception: {message}', [
+                'message' => $exception->getMessage(),
+            ]);
+
             return false;
         }
     }
