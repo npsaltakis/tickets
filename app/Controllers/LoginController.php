@@ -16,6 +16,10 @@ class LoginController extends BaseController
     private EmailVerificationModel $emailVerificationModel;
     private const LOGIN_MAX_ATTEMPTS = 5;
     private const LOGIN_LOCK_SECONDS = 900;
+    private const RESET_MAX_ATTEMPTS = 3;
+    private const RESET_LOCK_SECONDS = 900;
+    private const REGISTER_MAX_ATTEMPTS = 5;
+    private const REGISTER_LOCK_SECONDS = 1800;
 
     public function __construct()
     {
@@ -110,31 +114,45 @@ class LoginController extends BaseController
         $confirmPassword = (string) $this->request->getPost('confirm_password');
         $turnstileToken = trim((string) $this->request->getPost('cf-turnstile-response'));
 
+        $registerLockInfo = $this->getRegisterLockInfo();
+        if ($registerLockInfo !== null) {
+            return redirect()->back()->withInput()->with('register_error', strtr(lang('App.registerBlocked'), [
+                '{minutes}' => (string) $registerLockInfo['minutes'],
+            ]));
+        }
+
         if ($firstName === '' || $lastName === '' || $email === '' || $password === '' || $confirmPassword === '') {
             return redirect()->back()->withInput()->with('register_error', lang('App.registerRequiredFields'));
         }
 
         if (! $this->verifyTurnstileToken($turnstileToken)) {
+            $this->recordFailedRegisterAttempt();
             return redirect()->back()->withInput()->with('register_error', lang('App.turnstileValidationFailed'));
         }
 
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->recordFailedRegisterAttempt();
             return redirect()->back()->withInput()->with('register_error', lang('App.invalidEmail'));
         }
 
         if (strlen($password) < 6) {
+            $this->recordFailedRegisterAttempt();
             return redirect()->back()->withInput()->with('register_error', lang('App.passwordTooShort'));
         }
 
         if ($password !== $confirmPassword) {
+            $this->recordFailedRegisterAttempt();
             return redirect()->back()->withInput()->with('register_error', lang('App.passwordsDoNotMatch'));
         }
 
         $existingUser = $this->userModel->where('email', $email)->first();
 
         if (!empty($existingUser)) {
+            $this->recordFailedRegisterAttempt();
             return redirect()->back()->withInput()->with('register_error', lang('App.emailAlreadyExists'));
         }
+
+        $this->clearRegisterAttempts();
 
         $userId = $this->userModel->insert([
             'first_name' => $firstName,
@@ -260,14 +278,24 @@ class LoginController extends BaseController
             return redirect()->back()->withInput()->with('lost_error', lang('App.invalidEmail'));
         }
 
+        $resetLockInfo = $this->getResetLockInfo($email);
+        if ($resetLockInfo !== null) {
+            return redirect()->back()->withInput()->with('lost_error', strtr(lang('App.resetBlocked'), [
+                '{minutes}' => (string) $resetLockInfo['minutes'],
+            ]));
+        }
+
         $user = $this->userModel
             ->where('email', $email)
             ->where('status', 'active')
             ->first();
 
         if (empty($user)) {
-            return redirect()->back()->withInput()->with('lost_error', lang('App.lostUserNotFound'));
+            $this->recordFailedResetAttempt($email);
+            return redirect()->back()->with('lost_info', lang('App.resetLinkSentGeneric'));
         }
+
+        $this->clearResetAttempts($email);
 
         $selector = bin2hex(random_bytes(8));
         $token = bin2hex(random_bytes(32));
@@ -454,6 +482,100 @@ class LoginController extends BaseController
     private function getLoginEmailLockKey(string $email): string
     {
         return 'login_user_lock_' . sha1(strtolower($email));
+    }
+
+    private function getRegisterCacheKey(string $suffix): string
+    {
+        return 'register_' . $suffix . '_' . sha1($this->request->getIPAddress());
+    }
+
+    private function getRegisterLockInfo(): ?array
+    {
+        $cache = cache();
+        $lockedUntil = (int) ($cache->get($this->getRegisterCacheKey('lock')) ?? 0);
+
+        if ($lockedUntil <= time()) {
+            if ($lockedUntil > 0) {
+                $cache->delete($this->getRegisterCacheKey('lock'));
+            }
+
+            return null;
+        }
+
+        return [
+            'until' => $lockedUntil,
+            'minutes' => max(1, (int) ceil(($lockedUntil - time()) / 60)),
+        ];
+    }
+
+    private function recordFailedRegisterAttempt(): void
+    {
+        $cache = cache();
+        $attemptKey = $this->getRegisterCacheKey('attempts');
+        $lockKey = $this->getRegisterCacheKey('lock');
+        $attempts = (int) ($cache->get($attemptKey) ?? 0) + 1;
+
+        if ($attempts >= self::REGISTER_MAX_ATTEMPTS) {
+            $cache->delete($attemptKey);
+            $cache->save($lockKey, time() + self::REGISTER_LOCK_SECONDS, self::REGISTER_LOCK_SECONDS);
+            return;
+        }
+
+        $cache->save($attemptKey, $attempts, self::REGISTER_LOCK_SECONDS);
+    }
+
+    private function clearRegisterAttempts(): void
+    {
+        $cache = cache();
+        $cache->delete($this->getRegisterCacheKey('attempts'));
+        $cache->delete($this->getRegisterCacheKey('lock'));
+    }
+
+    private function getResetCacheKey(string $email, string $suffix): string
+    {
+        return 'reset_' . $suffix . '_' . sha1(strtolower($email) . '|' . $this->request->getIPAddress());
+    }
+
+    private function getResetLockInfo(string $email): ?array
+    {
+        $cache = cache();
+        $lockedUntil = (int) ($cache->get($this->getResetCacheKey($email, 'lock')) ?? 0);
+
+        if ($lockedUntil <= time()) {
+            if ($lockedUntil > 0) {
+                $cache->delete($this->getResetCacheKey($email, 'lock'));
+            }
+
+            return null;
+        }
+
+        return [
+            'until' => $lockedUntil,
+            'minutes' => max(1, (int) ceil(($lockedUntil - time()) / 60)),
+        ];
+    }
+
+    private function recordFailedResetAttempt(string $email): void
+    {
+        $cache = cache();
+        $attemptKey = $this->getResetCacheKey($email, 'attempts');
+        $lockKey = $this->getResetCacheKey($email, 'lock');
+        $attempts = (int) ($cache->get($attemptKey) ?? 0) + 1;
+
+        if ($attempts >= self::RESET_MAX_ATTEMPTS) {
+            $cache->delete($attemptKey);
+            $cache->save($lockKey, time() + self::RESET_LOCK_SECONDS, self::RESET_LOCK_SECONDS);
+            return;
+        }
+
+        $cache->save($attemptKey, $attempts, self::RESET_LOCK_SECONDS);
+    }
+
+    private function clearResetAttempts(string $email): void
+    {
+        $cache = cache();
+        $cache->delete($this->getResetCacheKey($email, 'attempts'));
+        $cache->delete($this->getResetCacheKey($email, 'lock'));
     }
 
     private function isValidResetToken(?array $reset, string $token): bool

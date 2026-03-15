@@ -59,14 +59,14 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public $scriptSrc = ['self'];
+    public $scriptSrc = ['self', 'unsafe-inline'];
 
     /**
      * Specifies valid sources for JavaScript <script> elements.
      *
      * @var list<string>|string
      */
-    public array|string $scriptSrcElem = ['self', 'https://www.paypal.com', 'https://challenges.cloudflare.com', 'https://code.jquery.com', 'https://cdn.datatables.net', 'https://cdnjs.cloudflare.com'];
+    public array|string $scriptSrcElem = ['self', 'unsafe-inline', 'https://www.paypal.com', 'https://www.sandbox.paypal.com', 'https://*.paypal.com', 'https://challenges.cloudflare.com', 'https://code.jquery.com', 'https://cdn.datatables.net', 'https://cdnjs.cloudflare.com'];
 
     /**
      * Specifies valid sources for JavaScript inline event
@@ -81,14 +81,14 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public $styleSrc = ['self'];
+    public $styleSrc = ['self', 'unsafe-inline'];
 
     /**
      * Specifies valid sources for stylesheets <link> elements.
      *
      * @var list<string>|string
      */
-    public array|string $styleSrcElem = ['self', 'https://cdn.datatables.net'];
+    public array|string $styleSrcElem = ['self', 'unsafe-inline', 'https://cdn.datatables.net'];
 
     /**
      * Specifies valid sources for stylesheets inline
@@ -96,7 +96,7 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public array|string $styleSrcAttr = ['self'];
+    public array|string $styleSrcAttr = ['unsafe-inline'];
 
     /**
      * Defines the origins from which images can be loaded.
@@ -119,7 +119,7 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public $childSrc = ['self', 'https://www.paypal.com', 'https://challenges.cloudflare.com', 'https://www.google.com'];
+    public $childSrc = ['self', 'https://www.paypal.com', 'https://www.sandbox.paypal.com', 'https://*.paypal.com', 'https://challenges.cloudflare.com', 'https://www.google.com'];
 
     /**
      * Limits the origins that you can connect to (via XHR,
@@ -127,7 +127,7 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public $connectSrc = ['self', 'https://www.paypal.com', 'https://*.paypal.com', 'https://challenges.cloudflare.com'];
+    public $connectSrc = ['self', 'https://www.paypal.com', 'https://www.sandbox.paypal.com', 'https://*.paypal.com', 'https://challenges.cloudflare.com'];
 
     /**
      * Specifies the origins that can serve web fonts.
@@ -159,7 +159,7 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string|null
      */
-    public $frameSrc = ['self', 'https://www.paypal.com', 'https://challenges.cloudflare.com', 'https://www.google.com'];
+    public $frameSrc = ['self', 'https://www.paypal.com', 'https://www.sandbox.paypal.com', 'https://*.paypal.com', 'https://challenges.cloudflare.com', 'https://www.google.com'];
 
     /**
      * Restricts the origins allowed to deliver video and audio.
@@ -212,5 +212,5 @@ class ContentSecurityPolicy extends BaseConfig
     /**
      * Replace nonce tag automatically?
      */
-    public bool $autoNonce = true;
+    public bool $autoNonce = false;
 }

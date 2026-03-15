@@ -59,7 +59,14 @@ class UserAdminController extends BaseController
         }
 
         $payload['status'] = 'active';
-        $this->userModel->insert($payload);
+        $userId = $this->userModel->insert($payload, true);
+
+        $this->logAdminAction('user_create', 'user', [
+            'target_user_id' => is_numeric($userId) ? (int) $userId : 0,
+            'email' => $payload['email'],
+            'role' => $payload['role'],
+            'status' => $payload['status'],
+        ]);
 
         return redirect()->to(base_url('users'))->with('users_info', lang('App.usersCreateSuccess'));
     }
@@ -100,6 +107,12 @@ class UserAdminController extends BaseController
         }
 
         $this->userModel->update($userId, $payload);
+        $this->logAdminAction('user_update', 'user', [
+            'target_user_id' => $userId,
+            'email' => $payload['email'],
+            'role' => $payload['role'],
+            'password_changed' => array_key_exists('password', $payload),
+        ]);
         $updatedUser = $this->userModel->find($userId);
         if ($updatedUser !== null) {
             $this->syncSessionUser($updatedUser);
@@ -128,6 +141,10 @@ class UserAdminController extends BaseController
         }
 
         $this->userModel->update($userId, ['status' => 'banned']);
+        $this->logAdminAction('user_block', 'user', [
+            'target_user_id' => $userId,
+            'email' => (string) ($user['email'] ?? ''),
+        ]);
 
         return redirect()->to(base_url('users'))->with('users_info', lang('App.usersBlockSuccess'));
     }
@@ -144,6 +161,10 @@ class UserAdminController extends BaseController
         }
 
         $this->userModel->update($userId, ['status' => 'active']);
+        $this->logAdminAction('user_unblock', 'user', [
+            'target_user_id' => $userId,
+            'email' => (string) ($user['email'] ?? ''),
+        ]);
         $updatedUser = $this->userModel->find($userId);
         if ($updatedUser !== null) {
             $this->syncSessionUser($updatedUser);
@@ -172,6 +193,12 @@ class UserAdminController extends BaseController
         }
 
         $this->userModel->delete($userId);
+        $this->logAdminAction('user_delete', 'user', [
+            'target_user_id' => $userId,
+            'email' => (string) ($user['email'] ?? ''),
+            'role' => (string) ($user['role'] ?? ''),
+            'status' => (string) ($user['status'] ?? ''),
+        ]);
 
         return redirect()->to(base_url('users'))->with('users_info', lang('App.usersDeleteSuccess'));
     }

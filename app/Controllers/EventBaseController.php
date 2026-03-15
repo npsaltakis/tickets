@@ -172,7 +172,15 @@ abstract class EventBaseController extends BaseController
         ];
 
         if ($existingEvent === null) {
-            $this->eventModel->insert($payload);
+            $eventId = $this->eventModel->insert($payload, true);
+            $this->logAdminAction('event_create', 'event', [
+                'target_event_id' => is_numeric($eventId) ? (int) $eventId : 0,
+                'slug' => $slug,
+                'title' => $title,
+                'event_type' => $eventType,
+                'event_format' => $eventFormat,
+                'status' => $status,
+            ]);
 
             $eventMessage = lang('App.eventCreateSuccess');
             if (! $this->sendNewEventAdminNotification($payload)) {
@@ -183,6 +191,14 @@ abstract class EventBaseController extends BaseController
         }
 
         $this->eventModel->update((int) $existingEvent['id'], $payload);
+        $this->logAdminAction('event_update', 'event', [
+            'target_event_id' => (int) $existingEvent['id'],
+            'slug' => $slug,
+            'title' => $title,
+            'event_type' => $eventType,
+            'event_format' => $eventFormat,
+            'status' => $status,
+        ]);
 
         return redirect()->to(base_url('events/' . $slug))->with('event_info', lang('App.eventUpdateSuccess'));
     }
