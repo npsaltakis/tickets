@@ -10,6 +10,7 @@
     $isLoggedIn = session()->get('is_logged_in') === true;
     $isAdmin = $isLoggedIn && (string) session()->get('user_role') === 'admin';
     $paypalClientId = trim((string) ($paypalClientId ?? ''));
+    $paypalLocale = service('request')->getLocale() === 'en' ? 'en_US' : 'el_GR';
     $rawImage = (string) ($event['image'] ?? '');
     $imageUrl = $rawImage !== ''
         ? (preg_match('#^https?://#i', $rawImage) ? $rawImage : base_url(ltrim($rawImage, '/')))
@@ -17,6 +18,14 @@
     $startDate = $event['start_date'] ?? null;
     $endDate = $event['end_date'] ?? null;
     $infoUrl = trim((string) ($event['info_url'] ?? ''));
+    $address = trim((string) ($event['address'] ?? ''));
+    $mapQuery = $address;
+    $mapEmbedUrl = $mapQuery !== ''
+        ? 'https://www.google.com/maps?q=' . rawurlencode($mapQuery) . '&output=embed'
+        : '';
+    $mapLinkUrl = $mapQuery !== ''
+        ? 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($mapQuery)
+        : '';
     ?>
 
     <a class="back-link" href="<?= base_url('/') ?>">&larr; <?= esc(lang('App.backToEvents')) ?></a>
@@ -60,8 +69,8 @@
                 <p class="meta"><strong><?= esc(lang('App.location')) ?>:</strong> <?= esc($event['location']) ?></p>
             <?php endif; ?>
 
-            <?php if (!empty($event['address'])): ?>
-                <p class="meta"><strong><?= esc(lang('App.address')) ?>:</strong> <?= esc($event['address']) ?></p>
+            <?php if ($address !== ''): ?>
+                <p class="meta"><strong><?= esc(lang('App.address')) ?>:</strong> <?= esc($address) ?></p>
             <?php endif; ?>
 
             <?php if (!empty($event['info_phone'])): ?>
@@ -81,6 +90,22 @@
 
             <?php if (!empty($event['description'])): ?>
                 <p class="event-description"><?= esc($event['description']) ?></p>
+            <?php endif; ?>
+
+            <?php if ($mapEmbedUrl !== ''): ?>
+                <section class="event-map-card">
+                    <div class="event-map-header">
+                        <h2 class="event-map-title"><?= esc(lang('App.eventMapTitle')) ?></h2>
+                        <a class="event-map-link" href="<?= esc($mapLinkUrl) ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventOpenMap')) ?></a>
+                    </div>
+                    <iframe
+                        class="event-map-frame"
+                        src="<?= esc($mapEmbedUrl) ?>"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        allowfullscreen
+                        title="<?= esc(lang('App.eventMapTitle'), 'attr') ?>"></iframe>
+                </section>
             <?php endif; ?>
 
             <?php if (!$isDonationEvent): ?>
@@ -109,28 +134,34 @@
                     data-min-donation="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', ''), 'attr') ?>"
                     data-min-message="<?= esc(lang('App.donationMinimumError'), 'attr') ?>"
                     data-paypal-error="<?= esc(lang('App.paypalGenericError'), 'attr') ?>">
-                    <label class="meta" for="seats"><strong><?= esc(lang('App.seats')) ?>:</strong></label>
-                    <input
-                        id="seats"
-                        name="seats"
-                        class="seats-input"
-                        type="number"
-                        min="1"
-                        max="<?= esc((string) max($remainingSeats, 1)) ?>"
-                        value="<?= esc((string) ($canBook ? 1 : 0)) ?>"
-                        <?= $canBook ? '' : 'disabled' ?>
-                        data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>">
+                    <div class="donation-booking-controls">
+                        <div class="donation-booking-field">
+                            <label class="meta" for="seats"><strong><?= esc(lang('App.seats')) ?>:</strong></label>
+                            <input
+                                id="seats"
+                                name="seats"
+                                class="seats-input"
+                                type="number"
+                                min="1"
+                                max="<?= esc((string) max($remainingSeats, 1)) ?>"
+                                value="<?= esc((string) ($canBook ? 1 : 0)) ?>"
+                                <?= $canBook ? '' : 'disabled' ?>
+                                data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>">
+                        </div>
 
-                    <label class="meta" for="donation_amount"><strong><?= esc(lang('App.donationAmountLabel')) ?>:</strong></label>
-                    <input
-                        id="donation_amount"
-                        name="donation_amount"
-                        class="seats-input donation-input"
-                        type="number"
-                        min="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', '')) ?>"
-                        step="0.01"
-                        value="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', '')) ?>"
-                        <?= $canBook && $isLoggedIn && $paypalClientId !== '' ? '' : 'disabled' ?>>
+                        <div class="donation-booking-field">
+                            <label class="meta" for="donation_amount"><strong><?= esc(lang('App.donationAmountLabel')) ?>:</strong></label>
+                            <input
+                                id="donation_amount"
+                                name="donation_amount"
+                                class="seats-input donation-input"
+                                type="number"
+                                min="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', '')) ?>"
+                                step="0.01"
+                                value="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', '')) ?>"
+                                <?= $canBook && $isLoggedIn && $paypalClientId !== '' ? '' : 'disabled' ?>>
+                        </div>
+                    </div>
 
                     <div class="booking-paypal-block">
                         <?php if (!$isLoggedIn): ?>
@@ -151,7 +182,7 @@
     </section>
 </main>
 <?php if ($isDonationEvent && $paypalClientId !== '' && $isLoggedIn && $canBook): ?>
-    <script src="https://www.paypal.com/sdk/js?client-id=<?= esc($paypalClientId) ?>&currency=EUR&intent=capture"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=<?= esc($paypalClientId) ?>&currency=EUR&intent=capture&locale=<?= esc($paypalLocale) ?>"></script>
 <?php endif; ?>
 <script src="<?= base_url('assets/js/event-show.js') ?>"></script>
 <?= $this->endSection() ?>

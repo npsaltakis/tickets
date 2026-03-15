@@ -15,6 +15,10 @@ return [
     'eventsEmpty' => 'No events.',
     'eventsLoadMore' => 'Loading more events...',
     'eventsAllLoaded' => 'All events are loaded.',
+    'eventsSearchLabel' => 'Search events',
+    'eventsSearchPlaceholder' => 'Type title, location, or description...',
+    'eventsSearchHint' => 'Type at least 3 characters for live search.',
+    'eventsSearchEmpty' => 'No matching events were found.',
 
     'reportPageTitle' => 'Ticket Report | Ticketing System',
     'reportTitle' => 'Ticket Report',
@@ -58,6 +62,8 @@ return [
     'phone' => 'Phone',
     'infoUrl' => 'Info URL',
     'eventMoreInfo' => 'More information',
+    'eventMapTitle' => 'Location map',
+    'eventOpenMap' => 'Open in Maps',
     'type' => 'Type',
     'status' => 'Status',
 
@@ -229,11 +235,4 @@ return [
 
     'footerCopyright' => '© 2026 Webtechsolutions.gr',
 ];
-
-
-
-
-
-
-
 

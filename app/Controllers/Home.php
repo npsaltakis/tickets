@@ -25,17 +25,34 @@ class Home extends BaseController
 
     public function index(): string
     {
-        $events = $this->eventModel
-            ->where('status', 'active')
-            ->orderBy('start_date', 'ASC')
-            ->findAll();
+        $batchSize = 12;
+        [$events, $hasMore] = $this->fetchEventBatch('', 0, $batchSize);
 
         return view('events/index', [
-            'events' => $this->attachRemainingSeats($events),
+            'events' => $events,
+            'batchSize' => $batchSize,
+            'hasMore' => $hasMore,
             'pageTitle' => 'All Events | Ticketing System',
         ]);
     }
+    public function eventsFeed()
+    {
+        $query = trim((string) $this->request->getGet('q'));
+        if ($query !== '' && mb_strlen($query, 'UTF-8') < 3) {
+            $query = '';
+        }
 
+        $offset = max(0, (int) $this->request->getGet('offset'));
+        $limit = max(1, min(24, (int) ($this->request->getGet('limit') ?? 12)));
+        [$events, $hasMore] = $this->fetchEventBatch($query, $offset, $limit);
+
+        return $this->response->setJSON([
+            'html' => view('events/_event_cards', ['events' => $events]),
+            'count' => count($events),
+            'hasMore' => $hasMore,
+            'nextOffset' => $offset + count($events),
+        ]);
+    }
     public function show(string $slug): string
     {
         $event = $this->eventModel->where('slug', $slug)->first();
@@ -588,17 +605,68 @@ class Home extends BaseController
         return session()->get('is_logged_in') === true && (string) session()->get('user_role') === 'admin';
     }
 
+    private function fetchEventBatch(string $query, int $offset, int $limit): array
+    {
+        $builder = $this->eventModel->builder();
+        $builder->where('status', 'active');
+
+        if ($query !== '') {
+            $builder
+                ->groupStart()
+                ->like('title', $query)
+                ->orLike('location', $query)
+                ->orLike('description', $query)
+                ->groupEnd();
+        }
+
+        $rows = $builder
+            ->orderBy('start_date', 'ASC')
+            ->limit($limit + 1, $offset)
+            ->get()
+            ->getResultArray();
+
+        $hasMore = count($rows) > $limit;
+        if ($hasMore) {
+            array_pop($rows);
+        }
+
+        return [$this->attachRemainingSeats($rows), $hasMore];
+    }
+
     private function attachRemainingSeats(array $events): array
     {
+        if ($events === []) {
+            return [];
+        }
+
+        $eventIds = array_values(array_filter(array_map(static fn (array $event): int => (int) ($event['id'] ?? 0), $events)));
+        if ($eventIds === []) {
+            return $events;
+        }
+
+        $bookedSeatRows = $this->ticketModel
+            ->select('event_id, COUNT(id) AS booked_seats')
+            ->whereIn('event_id', $eventIds)
+            ->where('status', 'valid')
+            ->groupBy('event_id')
+            ->findAll();
+
+        $bookedSeatsByEvent = [];
+        foreach ($bookedSeatRows as $row) {
+            $bookedSeatsByEvent[(int) ($row['event_id'] ?? 0)] = (int) ($row['booked_seats'] ?? 0);
+        }
+
         foreach ($events as &$event) {
-            $event['remaining_seats'] = $this->getRemainingSeats($event);
+            $eventId = (int) ($event['id'] ?? 0);
+            $capacity = (int) ($event['capacity'] ?? 0);
+            $bookedSeats = $bookedSeatsByEvent[$eventId] ?? 0;
+            $event['remaining_seats'] = max($capacity - $bookedSeats, 0);
         }
 
         unset($event);
 
         return $events;
     }
-
     private function getRemainingSeats(array $event): int
     {
         $capacity = isset($event['capacity']) ? (int) $event['capacity'] : 0;
@@ -1026,16 +1094,4 @@ class Home extends BaseController
         ]);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
