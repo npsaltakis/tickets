@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\EventModel;
 use App\Models\PaymentModel;
 use App\Models\TicketModel;
+use App\Models\UserModel;
 use CodeIgniter\HTTP\Files\UploadedFile;
 use CodeIgniter\HTTP\RedirectResponse;
 use Throwable;
@@ -50,21 +51,23 @@ abstract class EventBaseController extends BaseController
         $endTimePart = trim((string) $this->request->getPost('end_time'));
         $capacity = trim((string) $this->request->getPost('capacity'));
         $eventType = trim((string) $this->request->getPost('event_type'));
+        $eventFormat = trim((string) $this->request->getPost('event_format'));
+        $onlineUrl = trim((string) $this->request->getPost('online_url'));
+        $onlineAccessNotes = trim((string) $this->request->getPost('online_access_notes'));
         $minDonation = trim((string) $this->request->getPost('min_donation'));
         $status = trim((string) $this->request->getPost('status'));
         $uploadedImage = $this->request->getFile('image_upload');
 
         if (
             $title === ''
-            || $description === ''
             || $location === ''
-            || $address === ''
             || $startDatePart === ''
             || $startTimePart === ''
             || $endDatePart === ''
             || $endTimePart === ''
             || $capacity === ''
             || $eventType === ''
+            || $eventFormat === ''
             || $status === ''
         ) {
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateRequiredFields'));
@@ -85,6 +88,19 @@ abstract class EventBaseController extends BaseController
         $allowedTypes = ['free', 'donation'];
         if (! in_array($eventType, $allowedTypes, true)) {
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidType'));
+        }
+
+        $allowedFormats = ['physical', 'online', 'hybrid'];
+        if (! in_array($eventFormat, $allowedFormats, true)) {
+            return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidFormat'));
+        }
+
+        if (in_array($eventFormat, ['physical', 'hybrid'], true) && $address === '') {
+            return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateRequiredFields'));
+        }
+
+        if ($onlineUrl !== '' && ! filter_var($onlineUrl, FILTER_VALIDATE_URL)) {
+            return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidOnlineUrl'));
         }
 
         $allowedStatuses = ['active', 'inactive', 'cancelled'];
@@ -141,13 +157,16 @@ abstract class EventBaseController extends BaseController
             'description' => $description,
             'image' => $finalImage,
             'location' => $location,
-            'address' => $address,
+            'address' => $address !== '' ? $address : null,
             'info_phone' => $infoPhone !== '' ? $infoPhone : null,
             'info_url' => $infoUrl !== '' ? $infoUrl : null,
             'start_date' => date('Y-m-d H:i:s', $startTimestamp),
             'end_date' => date('Y-m-d H:i:s', $endTimestamp),
             'capacity' => (int) $capacity,
             'event_type' => $eventType,
+            'event_format' => $eventFormat,
+            'online_url' => $onlineUrl !== '' ? $onlineUrl : null,
+            'online_access_notes' => $onlineAccessNotes !== '' ? $onlineAccessNotes : null,
             'min_donation' => $normalizedMinDonation,
             'status' => $status,
         ];
@@ -155,7 +174,12 @@ abstract class EventBaseController extends BaseController
         if ($existingEvent === null) {
             $this->eventModel->insert($payload);
 
-            return redirect()->to(base_url('events/' . $slug))->with('event_info', lang('App.eventCreateSuccess'));
+            $eventMessage = lang('App.eventCreateSuccess');
+            if (! $this->sendNewEventAdminNotification($payload)) {
+                $eventMessage .= ' ' . lang('App.eventCreateAdminNotifyFailed');
+            }
+
+            return redirect()->to(base_url('events/' . $slug))->with('event_info', $eventMessage);
         }
 
         $this->eventModel->update((int) $existingEvent['id'], $payload);
@@ -163,6 +187,88 @@ abstract class EventBaseController extends BaseController
         return redirect()->to(base_url('events/' . $slug))->with('event_info', lang('App.eventUpdateSuccess'));
     }
 
+    protected function sendNewEventAdminNotification(array $event): bool
+    {
+        $adminEmails = (new UserModel())
+            ->select('email')
+            ->where('role', 'admin')
+            ->where('status', 'active')
+            ->findAll();
+
+        if ($adminEmails === []) {
+            return true;
+        }
+
+        $startDate = ! empty($event['start_date']) ? date('d/m/Y H:i', strtotime((string) $event['start_date'])) : '-';
+        $eventUrl = base_url('events/' . (string) ($event['slug'] ?? ''));
+        $eventFormat = (string) ($event['event_format'] ?? 'physical');
+        $formatLabels = [
+            'physical' => [
+                'el' => $this->localizedLine('App.eventFormatPhysical', [], 'el'),
+                'en' => $this->localizedLine('App.eventFormatPhysical', [], 'en'),
+            ],
+            'online' => [
+                'el' => $this->localizedLine('App.eventFormatOnline', [], 'el'),
+                'en' => $this->localizedLine('App.eventFormatOnline', [], 'en'),
+            ],
+            'hybrid' => [
+                'el' => $this->localizedLine('App.eventFormatHybrid', [], 'el'),
+                'en' => $this->localizedLine('App.eventFormatHybrid', [], 'en'),
+            ],
+        ];
+        $formatLabelEl = $formatLabels[$eventFormat]['el'] ?? $eventFormat;
+        $formatLabelEn = $formatLabels[$eventFormat]['en'] ?? $eventFormat;
+
+        $greekLines = [
+            $this->localizedLine('App.adminNewEventEmailGreeting', [], 'el'),
+            $this->localizedLine('App.adminNewEventEmailIntro', [], 'el'),
+            $this->localizedLine('App.adminNewEventEmailTitleLabel', [], 'el') . ': ' . (string) ($event['title'] ?? '-'),
+            $this->localizedLine('App.adminNewEventEmailFormatLabel', [], 'el') . ': ' . $formatLabelEl,
+            $this->localizedLine('App.adminNewEventEmailStartLabel', [], 'el') . ': ' . $startDate,
+            $this->localizedLine('App.adminNewEventEmailLocationLabel', [], 'el') . ': ' . (string) ($event['location'] ?? '-'),
+            $this->localizedLine('App.adminNewEventEmailLinkLabel', [], 'el') . ': ' . $eventUrl,
+            $this->localizedLine('App.adminNewEventEmailFooter', [], 'el'),
+        ];
+
+        $englishLines = [
+            $this->localizedLine('App.adminNewEventEmailGreeting', [], 'en'),
+            $this->localizedLine('App.adminNewEventEmailIntro', [], 'en'),
+            $this->localizedLine('App.adminNewEventEmailTitleLabel', [], 'en') . ': ' . (string) ($event['title'] ?? '-'),
+            $this->localizedLine('App.adminNewEventEmailFormatLabel', [], 'en') . ': ' . $formatLabelEn,
+            $this->localizedLine('App.adminNewEventEmailStartLabel', [], 'en') . ': ' . $startDate,
+            $this->localizedLine('App.adminNewEventEmailLocationLabel', [], 'en') . ': ' . (string) ($event['location'] ?? '-'),
+            $this->localizedLine('App.adminNewEventEmailLinkLabel', [], 'en') . ': ' . $eventUrl,
+            $this->localizedLine('App.adminNewEventEmailFooter', [], 'en'),
+        ];
+
+        $message = $this->buildBilingualEmail($greekLines, $englishLines);
+        $subject = $this->bilingualSubject('App.adminNewEventEmailSubject');
+        $allSent = true;
+
+        foreach ($adminEmails as $adminRow) {
+            $recipient = trim((string) ($adminRow['email'] ?? ''));
+            if ($recipient === '') {
+                continue;
+            }
+
+            try {
+                $emailService = service('email');
+                $emailService->setTo($recipient);
+                $emailService->setSubject($subject);
+                $emailService->setMessage($message);
+
+                if (! $emailService->send()) {
+                    $allSent = false;
+                }
+
+                $emailService->clear(true);
+            } catch (Throwable) {
+                $allSent = false;
+            }
+        }
+
+        return $allSent;
+    }
     protected function generateUniqueSlug(string $title, ?int $ignoreEventId = null): string
     {
         $baseSlug = url_title($title, '-', true);
@@ -334,6 +440,20 @@ abstract class EventBaseController extends BaseController
         if ($donationAmount > 0) {
             $greekMessageParts[] = $this->localizedLine('App.bookingEmailDonationLabel', [], 'el') . ': ' . $currency . ' ' . number_format($donationAmount, 2);
             $englishMessageParts[] = $this->localizedLine('App.bookingEmailDonationLabel', [], 'en') . ': ' . $currency . ' ' . number_format($donationAmount, 2);
+        }
+
+        $eventFormat = (string) ($event['event_format'] ?? 'physical');
+        $onlineUrl = trim((string) ($event['online_url'] ?? ''));
+        $onlineAccessNotes = trim((string) ($event['online_access_notes'] ?? ''));
+
+        if (in_array($eventFormat, ['online', 'hybrid'], true) && $onlineUrl !== '') {
+            $greekMessageParts[] = $this->localizedLine('App.bookingEmailOnlineUrlLabel', [], 'el') . ': ' . $onlineUrl;
+            $englishMessageParts[] = $this->localizedLine('App.bookingEmailOnlineUrlLabel', [], 'en') . ': ' . $onlineUrl;
+        }
+
+        if (in_array($eventFormat, ['online', 'hybrid'], true) && $onlineAccessNotes !== '') {
+            $greekMessageParts[] = $this->localizedLine('App.bookingEmailAccessNotesLabel', [], 'el') . ':' . PHP_EOL . $onlineAccessNotes;
+            $englishMessageParts[] = $this->localizedLine('App.bookingEmailAccessNotesLabel', [], 'en') . ':' . PHP_EOL . $onlineAccessNotes;
         }
 
         $greekMessageParts[] = $this->localizedLine('App.bookingEmailTicketCodesLabel', [], 'el') . ':' . PHP_EOL . $ticketCodesText;
@@ -562,4 +682,7 @@ abstract class EventBaseController extends BaseController
         return $amounts;
     }
 }
+
+
+
 

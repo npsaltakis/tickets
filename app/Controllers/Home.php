@@ -47,11 +47,25 @@ class Home extends EventBaseController
         }
 
         $event['remaining_seats'] = $this->getRemainingSeats($event);
+        $isLoggedIn = session()->get('is_logged_in') === true;
+        $isAdmin = $isLoggedIn && (string) session()->get('user_role') === 'admin';
+        $hasOnlineAccess = false;
+
+        if ($isAdmin) {
+            $hasOnlineAccess = true;
+        } elseif ($isLoggedIn) {
+            $hasOnlineAccess = $this->ticketModel
+                ->where('event_id', (int) $event['id'])
+                ->where('user_id', (int) session()->get('user_id'))
+                ->where('status', 'valid')
+                ->countAllResults() > 0;
+        }
 
         return view('events/show', [
             'event' => $event,
             'pageTitle' => $event['title'] . ' | Ticketing System',
             'paypalClientId' => $this->getPayPalClientId(),
+            'hasOnlineAccess' => $hasOnlineAccess,
         ]);
     }
 }

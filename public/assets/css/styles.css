@@ -1640,3 +1640,45 @@ a.dt-button:hover:not(.disabled) {
     border-color: rgba(56, 189, 248, 0.55);
     transform: translateY(-1px);
 }
+#address-field-wrapper.is-optional .auth-label::after {
+    content: ' (optional)';
+    color: var(--muted);
+    font-weight: 400;
+}
+
+.event-access-card {
+    margin-top: 20px;
+    padding: 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(56, 189, 248, 0.18);
+    background: rgba(15, 23, 42, 0.72);
+}
+
+.event-access-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: rgba(34, 197, 94, 0.18);
+    border: 1px solid rgba(34, 197, 94, 0.38);
+    color: #dcfce7;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.event-access-link:hover {
+    background: rgba(34, 197, 94, 0.24);
+}
+
+.event-access-note {
+    margin: 12px 0 0;
+    color: #dbeafe;
+    line-height: 1.6;
+}
+
+
+#address-field-wrapper.is-optional .auth-label::after {
+    content: '';
+}
+

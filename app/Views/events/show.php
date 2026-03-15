@@ -14,6 +14,7 @@ $assetVersion = static function (string $relativePath): string {
     $isDonationEvent = ($event['event_type'] ?? 'free') === 'donation';
     $isLoggedIn = session()->get('is_logged_in') === true;
     $isAdmin = $isLoggedIn && (string) session()->get('user_role') === 'admin';
+    $hasOnlineAccess = (bool) ($hasOnlineAccess ?? false);
     $paypalClientId = trim((string) ($paypalClientId ?? ''));
     $paypalLocale = service('request')->getLocale() === 'en' ? 'en_US' : 'el_GR';
     $rawImage = (string) ($event['image'] ?? '');
@@ -24,13 +25,24 @@ $assetVersion = static function (string $relativePath): string {
     $endDate = $event['end_date'] ?? null;
     $infoUrl = trim((string) ($event['info_url'] ?? ''));
     $address = trim((string) ($event['address'] ?? ''));
-    $mapQuery = $address;
+    $eventFormat = (string) ($event['event_format'] ?? 'physical');
+    $onlineUrl = trim((string) ($event['online_url'] ?? ''));
+    $onlineAccessNotes = trim((string) ($event['online_access_notes'] ?? ''));
+    $showMap = in_array($eventFormat, ['physical', 'hybrid'], true) && $address !== '';
+    $mapQuery = $showMap ? $address : '';
     $mapEmbedUrl = $mapQuery !== ''
         ? 'https://www.google.com/maps?q=' . rawurlencode($mapQuery) . '&output=embed'
         : '';
     $mapLinkUrl = $mapQuery !== ''
         ? 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($mapQuery)
         : '';
+    $showOnlineSection = in_array($eventFormat, ['online', 'hybrid'], true);
+    $formatLabels = [
+        'physical' => lang('App.eventFormatPhysical'),
+        'online' => lang('App.eventFormatOnline'),
+        'hybrid' => lang('App.eventFormatHybrid'),
+    ];
+    $formatLabel = $formatLabels[$eventFormat] ?? ucfirst($eventFormat);
     ?>
 
     <a class="back-link" href="<?= base_url('/') ?>">&larr; <?= esc(lang('App.backToEvents')) ?></a>
@@ -74,7 +86,9 @@ $assetVersion = static function (string $relativePath): string {
                 <p class="meta"><strong><?= esc(lang('App.location')) ?>:</strong> <?= esc($event['location']) ?></p>
             <?php endif; ?>
 
-            <?php if ($address !== ''): ?>
+            <p class="meta"><strong><?= esc(lang('App.eventFormatLabel')) ?>:</strong> <?= esc($formatLabel) ?></p>
+
+            <?php if ($showMap): ?>
                 <p class="meta"><strong><?= esc(lang('App.address')) ?>:</strong> <?= esc($address) ?></p>
             <?php endif; ?>
 
@@ -95,6 +109,26 @@ $assetVersion = static function (string $relativePath): string {
 
             <?php if (!empty($event['description'])): ?>
                 <p class="event-description"><?= esc($event['description']) ?></p>
+            <?php endif; ?>
+
+            <?php if ($showOnlineSection): ?>
+                <section class="event-access-card">
+                    <div class="event-map-header">
+                        <h2 class="event-map-title"><?= esc(lang('App.eventOnlineAccessTitle')) ?></h2>
+                    </div>
+
+                    <?php if ($hasOnlineAccess): ?>
+                        <p class="meta"><?= esc(lang('App.eventOnlineAccessSentByEmail')) ?></p>
+                        <?php if ($onlineAccessNotes !== ''): ?>
+                            <p class="event-access-note"><?= nl2br(esc($onlineAccessNotes)) ?></p>
+                        <?php endif; ?>
+                        <?php if ($onlineUrl === '' && $onlineAccessNotes === ''): ?>
+                            <p class="meta"><?= esc(lang('App.eventOnlineAccessUnavailable')) ?></p>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <p class="meta"><?= esc(lang('App.eventOnlineAccessLocked')) ?></p>
+                    <?php endif; ?>
+                </section>
             <?php endif; ?>
 
             <?php if ($mapEmbedUrl !== ''): ?>
@@ -191,7 +225,4 @@ $assetVersion = static function (string $relativePath): string {
 <?php endif; ?>
 <script src="<?= base_url('assets/js/event-show.js') ?>?v=<?= esc($assetVersion('assets/js/event-show.js')) ?>"></script>
 <?= $this->endSection() ?>
-
-
-
 

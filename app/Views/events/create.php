@@ -17,6 +17,7 @@ $assetVersion = static function (string $relativePath): string {
     $endDateValue = (string) old('end_date', ! empty($event['end_date']) ? date('Y-m-d', strtotime((string) $event['end_date'])) : '');
     $endTimeValue = (string) old('end_time', ! empty($event['end_date']) ? date('H:i', strtotime((string) $event['end_date'])) : '');
     $selectedType = (string) old('event_type', (string) ($event['event_type'] ?? 'free'));
+    $selectedFormat = (string) old('event_format', (string) ($event['event_format'] ?? 'physical'));
     $selectedStatus = (string) old('status', (string) ($event['status'] ?? 'active'));
     $formAction = $isEditMode ? base_url('events/' . $event['slug'] . '/update') : base_url('events');
     $heading = $isEditMode ? lang('App.eventEditTitle') : lang('App.eventCreateTitle');
@@ -56,13 +57,37 @@ $assetVersion = static function (string $relativePath): string {
             </div>
 
             <div class="event-field">
+                <label for="event_format" class="auth-label"><?= esc(lang('App.eventCreateFormatLabel')) ?></label>
+                <select id="event_format" name="event_format" class="auth-input" required>
+                    <option value="physical" <?= $selectedFormat === 'physical' ? 'selected' : '' ?>><?= esc(lang('App.eventFormatPhysical')) ?></option>
+                    <option value="online" <?= $selectedFormat === 'online' ? 'selected' : '' ?>><?= esc(lang('App.eventFormatOnline')) ?></option>
+                    <option value="hybrid" <?= $selectedFormat === 'hybrid' ? 'selected' : '' ?>><?= esc(lang('App.eventFormatHybrid')) ?></option>
+                </select>
+                <p class="field-hint"><?= esc(lang('App.eventCreateFormatHint')) ?></p>
+            </div>
+
+            <div class="event-field">
                 <label for="location" class="auth-label"><?= esc(lang('App.eventCreateLocationLabel')) ?></label>
                 <input id="location" name="location" type="text" class="auth-input" value="<?= esc((string) old('location', (string) ($event['location'] ?? ''))) ?>" required>
+                <p class="field-hint"><?= esc(lang('App.eventCreateLocationHint')) ?></p>
+            </div>
+
+            <div class="event-field event-field-full" id="address-field-wrapper">
+                <label for="address" class="auth-label"><?= esc(lang('App.eventCreateAddressLabel')) ?></label>
+                <input id="address" name="address" type="text" class="auth-input" value="<?= esc((string) old('address', (string) ($event['address'] ?? ''))) ?>" <?= in_array($selectedFormat, ['physical', 'hybrid'], true) ? 'required' : '' ?>>
+                <p class="field-hint"><?= esc(lang('App.eventCreateAddressHint')) ?></p>
             </div>
 
             <div class="event-field event-field-full">
-                <label for="address" class="auth-label"><?= esc(lang('App.eventCreateAddressLabel')) ?></label>
-                <input id="address" name="address" type="text" class="auth-input" value="<?= esc((string) old('address', (string) ($event['address'] ?? ''))) ?>" required>
+                <label for="online_url" class="auth-label"><?= esc(lang('App.eventCreateOnlineUrlLabel')) ?></label>
+                <input id="online_url" name="online_url" type="url" class="auth-input" value="<?= esc((string) old('online_url', (string) ($event['online_url'] ?? ''))) ?>" placeholder="https://example.com/live-room">
+                <p class="field-hint"><?= esc(lang('App.eventCreateOnlineUrlHint')) ?></p>
+            </div>
+
+            <div class="event-field event-field-full">
+                <label for="online_access_notes" class="auth-label"><?= esc(lang('App.eventCreateOnlineAccessNotesLabel')) ?></label>
+                <textarea id="online_access_notes" name="online_access_notes" class="auth-input event-textarea" rows="4"><?= esc((string) old('online_access_notes', (string) ($event['online_access_notes'] ?? ''))) ?></textarea>
+                <p class="field-hint"><?= esc(lang('App.eventCreateOnlineAccessNotesHint')) ?></p>
             </div>
 
             <div class="event-field">
@@ -153,7 +178,7 @@ $assetVersion = static function (string $relativePath): string {
 
             <div class="event-field event-field-full">
                 <label for="description" class="auth-label"><?= esc(lang('App.eventCreateDescriptionLabel')) ?></label>
-                <textarea id="description" name="description" class="auth-input event-textarea" rows="7" required><?= esc((string) old('description', (string) ($event['description'] ?? ''))) ?></textarea>
+                <textarea id="description" name="description" class="auth-input event-textarea" rows="7"><?= esc((string) old('description', (string) ($event['description'] ?? ''))) ?></textarea>
             </div>
 
             <div class="event-actions event-field-full">
