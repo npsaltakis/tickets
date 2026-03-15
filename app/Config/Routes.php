@@ -6,15 +6,27 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'Home::index');
-$routes->get('my-events', 'Home::myEvents');
-$routes->get('report', 'Home::report');
-$routes->get('events/create', 'Home::create');
-$routes->post('events', 'Home::store');
-$routes->get('events/(:segment)/edit', 'Home::edit/$1');
-$routes->post('events/(:segment)/update', 'Home::update/$1');
-$routes->post('events/(:segment)/book', 'Home::book/$1');
-$routes->post('events/(:segment)/paypal/order', 'Home::createDonationOrder/$1');
-$routes->post('events/(:segment)/paypal/capture', 'Home::captureDonationOrder/$1');
+$routes->get('my-events', 'ReportController::myEvents');
+$routes->get('report', 'ReportController::report');
+$routes->get('users', 'UserAdminController::index');
+$routes->get('users/create', 'UserAdminController::create');
+$routes->post('users', 'UserAdminController::store');
+$routes->get('users/(:num)/edit', 'UserAdminController::edit/$1');
+$routes->post('users/(:num)/update', 'UserAdminController::update/$1');
+$routes->post('users/(:num)/block', 'UserAdminController::block/$1');
+$routes->post('users/(:num)/unblock', 'UserAdminController::unblock/$1');
+$routes->post('users/(:num)/delete', 'UserAdminController::delete/$1');
+$routes->post('users/(:num)/resend-verification', 'UserAdminController::resendVerification/$1');
+$routes->get('gdpr', 'PagesController::gdpr');
+$routes->get('privacy-policy', 'PagesController::privacy');
+$routes->get('terms', 'PagesController::terms');
+$routes->get('events/create', 'EventAdminController::create');
+$routes->post('events', 'EventAdminController::store');
+$routes->get('events/(:segment)/edit', 'EventAdminController::edit/$1');
+$routes->post('events/(:segment)/update', 'EventAdminController::update/$1');
+$routes->post('events/(:segment)/book', 'BookingController::book/$1');
+$routes->post('events/(:segment)/paypal/order', 'BookingController::createDonationOrder/$1');
+$routes->post('events/(:segment)/paypal/capture', 'BookingController::captureDonationOrder/$1');
 $routes->get('events/feed', 'Home::eventsFeed');
 $routes->get('events/(:segment)', 'Home::show/$1');
 
@@ -28,4 +40,3 @@ $routes->get('lost-password', 'LoginController::lostPassword');
 $routes->post('lost-password', 'LoginController::sendResetLink');
 $routes->get('reset-password', 'LoginController::resetPasswordForm');
 $routes->post('reset-password', 'LoginController::updatePasswordWithToken');
-

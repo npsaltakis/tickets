@@ -439,6 +439,7 @@ h1 {
     font-size: 0.9rem;
 }
 
+
 .auth-links {
     margin-top: 14px;
     display: flex;
@@ -1603,3 +1604,296 @@ a.dt-button:hover:not(.disabled) {
     text-align: center;
 }
 
+
+.booking-paypal-block--auth,
+.booking-paypal-block--message {
+    background: rgba(15, 23, 42, 0.78);
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    padding: 18px;
+}
+
+.booking-auth-message,
+.booking-paypal-block--message .auth-error {
+    margin: 0 0 12px;
+    color: #dbeafe;
+    font-size: 0.98rem;
+    line-height: 1.55;
+}
+
+.booking-paypal-block--auth .auth-link-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 112px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    background: rgba(15, 23, 42, 0.92);
+    color: #f8fafc;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.booking-paypal-block--auth .auth-link-btn:hover {
+    background: rgba(30, 41, 59, 0.98);
+    border-color: rgba(56, 189, 248, 0.55);
+    transform: translateY(-1px);
+}
+#address-field-wrapper.is-optional .auth-label::after {
+    content: ' (optional)';
+    color: var(--muted);
+    font-weight: 400;
+}
+
+.event-access-card {
+    margin-top: 20px;
+    padding: 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(56, 189, 248, 0.18);
+    background: rgba(15, 23, 42, 0.72);
+}
+
+.event-access-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: rgba(34, 197, 94, 0.18);
+    border: 1px solid rgba(34, 197, 94, 0.38);
+    color: #dcfce7;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.event-access-link:hover {
+    background: rgba(34, 197, 94, 0.24);
+}
+
+.event-access-note {
+    margin: 12px 0 0;
+    color: #dbeafe;
+    line-height: 1.6;
+}
+
+
+#address-field-wrapper.is-optional .auth-label::after {
+    content: '';
+}
+
+
+
+.footer-menu-link {
+    text-decoration: none;
+    transition: color 120ms ease, opacity 120ms ease;
+}
+
+.footer-menu-link:hover {
+    color: #7dd3fc;
+    opacity: 1;
+}
+
+.legal-page {
+    display: grid;
+    gap: 22px;
+}
+
+.legal-hero {
+    display: grid;
+    gap: 10px;
+    max-width: 760px;
+}
+
+.legal-kicker {
+    margin: 0;
+    color: #7dd3fc;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.legal-subtitle {
+    max-width: 760px;
+}
+
+.legal-updated {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+.legal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.legal-card {
+    background: linear-gradient(180deg, var(--surface), var(--surface-2));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+}
+
+.legal-card h2 {
+    margin: 0 0 10px;
+    font-size: 1.05rem;
+    color: #f8fafc;
+}
+
+.legal-card p {
+    margin: 0;
+    color: #d1d5db;
+    line-height: 1.7;
+}
+
+.legal-card-wide {
+    max-width: none;
+}
+
+@media (max-width: 768px) {
+    .legal-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+.booking-consent {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 14px;
+    color: #dbe4f0;
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+.booking-consent input {
+    margin-top: 3px;
+    accent-color: var(--accent);
+}
+
+.booking-consent a {
+    color: #7dd3fc;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.booking-consent a:hover {
+    color: #bae6fd;
+}
+
+.users-page {
+    display: grid;
+    gap: 22px;
+}
+
+.users-card {
+    overflow: hidden;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+    text-align: left;
+    vertical-align: top;
+}
+
+.admin-table th {
+    color: #f8fafc;
+    font-size: 0.9rem;
+}
+
+.admin-table td {
+    color: #dbe4f0;
+    font-size: 0.92rem;
+}
+
+.table-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(94, 234, 212, 0.2);
+    background: rgba(45, 212, 191, 0.08);
+    color: #ccfbf1;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.admin-actions form {
+    margin: 0;
+}
+
+.admin-action-link,
+.admin-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0 12px;
+    background: rgba(148, 163, 184, 0.08);
+}
+
+.admin-action-btn {
+    cursor: pointer;
+}
+
+.admin-action-btn--success:hover {
+    border-color: rgba(74, 222, 128, 0.38);
+    color: #dcfce7;
+}
+
+.admin-action-btn--warn:hover {
+    border-color: rgba(251, 191, 36, 0.38);
+    color: #fde68a;
+}
+
+.admin-action-btn--info:hover {
+    border-color: rgba(56, 189, 248, 0.38);
+    color: #bae6fd;
+}
+
+.admin-action-btn--danger:hover {
+    border-color: rgba(248, 113, 113, 0.38);
+    color: #fecaca;
+}
+
+.users-form-card {
+    max-width: 720px;
+}
+
+.users-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 768px) {
+    .admin-table {
+        min-width: 760px;
+    }
+}
+
+.users-lock-meta {
+    margin-top: 8px;
+    color: #fbbf24;
+    font-size: 0.82rem;
+    font-weight: 600;
+}

@@ -1,4 +1,9 @@
-<?= $this->extend('layouts/main') ?>
+<?php
+$assetVersion = static function (string $relativePath): string {
+    $fullPath = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+    return is_file($fullPath) ? (string) filemtime($fullPath) : (string) time();
+};
+?><?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
 <main class="wrapper">
@@ -60,8 +65,9 @@
         <div class="events-scroll-sentinel<?= $hasMore ? '' : ' is-hidden' ?>" id="events-scroll-sentinel" aria-hidden="true"></div>
     <?php endif; ?>
 </main>
-<script src="<?= base_url('assets/js/events-index.js') ?>"></script>
+<script src="<?= base_url('assets/js/events-index.js') ?>?v=<?= esc($assetVersion('assets/js/events-index.js')) ?>"></script>
 <?= $this->endSection() ?>
+
 
 
 

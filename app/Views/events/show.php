@@ -1,4 +1,9 @@
-<?= $this->extend('layouts/main') ?>
+<?php
+$assetVersion = static function (string $relativePath): string {
+    $fullPath = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+    return is_file($fullPath) ? (string) filemtime($fullPath) : (string) time();
+};
+?><?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
 <main class="wrapper">
@@ -9,6 +14,9 @@
     $isDonationEvent = ($event['event_type'] ?? 'free') === 'donation';
     $isLoggedIn = session()->get('is_logged_in') === true;
     $isAdmin = $isLoggedIn && (string) session()->get('user_role') === 'admin';
+    $hasOnlineAccess = (bool) ($hasOnlineAccess ?? false);
+    $userTicketCodes = array_values(array_filter((array) ($userTicketCodes ?? [])));
+    $hasExistingBooking = !empty($userTicketCodes);
     $paypalClientId = trim((string) ($paypalClientId ?? ''));
     $paypalLocale = service('request')->getLocale() === 'en' ? 'en_US' : 'el_GR';
     $rawImage = (string) ($event['image'] ?? '');
@@ -19,13 +27,24 @@
     $endDate = $event['end_date'] ?? null;
     $infoUrl = trim((string) ($event['info_url'] ?? ''));
     $address = trim((string) ($event['address'] ?? ''));
-    $mapQuery = $address;
+    $eventFormat = (string) ($event['event_format'] ?? 'physical');
+    $onlineUrl = trim((string) ($event['online_url'] ?? ''));
+    $onlineAccessNotes = trim((string) ($event['online_access_notes'] ?? ''));
+    $showMap = in_array($eventFormat, ['physical', 'hybrid'], true) && $address !== '';
+    $mapQuery = $showMap ? $address : '';
     $mapEmbedUrl = $mapQuery !== ''
         ? 'https://www.google.com/maps?q=' . rawurlencode($mapQuery) . '&output=embed'
         : '';
     $mapLinkUrl = $mapQuery !== ''
         ? 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($mapQuery)
         : '';
+    $showOnlineSection = in_array($eventFormat, ['online', 'hybrid'], true);
+    $formatLabels = [
+        'physical' => lang('App.eventFormatPhysical'),
+        'online' => lang('App.eventFormatOnline'),
+        'hybrid' => lang('App.eventFormatHybrid'),
+    ];
+    $formatLabel = $formatLabels[$eventFormat] ?? ucfirst($eventFormat);
     ?>
 
     <a class="back-link" href="<?= base_url('/') ?>">&larr; <?= esc(lang('App.backToEvents')) ?></a>
@@ -69,7 +88,9 @@
                 <p class="meta"><strong><?= esc(lang('App.location')) ?>:</strong> <?= esc($event['location']) ?></p>
             <?php endif; ?>
 
-            <?php if ($address !== ''): ?>
+            <p class="meta"><strong><?= esc(lang('App.eventFormatLabel')) ?>:</strong> <?= esc($formatLabel) ?></p>
+
+            <?php if ($showMap): ?>
                 <p class="meta"><strong><?= esc(lang('App.address')) ?>:</strong> <?= esc($address) ?></p>
             <?php endif; ?>
 
@@ -92,6 +113,40 @@
                 <p class="event-description"><?= esc($event['description']) ?></p>
             <?php endif; ?>
 
+            <?php if (!empty($userTicketCodes)): ?>
+                <section class="event-access-card">
+                    <div class="event-map-header">
+                        <h2 class="event-map-title"><?= esc(lang('App.eventYourTicketsTitle')) ?></h2>
+                    </div>
+                    <p class="meta"><?= esc(lang('App.eventYourTicketsHelp')) ?></p>
+                    <p class="ticket-code-list"><?= esc(implode(', ', $userTicketCodes)) ?></p>
+                </section>
+            <?php endif; ?>
+
+            <?php if ($showOnlineSection): ?>
+                <section class="event-access-card">
+                    <div class="event-map-header">
+                        <h2 class="event-map-title"><?= esc(lang('App.eventOnlineAccessTitle')) ?></h2>
+                    </div>
+
+                    <?php if ($hasOnlineAccess): ?>
+                        <?php if ($onlineUrl !== ''): ?>
+                            <p class="meta"><a class="event-access-link" href="<?= esc($onlineUrl) ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventJoinOnline')) ?></a></p>
+                        <?php else: ?>
+                            <p class="meta"><?= esc(lang('App.eventOnlineAccessSentByEmail')) ?></p>
+                        <?php endif; ?>
+                        <?php if ($onlineAccessNotes !== ''): ?>
+                            <p class="event-access-note"><?= nl2br(esc($onlineAccessNotes)) ?></p>
+                        <?php endif; ?>
+                        <?php if ($onlineUrl === '' && $onlineAccessNotes === ''): ?>
+                            <p class="meta"><?= esc(lang('App.eventOnlineAccessUnavailable')) ?></p>
+                        <?php endif; ?>
+                    <?php else: ?>
+                        <p class="meta"><?= esc(lang('App.eventOnlineAccessLocked')) ?></p>
+                    <?php endif; ?>
+                </section>
+            <?php endif; ?>
+
             <?php if ($mapEmbedUrl !== ''): ?>
                 <section class="event-map-card">
                     <div class="event-map-header">
@@ -109,7 +164,7 @@
             <?php endif; ?>
 
             <?php if (!$isDonationEvent): ?>
-                <form method="post" action="<?= base_url('events/' . $event['slug'] . '/book') ?>" class="booking-box">
+                <form method="post" action="<?= base_url('events/' . $event['slug'] . '/book') ?>" class="booking-box" id="free-booking-form">
                     <?= csrf_field() ?>
                     <label class="meta" for="seats"><strong><?= esc(lang('App.seats')) ?>:</strong></label>
                     <input
@@ -122,8 +177,13 @@
                         value="<?= esc((string) ($canBook ? 1 : 0)) ?>"
                         <?= $canBook ? '' : 'disabled' ?>
                         data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>">
+                    <label class="booking-consent" for="booking_consent">
+                        <input id="booking_consent" name="accept_terms" type="checkbox" value="1" data-error-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>" <?= $hasExistingBooking ? 'checked' : '' ?> <?= $canBook ? '' : 'disabled' ?>>
+                        <span><?= esc(lang('App.eventBookingConsentLabelStart')) ?><a href="<?= base_url('terms') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventBookingConsentTerms')) ?></a><?= esc(lang('App.eventBookingConsentMiddle')) ?><a href="<?= base_url('privacy-policy') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventBookingConsentPrivacy')) ?></a>.</span>
+                    </label>
                     <button type="submit" class="book-btn" <?= $canBook ? '' : 'disabled' ?>><?= esc(lang('App.bookSeat')) ?></button>
                     <p id="seats-error" class="field-error" aria-live="polite"></p>
+                    <p id="booking-consent-error" class="field-error" aria-live="polite"></p>
                 </form>
             <?php else: ?>
                 <section
@@ -133,7 +193,11 @@
                     data-capture-order-url="<?= esc(base_url('events/' . $event['slug'] . '/paypal/capture'), 'attr') ?>"
                     data-min-donation="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', ''), 'attr') ?>"
                     data-min-message="<?= esc(lang('App.donationMinimumError'), 'attr') ?>"
-                    data-paypal-error="<?= esc(lang('App.paypalGenericError'), 'attr') ?>">
+                    data-paypal-error="<?= esc(lang('App.paypalGenericError'), 'attr') ?>"
+                    data-consent-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>"
+                    data-csrf-header="<?= esc(csrf_header(), 'attr') ?>"
+                    data-csrf-token="<?= esc(csrf_hash(), 'attr') ?>"
+                    data-csrf-name="<?= esc(csrf_token(), 'attr') ?>">
                     <div class="donation-booking-controls">
                         <div class="donation-booking-field">
                             <label class="meta" for="seats"><strong><?= esc(lang('App.seats')) ?>:</strong></label>
@@ -163,9 +227,14 @@
                         </div>
                     </div>
 
-                    <div class="booking-paypal-block">
+                    <label class="booking-consent" for="donation_booking_consent">
+                        <input id="donation_booking_consent" name="accept_terms" type="checkbox" value="1" data-error-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>" <?= $hasExistingBooking ? 'checked' : '' ?> <?= $canBook && $isLoggedIn && $paypalClientId !== '' ? '' : 'disabled' ?>>
+                        <span><?= esc(lang('App.eventBookingConsentLabelStart')) ?><a href="<?= base_url('terms') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventBookingConsentTerms')) ?></a><?= esc(lang('App.eventBookingConsentMiddle')) ?><a href="<?= base_url('privacy-policy') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventBookingConsentPrivacy')) ?></a>.</span>
+                    </label>
+
+                    <div class="booking-paypal-block<?= !$isLoggedIn ? ' booking-paypal-block--auth' : '' ?><?= $paypalClientId === '' ? ' booking-paypal-block--message' : '' ?>">
                         <?php if (!$isLoggedIn): ?>
-                            <p class="meta"><?= esc(lang('App.bookingLoginRequired')) ?></p>
+                            <p class="booking-auth-message"><?= esc(lang('App.bookingLoginRequired')) ?></p>
                             <a class="auth-link-btn" href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a>
                         <?php elseif ($paypalClientId === ''): ?>
                             <p class="auth-error"><?= esc(lang('App.paypalConfigurationError')) ?></p>
@@ -175,6 +244,7 @@
                     </div>
 
                     <p id="seats-error" class="field-error" aria-live="polite"></p>
+                    <p id="booking-consent-error" class="field-error" aria-live="polite"></p>
                     <p id="booking-error" class="field-error" aria-live="polite"></p>
                 </section>
             <?php endif; ?>
@@ -184,6 +254,6 @@
 <?php if ($isDonationEvent && $paypalClientId !== '' && $isLoggedIn && $canBook): ?>
     <script src="https://www.paypal.com/sdk/js?client-id=<?= esc($paypalClientId) ?>&currency=EUR&intent=capture&locale=<?= esc($paypalLocale) ?>"></script>
 <?php endif; ?>
-<script src="<?= base_url('assets/js/event-show.js') ?>"></script>
+<script src="<?= base_url('assets/js/event-show.js') ?>?v=<?= esc($assetVersion('assets/js/event-show.js')) ?>"></script>
 <?= $this->endSection() ?>
 
