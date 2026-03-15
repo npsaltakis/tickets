@@ -1073,3 +1073,37 @@ a.dt-button:hover:not(.disabled) {
         height: 260px;
     }
 }
+.events-toolbar {
+    margin: 0 0 22px;
+}
+
+.events-search-box {
+    max-width: 520px;
+    display: grid;
+    gap: 8px;
+}
+
+.events-search-input {
+    width: 100%;
+}
+
+.events-search-hint,
+.events-search-empty {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.events-search-hint {
+    color: var(--muted);
+}
+
+.events-search-empty {
+    color: #fca5a5;
+    margin-top: 18px;
+}
+
+.events-search-hint.is-hidden,
+.events-search-empty.is-hidden {
+    display: none;
+}
+

@@ -15,6 +15,7 @@ $routes->post('events/(:segment)/update', 'Home::update/$1');
 $routes->post('events/(:segment)/book', 'Home::book/$1');
 $routes->post('events/(:segment)/paypal/order', 'Home::createDonationOrder/$1');
 $routes->post('events/(:segment)/paypal/capture', 'Home::captureDonationOrder/$1');
+$routes->get('events/feed', 'Home::eventsFeed');
 $routes->get('events/(:segment)', 'Home::show/$1');
 
 $routes->get('login', 'LoginController::index');
@@ -27,3 +28,4 @@ $routes->get('lost-password', 'LoginController::lostPassword');
 $routes->post('lost-password', 'LoginController::sendResetLink');
 $routes->get('reset-password', 'LoginController::resetPasswordForm');
 $routes->post('reset-password', 'LoginController::updatePasswordWithToken');
+

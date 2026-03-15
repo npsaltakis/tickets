@@ -15,6 +15,10 @@ return [
     'eventsEmpty' => 'Δεν υπάρχουν events.',
     'eventsLoadMore' => 'Φόρτωση περισσότερων events...',
     'eventsAllLoaded' => 'Εμφανίστηκαν όλα τα events.',
+    'eventsSearchLabel' => 'Αναζήτηση event',
+    'eventsSearchPlaceholder' => 'Γράψε τίτλο, τοποθεσία ή περιγραφή...',
+    'eventsSearchHint' => 'Πληκτρολόγησε τουλάχιστον 3 χαρακτήρες για live αναζήτηση.',
+    'eventsSearchEmpty' => 'Δεν βρέθηκαν events που να ταιριάζουν.',
 
     'reportPageTitle' => 'Αναφορά Εισιτηρίων | Ticketing System',
     'reportTitle' => 'Αναφορά Εισιτηρίων',
