@@ -16,6 +16,7 @@ $assetVersion = static function (string $relativePath): string {
     $isAdmin = $isLoggedIn && (string) session()->get('user_role') === 'admin';
     $hasOnlineAccess = (bool) ($hasOnlineAccess ?? false);
     $userTicketCodes = array_values(array_filter((array) ($userTicketCodes ?? [])));
+    $hasExistingBooking = !empty($userTicketCodes);
     $paypalClientId = trim((string) ($paypalClientId ?? ''));
     $paypalLocale = service('request')->getLocale() === 'en' ? 'en_US' : 'el_GR';
     $rawImage = (string) ($event['image'] ?? '');
@@ -177,7 +178,7 @@ $assetVersion = static function (string $relativePath): string {
                         <?= $canBook ? '' : 'disabled' ?>
                         data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>">
                     <label class="booking-consent" for="booking_consent">
-                        <input id="booking_consent" name="accept_terms" type="checkbox" value="1" data-error-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>" <?= $canBook ? '' : 'disabled' ?>>
+                        <input id="booking_consent" name="accept_terms" type="checkbox" value="1" data-error-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>" <?= $hasExistingBooking ? 'checked' : '' ?> <?= $canBook ? '' : 'disabled' ?>>
                         <span><?= esc(lang('App.eventBookingConsentLabelStart')) ?><a href="<?= base_url('terms') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventBookingConsentTerms')) ?></a><?= esc(lang('App.eventBookingConsentMiddle')) ?><a href="<?= base_url('privacy-policy') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventBookingConsentPrivacy')) ?></a>.</span>
                     </label>
                     <button type="submit" class="book-btn" <?= $canBook ? '' : 'disabled' ?>><?= esc(lang('App.bookSeat')) ?></button>
@@ -224,7 +225,7 @@ $assetVersion = static function (string $relativePath): string {
                     </div>
 
                     <label class="booking-consent" for="donation_booking_consent">
-                        <input id="donation_booking_consent" name="accept_terms" type="checkbox" value="1" data-error-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>" <?= $canBook && $isLoggedIn && $paypalClientId !== '' ? '' : 'disabled' ?>>
+                        <input id="donation_booking_consent" name="accept_terms" type="checkbox" value="1" data-error-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>" <?= $hasExistingBooking ? 'checked' : '' ?> <?= $canBook && $isLoggedIn && $paypalClientId !== '' ? '' : 'disabled' ?>>
                         <span><?= esc(lang('App.eventBookingConsentLabelStart')) ?><a href="<?= base_url('terms') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventBookingConsentTerms')) ?></a><?= esc(lang('App.eventBookingConsentMiddle')) ?><a href="<?= base_url('privacy-policy') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventBookingConsentPrivacy')) ?></a>.</span>
                     </label>
 
