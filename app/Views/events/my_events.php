@@ -24,12 +24,12 @@
                 $imageUrl = $rawImage !== ''
                     ? (preg_match('#^https?://#i', $rawImage) ? $rawImage : base_url(ltrim($rawImage, '/')))
                     : '';
-                $ticketCodes = array_filter((array) ($event['ticket_codes'] ?? []));
+                $tickets = array_values(array_filter((array) ($event['tickets'] ?? [])));
                 $paymentSummary = (string) ($event['payment_summary'] ?? 'free');
                 $paymentLabel = $paymentSummary === 'paid' ? lang('App.paymentStatusPaid') : lang('App.paymentStatusFree');
                 ?>
-                <a class="card-link" href="<?= esc($eventUrl) ?>">
-                    <article class="card">
+                <article class="card my-event-card">
+                    <a class="card-link" href="<?= esc($eventUrl) ?>">
                         <?php if ($imageUrl !== ''): ?>
                             <img class="event-image" src="<?= esc($imageUrl) ?>" alt="<?= esc($event['title']) ?>">
                         <?php else: ?>
@@ -65,22 +65,53 @@
                             <p class="meta"><?= esc(lang('App.myEventsBookedAt')) ?>: <?= esc(date('d/m/Y H:i', strtotime((string) $event['booked_at']))) ?></p>
                         <?php endif; ?>
 
-                        <?php if (!empty($ticketCodes)): ?>
-                            <div class="ticket-code-block">
-                                <p class="meta ticket-code-title"><?= esc(lang('App.myEventsTicketCodes')) ?>:</p>
-                                <p class="ticket-code-list"><?= esc(implode(', ', $ticketCodes)) ?></p>
-                            </div>
-                        <?php endif; ?>
-
                         <?php if (($event['event_type'] ?? 'free') === 'donation'): ?>
                             <span class="pill"><?= esc(lang('App.eventCreateDonationType')) ?></span>
                         <?php else: ?>
                             <span class="pill"><?= esc(lang('App.freeEvent')) ?></span>
                         <?php endif; ?>
-                    </article>
-                </a>
+                    </a>
+
+                    <?php if (!empty($tickets)): ?>
+                        <div class="ticket-cancel-block">
+                            <p class="meta ticket-code-title"><?= esc(lang('App.myEventsTicketCodes')) ?>:</p>
+                            <?php if (count($tickets) === 1): ?>
+                                <div class="ticket-cancel-row">
+                                    <code class="ticket-cancel-code"><?= esc($tickets[0]['code']) ?></code>
+                                    <form
+                                        method="post"
+                                        action="<?= base_url('tickets/' . urlencode($tickets[0]['code']) . '/cancel') ?>"
+                                        data-confirm-action
+                                        data-confirm-message="<?= esc(lang('App.ticketCancelConfirm'), 'attr') ?>">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="auth-link-btn admin-action-btn admin-action-btn--danger"><?= esc(lang('App.ticketCancelButton')) ?></button>
+                                    </form>
+                                </div>
+                            <?php else: ?>
+                                <div class="ticket-cancel-row">
+                                    <select class="ticket-cancel-select js-ticket-select">
+                                        <?php foreach ($tickets as $ticket): ?>
+                                            <option value="<?= esc(urlencode($ticket['code'])) ?>"><?= esc($ticket['code']) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <form
+                                        method="post"
+                                        action="<?= base_url('tickets/' . urlencode($tickets[0]['code']) . '/cancel') ?>"
+                                        class="js-ticket-cancel-form"
+                                        data-cancel-base="<?= esc(base_url('tickets/')) ?>"
+                                        data-confirm-action
+                                        data-confirm-message="<?= esc(lang('App.ticketCancelConfirm'), 'attr') ?>">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="auth-link-btn admin-action-btn admin-action-btn--danger"><?= esc(lang('App.ticketCancelButton')) ?></button>
+                                    </form>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+                </article>
             <?php endforeach; ?>
         </section>
     <?php endif; ?>
 </main>
+<script src="<?= base_url('assets/js/my-events.js') ?>"></script>
 <?= $this->endSection() ?>

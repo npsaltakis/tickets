@@ -308,4 +308,29 @@ class BookingController extends EventBaseController
             'redirectUrl' => base_url('events/' . $slug),
         ]);
     }
+
+    public function cancelTicket(string $ticketCode): RedirectResponse
+    {
+        if (session()->get('is_logged_in') !== true) {
+            return redirect()->to(base_url('login'))->with('login_info', lang('App.bookingLoginRequired'));
+        }
+
+        $ticket = $this->ticketModel->where('ticket_code', $ticketCode)->first();
+
+        if (empty($ticket)) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketCancelNotFound'));
+        }
+
+        if ((int) $ticket['user_id'] !== (int) session()->get('user_id')) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketCancelUnauthorized'));
+        }
+
+        if ((string) $ticket['status'] !== 'valid') {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketCancelAlreadyCancelled'));
+        }
+
+        $this->ticketModel->update((int) $ticket['id'], ['status' => 'cancelled']);
+
+        return redirect()->to(base_url('my-events'))->with('event_info', lang('App.ticketCancelSuccess'));
+    }
 }

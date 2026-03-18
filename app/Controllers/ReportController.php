@@ -137,14 +137,17 @@ class ReportController extends EventBaseController
                     'tickets_count' => 0,
                     'donation_total' => 0.0,
                     'booked_at' => $row['booked_at'] ?? null,
-                    'ticket_codes' => [],
+                    'tickets' => [],
                     'payment_statuses' => [],
                 ];
             }
 
             $events[$eventId]['tickets_count']++;
             $events[$eventId]['donation_total'] += (float) ($row['donation_amount'] ?? 0);
-            $events[$eventId]['ticket_codes'][] = (string) ($row['ticket_code'] ?? '');
+            $events[$eventId]['tickets'][] = [
+                'code'           => (string) ($row['ticket_code'] ?? ''),
+                'payment_status' => (string) ($row['payment_status'] ?? 'free'),
+            ];
             $events[$eventId]['payment_statuses'][(string) ($row['payment_status'] ?? '')] = true;
 
             if (! empty($row['booked_at']) && (empty($events[$eventId]['booked_at']) || strtotime((string) $row['booked_at']) > strtotime((string) $events[$eventId]['booked_at']))) {

@@ -30,6 +30,8 @@ $routes->post('events/(:segment)/paypal/capture', 'BookingController::captureDon
 $routes->get('events/feed', 'Home::eventsFeed');
 $routes->get('events/(:segment)', 'Home::show/$1');
 
+$routes->post('tickets/(:segment)/cancel', 'BookingController::cancelTicket/$1');
+
 $routes->get('login', 'LoginController::index');
 $routes->post('login', 'LoginController::authenticate');
 $routes->get('logout', 'LoginController::logout');
