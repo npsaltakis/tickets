@@ -226,6 +226,167 @@ class LoginController extends BaseController
         return redirect()->to(base_url('login'))->with('login_info', lang('App.verifyEmailSuccess'));
     }
 
+    public function lostPassword(): string|RedirectResponse
+    {
+        if (session()->get('is_logged_in') === true) {
+            return redirect()->to(base_url('/'));
+        }
+
+        return view('auth/lost_password', [
+            'pageTitle' => lang('App.lostPasswordPageTitle'),
+        ]);
+    }
+
+    public function sendResetLink(): RedirectResponse
+    {
+        $email = trim((string) $this->request->getPost('email'));
+
+        if ($email === '') {
+            return redirect()->back()->withInput()->with('lost_error', lang('App.lostRequiredEmail'));
+        }
+
+        $lockInfo = $this->getResetLockInfo($email);
+        if ($lockInfo !== null) {
+            return redirect()->back()->withInput()->with('lost_error', strtr(lang('App.resetBlocked'), [
+                '{minutes}' => (string) $lockInfo['minutes'],
+            ]));
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->recordFailedResetAttempt($email);
+            return redirect()->back()->withInput()->with('lost_error', lang('App.invalidEmail'));
+        }
+
+        $user = $this->userModel->where('email', $email)->where('status', 'active')->first();
+
+        if (empty($user)) {
+            $this->recordFailedResetAttempt($email);
+            return redirect()->back()->withInput()->with('lost_info', lang('App.resetLinkSentGeneric'));
+        }
+
+        $userId = (int) $user['id'];
+        $selector = bin2hex(random_bytes(8));
+        $token = bin2hex(random_bytes(32));
+        $tokenHash = hash('sha256', $token);
+        $expiresAt = Time::now()->addMinutes(10)->toDateTimeString();
+
+        $this->passwordResetModel->where('user_id', $userId)->delete();
+
+        $this->passwordResetModel->insert([
+            'user_id'    => $userId,
+            'selector'   => $selector,
+            'token_hash' => $tokenHash,
+            'expires_at' => $expiresAt,
+            'used_at'    => null,
+        ]);
+
+        $sent = $this->sendResetEmail($userId, (string) $user['email'], $selector, $token);
+
+        if (! $sent) {
+            return redirect()->back()->withInput()->with('lost_error', lang('App.emailSendFailed'));
+        }
+
+        $this->clearResetAttempts($email);
+
+        return redirect()->to(base_url('login'))->with('login_info', lang('App.resetLinkSentGeneric'));
+    }
+
+    public function resetPasswordForm(): string|RedirectResponse
+    {
+        $selector = trim((string) $this->request->getGet('selector'));
+        $token = trim((string) $this->request->getGet('token'));
+
+        if ($selector === '' || $token === '') {
+            return redirect()->to(base_url('login'))->with('login_error', lang('App.invalidOrExpiredToken'));
+        }
+
+        $reset = $this->passwordResetModel->where('selector', $selector)->first();
+
+        if (! $this->isValidResetToken($reset, $token)) {
+            return redirect()->to(base_url('login'))->with('login_error', lang('App.invalidOrExpiredToken'));
+        }
+
+        return view('auth/reset_password', [
+            'pageTitle' => lang('App.resetPasswordPageTitle'),
+            'selector'  => $selector,
+            'token'     => $token,
+        ]);
+    }
+
+    public function updatePasswordWithToken(): RedirectResponse
+    {
+        $selector = trim((string) $this->request->getPost('selector'));
+        $token = trim((string) $this->request->getPost('token'));
+        $newPassword = (string) $this->request->getPost('new_password');
+        $confirmPassword = (string) $this->request->getPost('confirm_password');
+
+        if ($selector === '' || $token === '' || $newPassword === '' || $confirmPassword === '') {
+            return redirect()->back()->with('reset_error', lang('App.lostRequiredFields'));
+        }
+
+        if (strlen($newPassword) < 6) {
+            return redirect()->back()->with('reset_error', lang('App.passwordTooShort'));
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            return redirect()->back()->with('reset_error', lang('App.passwordsDoNotMatch'));
+        }
+
+        $reset = $this->passwordResetModel->where('selector', $selector)->first();
+
+        if (! $this->isValidResetToken($reset, $token)) {
+            return redirect()->to(base_url('login'))->with('login_error', lang('App.invalidOrExpiredToken'));
+        }
+
+        $this->userModel->update((int) $reset['user_id'], [
+            'password' => password_hash($newPassword, PASSWORD_DEFAULT),
+        ]);
+
+        $this->passwordResetModel->update((int) $reset['id'], [
+            'used_at' => Time::now()->toDateTimeString(),
+        ]);
+
+        return redirect()->to(base_url('login'))->with('login_info', lang('App.passwordResetSuccess'));
+    }
+
+    private function sendResetEmail(int $userId, string $email, string $selector, string $token): bool
+    {
+        $resetUrl = base_url('reset-password?selector=' . urlencode($selector) . '&token=' . urlencode($token));
+
+        $emailService = service('email');
+        $emailService->setTo($email);
+        $emailService->setSubject($this->bilingualSubject('App.resetEmailSubject'));
+        $emailService->setMailType('html');
+        $emailService->setMessage(
+            '<p>' . esc($this->localizedLine('App.resetEmailGreeting', [], 'el')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.resetEmailRequestNotice', [], 'el')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.resetEmailActionText', [], 'el')) . '</p>'
+            . '<p><a href="' . esc($resetUrl, 'attr') . '">' . esc($resetUrl) . '</a></p>'
+            . '<p>' . esc($this->localizedLine('App.resetEmailExpiry', [], 'el')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.resetEmailIgnoreNotice', [], 'el')) . '</p>'
+            . '<p>' . nl2br(esc($this->localizedLine('App.resetEmailSignature', [], 'el'))) . '</p>'
+            . '<hr>'
+            . '<p>' . esc($this->localizedLine('App.resetEmailGreeting', [], 'en')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.resetEmailRequestNotice', [], 'en')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.resetEmailActionText', [], 'en')) . '</p>'
+            . '<p><a href="' . esc($resetUrl, 'attr') . '">' . esc($resetUrl) . '</a></p>'
+            . '<p>' . esc($this->localizedLine('App.resetEmailExpiry', [], 'en')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.resetEmailIgnoreNotice', [], 'en')) . '</p>'
+            . '<p>' . nl2br(esc($this->localizedLine('App.resetEmailSignature', [], 'en'))) . '</p>'
+        );
+
+        if ($emailService->send()) {
+            return true;
+        }
+
+        log_message('error', 'Password reset email send failed for user {userId} ({email}).', [
+            'userId' => $userId,
+            'email'  => $email,
+        ]);
+
+        return false;
+    }
+
     private function getLoginCacheKey(string $email, string $suffix): string
     {
         return 'login_' . $suffix . '_' . sha1(strtolower($email) . '|' . $this->request->getIPAddress());
