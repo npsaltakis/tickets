@@ -308,10 +308,19 @@ abstract class EventBaseController extends BaseController
 
     protected function storeEventImage(UploadedFile $uploadedImage): ?string
     {
+        if ($uploadedImage->getSize() > 5 * 1024 * 1024) {
+            return null;
+        }
+
         $extension = strtolower((string) $uploadedImage->getExtension());
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
         if (! in_array($extension, $allowedExtensions, true)) {
+            return null;
+        }
+
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (! in_array($uploadedImage->getMimeType(), $allowedMimeTypes, true)) {
             return null;
         }
 
