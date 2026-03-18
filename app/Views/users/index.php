@@ -7,6 +7,8 @@ $assetVersion = static function (string $relativePath): string {
     return is_file($fullPath) ? (string) filemtime($fullPath) : (string) time();
 };
 ?>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
 <main class="wrapper users-page">
     <div class="events-header users-header">
         <div>
@@ -30,7 +32,18 @@ $assetVersion = static function (string $relativePath): string {
             <p><?= esc(lang('App.usersEmpty')) ?></p>
         <?php else: ?>
             <div class="report-table-wrap">
-                <table class="admin-table users-table">
+                <table
+                    id="users-table"
+                    class="display admin-table users-table js-users-table"
+                    data-search-label="<?= esc(lang('App.reportSearch')) ?>"
+                    data-empty-label="<?= esc(lang('App.reportEmptyTable')) ?>"
+                    data-info-label="<?= esc(lang('App.reportInfo')) ?>"
+                    data-info-empty-label="<?= esc(lang('App.reportInfoEmpty')) ?>"
+                    data-zero-records-label="<?= esc(lang('App.reportZeroRecords')) ?>"
+                    data-length-menu-label="<?= esc(lang('App.reportLengthMenu')) ?>"
+                    data-order-column="4"
+                    data-order-direction="desc"
+                >
                     <thead>
                         <tr>
                             <th><?= esc(lang('App.usersName')) ?></th>
@@ -100,5 +113,12 @@ $assetVersion = static function (string $relativePath): string {
         <?php endif; ?>
     </section>
 </main>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 <script src="<?= base_url('assets/js/users-index.js') ?>?v=<?= esc($assetVersion('assets/js/users-index.js')) ?>"></script>
 <?= $this->endSection() ?>

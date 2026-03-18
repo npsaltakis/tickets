@@ -59,6 +59,44 @@ abstract class BaseController extends Controller
         ));
     }
 
+    protected function sendVerificationEmail(int $userId, string $email, string $selector, string $token): bool
+    {
+        $verificationUrl = base_url('verify-email?selector=' . urlencode($selector) . '&token=' . urlencode($token));
+
+        $emailService = service('email');
+        $emailService->setTo($email);
+        $emailService->setSubject($this->bilingualSubject('App.verifyEmailSubject'));
+        $emailService->setMailType('html');
+        $emailService->setMessage(
+            '<p>' . esc($this->localizedLine('App.verifyEmailGreeting', [], 'el')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailRequestNotice', [], 'el')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailActionText', [], 'el')) . '</p>'
+            . '<p><a href="' . esc($verificationUrl, 'attr') . '">' . esc($verificationUrl) . '</a></p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailExpiry', [], 'el')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailIgnoreNotice', [], 'el')) . '</p>'
+            . '<p>' . nl2br(esc($this->localizedLine('App.verifyEmailSignature', [], 'el'))) . '</p>'
+            . '<hr>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailGreeting', [], 'en')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailRequestNotice', [], 'en')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailActionText', [], 'en')) . '</p>'
+            . '<p><a href="' . esc($verificationUrl, 'attr') . '">' . esc($verificationUrl) . '</a></p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailExpiry', [], 'en')) . '</p>'
+            . '<p>' . esc($this->localizedLine('App.verifyEmailIgnoreNotice', [], 'en')) . '</p>'
+            . '<p>' . nl2br(esc($this->localizedLine('App.verifyEmailSignature', [], 'en'))) . '</p>'
+        );
+
+        if ($emailService->send()) {
+            return true;
+        }
+
+        log_message('error', 'Verification email send failed for user {userId} ({email}).', [
+            'userId' => $userId,
+            'email'  => $email,
+        ]);
+
+        return false;
+    }
+
     protected function logAdminAction(string $action, string $targetType, array $context = []): void
     {
         $session = session();
