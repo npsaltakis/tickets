@@ -129,3 +129,4 @@ _modules/*
 docs/project-state.md
 docs/decisions.md
 docs/next-session.md
+.claude/settings.local.json
