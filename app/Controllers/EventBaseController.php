@@ -521,7 +521,7 @@ abstract class EventBaseController extends BaseController
 
         $donationAmount = (float) $donationAmountRaw;
         $minimumDonation = (float) ($event['min_donation'] ?? 0);
-        $minimumTotalDonation = $minimumDonation * $requestedSeats;
+        $minimumTotalDonation = $minimumDonation;
 
         if ($donationAmount < $minimumTotalDonation) {
             return [0, 0.0, strtr(lang('App.donationMinimumError'), [
