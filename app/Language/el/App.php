@@ -57,6 +57,12 @@ return [
     'ticketCancelAlreadyCancelled' => 'Αυτό το εισιτήριο έχει ήδη ακυρωθεί.',
     'myEventsDonationTotal' => 'Συνολική δωρεά',
     'myEventsPaymentStatus' => 'Πληρωμή',
+    'myEventsExportTicketPdf' => 'Export PDF',
+    'myEventsExportAllTicketsPdf' => 'Export όλα σε PDF',
+    'myEventsPdfTitle' => 'Event Ticket',
+    'myEventsPdfSubtitle' => 'Το εισιτήριό σου για γρήγορο έλεγχο στην είσοδο.',
+    'myEventsPdfTicketLabel' => 'Κωδικός Εισιτηρίου',
+    'myEventsPdfFilenamePrefix' => 'ticket',
     'paymentStatusPaid' => 'Πληρωμένο',
     'paymentStatusFree' => 'Δωρεάν',
 

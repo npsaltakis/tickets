@@ -160,6 +160,15 @@ h1 {
     margin-bottom: 8px;
 }
 
+.ticket-code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
 .ticket-cancel-row {
     display: flex;
     align-items: center;
@@ -170,6 +179,12 @@ h1 {
 .ticket-code-list {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px;
+}
+
+.ticket-code-item {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
 }
 
@@ -185,6 +200,31 @@ h1 {
     font-size: 0.82rem;
     line-height: 1.35;
     overflow-wrap: anywhere;
+}
+
+.ticket-export-btn {
+    min-height: 36px;
+    border: 1px solid rgba(56, 189, 248, 0.24);
+    border-radius: 10px;
+    background: rgba(56, 189, 248, 0.12);
+    color: #e0f2fe;
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.18s ease;
+}
+
+.ticket-export-btn:hover {
+    border-color: rgba(125, 211, 252, 0.5);
+    background: rgba(56, 189, 248, 0.2);
+    color: #f8fafc;
+}
+
+.ticket-export-btn--secondary {
+    padding: 0 12px;
+    background: rgba(148, 163, 184, 0.1);
+    border-color: rgba(148, 163, 184, 0.2);
+    color: #e2e8f0;
 }
 
 .ticket-cancel-select {

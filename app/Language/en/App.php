@@ -57,6 +57,12 @@ return [
     'ticketCancelAlreadyCancelled' => 'This ticket has already been cancelled.',
     'myEventsDonationTotal' => 'Total donation',
     'myEventsPaymentStatus' => 'Payment',
+    'myEventsExportTicketPdf' => 'Export PDF',
+    'myEventsExportAllTicketsPdf' => 'Export all to PDF',
+    'myEventsPdfTitle' => 'Event Ticket',
+    'myEventsPdfSubtitle' => 'Your ticket for fast entry validation.',
+    'myEventsPdfTicketLabel' => 'Ticket Code',
+    'myEventsPdfFilenamePrefix' => 'ticket',
     'paymentStatusPaid' => 'Paid',
     'paymentStatusFree' => 'Free',
 
