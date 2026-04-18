@@ -64,17 +64,20 @@ class LoginController extends BaseController
         }
 
         if ((string) ($user['status'] ?? '') !== 'active') {
-            if ((string) ($user['status'] ?? '') === 'inactive') {
-                return redirect()->back()->withInput()->with('login_error', lang('App.verifyEmailRequired'));
-            }
+            log_message('notice', 'Login rejected for unavailable account. email={email} status={status}', [
+                'email' => $email,
+                'status' => (string) ($user['status'] ?? ''),
+            ]);
 
-            return redirect()->back()->withInput()->with('login_error', lang('App.loginInvalidCredentials'));
+            $this->recordFailedLoginAttempt($email);
+
+            return redirect()->back()->withInput()->with('login_error', lang('App.loginUnavailable'));
         }
 
         $this->clearLoginAttempts($email);
 
         $session = session();
-        $session->regenerate();
+        $session->regenerate(true);
         $session->set([
             'is_logged_in' => true,
             'user_id' => $user['id'],

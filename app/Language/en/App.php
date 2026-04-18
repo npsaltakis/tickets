@@ -221,6 +221,7 @@ return [
 
     'loginRequiredFields' => 'Email and password are required.',
     'loginInvalidCredentials' => 'Invalid email or password.',
+    'loginUnavailable' => 'Invalid sign-in details or account unavailable.',
     'loginBlocked' => 'Too many failed attempts. Try again in {minutes} minutes.',
     'logoutSuccess' => 'You have logged out successfully.',
     'registerRequiredFields' => 'All register fields are required.',

@@ -221,6 +221,7 @@ return [
 
     'loginRequiredFields' => 'Το email και ο κωδικός είναι υποχρεωτικά.',
     'loginInvalidCredentials' => 'Λάθος email ή κωδικός.',
+    'loginUnavailable' => 'Λάθος στοιχεία σύνδεσης ή ο λογαριασμός δεν είναι διαθέσιμος.',
     'loginBlocked' => 'Έγιναν πολλές αποτυχημένες προσπάθειες. Δοκίμασε ξανά σε {minutes} λεπτά.',
     'logoutSuccess' => 'Έγινε επιτυχής αποσύνδεση.',
     'registerRequiredFields' => 'Όλα τα πεδία εγγραφής είναι υποχρεωτικά.',
