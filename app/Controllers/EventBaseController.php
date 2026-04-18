@@ -494,7 +494,26 @@ abstract class EventBaseController extends BaseController
             $emailService->setTo($recipientEmail);
             $emailService->setSubject($this->bilingualSubject('App.bookingEmailSubject'));
             $emailService->setMailType('html');
-            $emailService->setMessage($this->buildBookingConfirmationEmailHtml($greekMessageParts, $englishMessageParts, $ticketCodes));
+            $ticketQrSources = [];
+
+            foreach ($ticketCodes as $ticketCode) {
+                $ticketCode = (string) $ticketCode;
+                if ($ticketCode === '') {
+                    continue;
+                }
+
+                $attachmentName = 'qr-' . strtolower($ticketCode) . '.png';
+                $qrContent = $this->buildTicketQrImageContent($ticketCode);
+
+                $emailService->attach($qrContent, 'inline', $attachmentName, 'image/png');
+                $cid = $emailService->setAttachmentCID($attachmentName);
+
+                if (is_string($cid) && $cid !== '') {
+                    $ticketQrSources[$ticketCode] = 'cid:' . $cid;
+                }
+            }
+
+            $emailService->setMessage($this->buildBookingConfirmationEmailHtml($greekMessageParts, $englishMessageParts, $ticketCodes, $ticketQrSources));
 
             return $emailService->send();
         } catch (Throwable) {

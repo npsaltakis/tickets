@@ -6,6 +6,11 @@ use CodeIgniter\Controller;
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\RoundBlockSizeMode;
+use Endroid\QrCode\Writer\PngWriter;
 use Psr\Log\LoggerInterface;
 
 abstract class BaseController extends Controller
@@ -126,9 +131,9 @@ abstract class BaseController extends Controller
             . '</div>';
     }
 
-    protected function buildBookingConfirmationEmailHtml(array $greekLines, array $englishLines, array $ticketCodes): string
+    protected function buildBookingConfirmationEmailHtml(array $greekLines, array $englishLines, array $ticketCodes, array $ticketQrSources = []): string
     {
-        $renderSection = function (array $lines, string $heading, string $qrTitle, string $qrHint) use ($ticketCodes): string {
+        $renderSection = function (array $lines, string $heading, string $qrTitle, string $qrHint, string $ticketCodeLabel) use ($ticketCodes, $ticketQrSources): string {
             $html = '<div style="margin:0 0 28px;">';
             $html .= '<div style="display:inline-block;margin:0 0 18px;padding:6px 12px;background:#e2e8f0;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#334155;">'
                 . esc($heading)
@@ -183,11 +188,14 @@ abstract class BaseController extends Controller
                         $html .= '</tr><tr>';
                     }
 
-                    $qrUrl = $this->buildTicketQrImageUrl((string) $ticketCode);
                     $html .= '<td style="width:50%;padding:0 8px 16px;vertical-align:top;">';
                     $html .= '<div style="border:1px solid #e2e8f0;border-radius:16px;padding:16px;text-align:center;background:#f8fafc;">';
-                    $html .= '<img src="' . esc($qrUrl, 'attr') . '" alt="' . esc((string) $ticketCode, 'attr') . '" width="180" height="180" style="display:block;width:180px;height:180px;margin:0 auto 12px;border-radius:12px;background:#ffffff;">';
-                    $html .= '<div style="font-size:13px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#64748b;">Ticket Code</div>';
+                    if (isset($ticketQrSources[(string) $ticketCode]) && $ticketQrSources[(string) $ticketCode] !== '') {
+                        $html .= '<img src="' . esc($ticketQrSources[(string) $ticketCode], 'attr') . '" alt="' . esc((string) $ticketCode, 'attr') . '" width="180" height="180" style="display:block;width:180px;height:180px;margin:0 auto 12px;border-radius:12px;background:#ffffff;">';
+                    } else {
+                        $html .= '<div style="display:block;width:180px;height:180px;margin:0 auto 12px;border-radius:12px;background:#ffffff;border:1px solid #e2e8f0;"></div>';
+                    }
+                    $html .= '<div style="font-size:13px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#64748b;">' . esc($ticketCodeLabel) . '</div>';
                     $html .= '<div style="margin-top:6px;font-size:15px;line-height:1.6;color:#0f172a;word-break:break-word;">' . esc((string) $ticketCode) . '</div>';
                     $html .= '</div>';
                     $html .= '</td>';
@@ -209,22 +217,44 @@ abstract class BaseController extends Controller
         return '<div style="font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#0f172a 0%,#1e293b 100%);padding:32px 16px;">'
             . '<div style="max-width:720px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(15,23,42,0.25);">'
             . '<div style="padding:28px 32px;background:linear-gradient(135deg,#0f172a 0%,#1d4ed8 100%);color:#ffffff;">'
-            . '<div style="font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;opacity:0.78;">Tickets</div>'
-            . '<div style="margin-top:8px;font-size:28px;line-height:1.2;font-weight:700;">Booking Confirmation</div>'
-            . '<div style="margin-top:8px;font-size:15px;line-height:1.6;opacity:0.88;">Τα στοιχεία της κράτησής σου συγκεντρωμένα σε καθαρή μορφή.</div>'
+            . '<div style="font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;opacity:0.78;">Tickets / Εισιτήρια</div>'
+            . '<div style="margin-top:8px;font-size:28px;line-height:1.2;font-weight:700;">Booking Confirmation / Επιβεβαίωση Κράτησης</div>'
+            . '<div style="margin-top:8px;font-size:15px;line-height:1.6;opacity:0.88;">Τα στοιχεία της κράτησής σου συγκεντρωμένα σε καθαρή μορφή. Your booking details in a clean format.</div>'
             . '</div>'
             . '<div style="padding:32px;">'
-            . $renderSection($greekLines, 'Ελληνικά', 'QR Tickets', 'Σκάναρε το QR στην είσοδο ή χρησιμοποίησε τον ticket code αν χρειαστεί.')
+            . $renderSection(
+                $greekLines,
+                'Ελληνικά',
+                $this->localizedLine('App.bookingEmailQrTitle', [], 'el'),
+                $this->localizedLine('App.bookingEmailQrHint', [], 'el'),
+                $this->localizedLine('App.bookingEmailTicketCodeLabel', [], 'el')
+            )
             . '<div style="height:1px;background:#e2e8f0;margin:8px 0 28px;"></div>'
-            . $renderSection($englishLines, 'English', 'QR Tickets', 'Scan the QR at the entrance or use the ticket code if needed.')
+            . $renderSection(
+                $englishLines,
+                'English',
+                $this->localizedLine('App.bookingEmailQrTitle', [], 'en'),
+                $this->localizedLine('App.bookingEmailQrHint', [], 'en'),
+                $this->localizedLine('App.bookingEmailTicketCodeLabel', [], 'en')
+            )
             . '</div>'
             . '</div>'
             . '</div>';
     }
 
-    protected function buildTicketQrImageUrl(string $ticketCode): string
+    protected function buildTicketQrImageContent(string $ticketCode): string
     {
-        return 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=12&data=' . rawurlencode($ticketCode);
+        $writer = new PngWriter();
+        $qrCode = new QrCode(
+            data: $ticketCode,
+            encoding: new Encoding('ISO-8859-1'),
+            errorCorrectionLevel: ErrorCorrectionLevel::Low,
+            size: 180,
+            margin: 12,
+            roundBlockSizeMode: RoundBlockSizeMode::Margin
+        );
+
+        return $writer->write($qrCode)->getString();
     }
 
     protected function sendVerificationEmail(int $userId, string $email, string $selector, string $token): bool
