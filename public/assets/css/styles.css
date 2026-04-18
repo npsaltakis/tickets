@@ -1974,6 +1974,50 @@ a.dt-button:hover:not(.disabled) {
     max-width: 720px;
 }
 
+.check-in-card {
+    max-width: 820px;
+}
+
+.check-in-input {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.check-in-result {
+    margin-top: 22px;
+}
+
+.check-in-warning {
+    margin: 0 0 16px;
+    color: #fde68a;
+    font-weight: 700;
+}
+
+.check-in-result-card {
+    padding: 18px;
+}
+
+.check-in-result-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 18px;
+}
+
+.check-in-detail-label {
+    display: block;
+    margin-bottom: 4px;
+    color: #94a3b8;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.check-in-result-grid strong {
+    color: #f8fafc;
+    font-size: 0.96rem;
+    line-height: 1.45;
+}
+
 .users-form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -1981,6 +2025,10 @@ a.dt-button:hover:not(.disabled) {
 @media (max-width: 768px) {
     .admin-table {
         min-width: 760px;
+    }
+
+    .check-in-result-grid {
+        grid-template-columns: 1fr;
     }
 }
 

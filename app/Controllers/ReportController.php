@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\I18n\Time;
 
 class ReportController extends EventBaseController
 {
@@ -166,5 +167,116 @@ class ReportController extends EventBaseController
             'events' => array_values($events),
             'pageTitle' => lang('App.myEventsPageTitle'),
         ]);
+    }
+
+    public function checkIn(): RedirectResponse|string
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'))->with('login_error', lang('App.checkInUnauthorized'));
+        }
+
+        return view('events/check_in', [
+            'pageTitle' => lang('App.checkInPageTitle'),
+            'result' => session()->getFlashdata('check_in_result'),
+            'enteredCode' => (string) session()->getFlashdata('check_in_code'),
+        ]);
+    }
+
+    public function processCheckIn(): RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'))->with('login_error', lang('App.checkInUnauthorized'));
+        }
+
+        $ticketCode = strtoupper(preg_replace('/\s+/', '', trim((string) $this->request->getPost('ticket_code'))));
+
+        if ($ticketCode === '') {
+            return redirect()->to(base_url('check-in'))
+                ->with('check_in_code', '')
+                ->with('check_in_result', [
+                    'type' => 'error',
+                    'message' => lang('App.checkInCodeRequired'),
+                ]);
+        }
+
+        $ticket = $this->ticketModel
+            ->select([
+                'tickets.id',
+                'tickets.ticket_code',
+                'tickets.payment_status',
+                'tickets.donation_amount',
+                'tickets.status',
+                'tickets.created_at',
+                'tickets.checked_in_at',
+                'tickets.checked_in_by',
+                'events.title AS event_title',
+                'events.location AS event_location',
+                'events.start_date AS event_start_date',
+                'users.first_name',
+                'users.last_name',
+                'users.email',
+            ])
+            ->join('events', 'events.id = tickets.event_id')
+            ->join('users', 'users.id = tickets.user_id', 'left')
+            ->where('tickets.ticket_code', $ticketCode)
+            ->first();
+
+        if ($ticket === null) {
+            return redirect()->to(base_url('check-in'))
+                ->with('check_in_code', $ticketCode)
+                ->with('check_in_result', [
+                    'type' => 'error',
+                    'message' => lang('App.checkInNotFound'),
+                ]);
+        }
+
+        $customerName = trim(((string) ($ticket['first_name'] ?? '')) . ' ' . ((string) ($ticket['last_name'] ?? '')));
+        $details = [
+            'ticket_code' => (string) ($ticket['ticket_code'] ?? ''),
+            'event_title' => (string) ($ticket['event_title'] ?? '-'),
+            'event_location' => (string) ($ticket['event_location'] ?? '-'),
+            'event_start_date' => ! empty($ticket['event_start_date']) ? date('d/m/Y H:i', strtotime((string) $ticket['event_start_date'])) : '-',
+            'customer_name' => $customerName !== '' ? $customerName : '-',
+            'customer_email' => (string) ($ticket['email'] ?? '-'),
+            'payment_status_label' => lang('App.paymentStatus' . ucfirst((string) ($ticket['payment_status'] ?? 'free'))),
+            'donation_amount' => 'EUR ' . number_format((float) ($ticket['donation_amount'] ?? 0), 2),
+            'booked_at' => ! empty($ticket['created_at']) ? date('d/m/Y H:i', strtotime((string) $ticket['created_at'])) : '-',
+            'checked_in_at' => ! empty($ticket['checked_in_at']) ? date('d/m/Y H:i', strtotime((string) $ticket['checked_in_at'])) : '',
+        ];
+
+        if ((string) ($ticket['status'] ?? '') !== 'valid') {
+            return redirect()->to(base_url('check-in'))
+                ->with('check_in_code', $ticketCode)
+                ->with('check_in_result', [
+                    'type' => 'error',
+                    'message' => lang('App.checkInInvalidStatus'),
+                    'details' => $details,
+                ]);
+        }
+
+        if (! empty($ticket['checked_in_at'])) {
+            return redirect()->to(base_url('check-in'))
+                ->with('check_in_code', $ticketCode)
+                ->with('check_in_result', [
+                    'type' => 'warning',
+                    'message' => lang('App.checkInAlreadyUsed'),
+                    'details' => $details,
+                ]);
+        }
+
+        $this->ticketModel->update((int) $ticket['id'], [
+            'checked_in_at' => Time::now()->toDateTimeString(),
+            'checked_in_by' => (int) session()->get('user_id'),
+        ]);
+
+        $details['checked_in_at'] = date('d/m/Y H:i');
+
+        return redirect()->to(base_url('check-in'))
+            ->with('check_in_code', $ticketCode)
+            ->with('check_in_result', [
+                'type' => 'success',
+                'message' => lang('App.checkInSuccess'),
+                'details' => $details,
+            ]);
     }
 }

@@ -8,6 +8,8 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Home::index');
 $routes->get('my-events', 'ReportController::myEvents');
 $routes->get('report', 'ReportController::report');
+$routes->get('check-in', 'ReportController::checkIn');
+$routes->post('check-in', 'ReportController::processCheckIn');
 $routes->get('users', 'UserAdminController::index');
 $routes->get('users/create', 'UserAdminController::create');
 $routes->post('users', 'UserAdminController::store');

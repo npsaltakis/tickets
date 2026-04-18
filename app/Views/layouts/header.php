@@ -34,6 +34,7 @@ $avatarTitle = $userName !== '' ? $userName : ($userEmail !== '' ? $userEmail : 
                     <li><a class="menu-link <?= $currentPath === '' ? 'is-active' : '' ?>" href="<?= base_url('/') ?>"><?= esc(lang('App.navHome')) ?></a></li>
                     <?php if ($isAdmin): ?>
                         <li><a class="menu-link <?= $currentPath === 'report' ? 'is-active' : '' ?>" href="<?= base_url('report') ?>"><?= esc(lang('App.navReport')) ?></a></li>
+                        <li><a class="menu-link <?= $currentPath === 'check-in' ? 'is-active' : '' ?>" href="<?= base_url('check-in') ?>"><?= esc(lang('App.navCheckIn')) ?></a></li>
                         <li><a class="menu-link <?= $isUsersSection ? 'is-active' : '' ?>" href="<?= base_url('users') ?>"><?= esc(lang('App.navUsers')) ?></a></li>
                     <?php endif; ?>
                     <?php if (! $isLoggedIn): ?>
