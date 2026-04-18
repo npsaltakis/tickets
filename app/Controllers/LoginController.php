@@ -138,7 +138,7 @@ class LoginController extends BaseController
             return redirect()->back()->withInput()->with('register_error', lang('App.invalidEmail'));
         }
 
-        if (strlen($password) < 6) {
+        if (strlen($password) < 8) {
             $this->recordFailedRegisterAttempt();
             return redirect()->back()->withInput()->with('register_error', lang('App.passwordTooShort'));
         }
@@ -327,7 +327,7 @@ class LoginController extends BaseController
             return redirect()->back()->with('reset_error', lang('App.lostRequiredFields'));
         }
 
-        if (strlen($newPassword) < 6) {
+        if (strlen($newPassword) < 8) {
             return redirect()->back()->with('reset_error', lang('App.passwordTooShort'));
         }
 
@@ -594,9 +594,9 @@ class LoginController extends BaseController
             return false;
         }
 
-        // Keep production strict, but don't let local development get blocked
-        // by Turnstile verification/network issues after the widget already passed.
-        if (ENVIRONMENT !== 'production') {
+        // Allow bypass only for true local development contexts.
+        // This preserves local DX without weakening exposed staging/dev environments.
+        if ($this->isLocalDevelopmentContext()) {
             return true;
         }
 
@@ -639,5 +639,31 @@ class LoginController extends BaseController
 
             return false;
         }
+    }
+
+    private function isLocalDevelopmentContext(): bool
+    {
+        if (! in_array(ENVIRONMENT, ['development', 'testing'], true)) {
+            return false;
+        }
+
+        $host = strtolower((string) $this->request->getServer('HTTP_HOST'));
+        $serverName = strtolower((string) $this->request->getServer('SERVER_NAME'));
+        $remoteAddr = (string) $this->request->getIPAddress();
+
+        $localHosts = [
+            'localhost',
+            '127.0.0.1',
+            '::1',
+        ];
+
+        foreach ([$host, $serverName, $remoteAddr] as $value) {
+            $normalized = trim((string) preg_replace('/:\d+$/', '', $value));
+            if ($normalized !== '' && in_array($normalized, $localHosts, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

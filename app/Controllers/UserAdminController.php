@@ -314,11 +314,11 @@ class UserAdminController extends BaseController
             return [null, lang('App.usersEmailExists')];
         }
 
-        if ($isCreate && strlen($password) < 6) {
+        if ($isCreate && strlen($password) < 8) {
             return [null, lang('App.usersPasswordRequired')];
         }
 
-        if (! $isCreate && $password !== '' && strlen($password) < 6) {
+        if (! $isCreate && $password !== '' && strlen($password) < 8) {
             return [null, lang('App.passwordTooShort')];
         }
 
