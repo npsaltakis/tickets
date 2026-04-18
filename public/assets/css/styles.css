@@ -1983,6 +1983,42 @@ a.dt-button:hover:not(.disabled) {
     letter-spacing: 0.08em;
 }
 
+.check-in-scanner-panel {
+    margin-bottom: 22px;
+    padding: 18px;
+    border: 1px solid rgba(56, 189, 248, 0.16);
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.42);
+}
+
+.check-in-scanner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.check-in-camera-hint {
+    margin-top: 12px;
+}
+
+.check-in-camera-status {
+    margin: 12px 0 0;
+    color: #bae6fd;
+    font-size: 0.92rem;
+}
+
+.check-in-camera-reader {
+    margin-top: 16px;
+    overflow: hidden;
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    background: #020617;
+}
+
+.check-in-camera-reader video {
+    border-radius: 16px;
+}
+
 .check-in-result {
     margin-top: 22px;
 }
