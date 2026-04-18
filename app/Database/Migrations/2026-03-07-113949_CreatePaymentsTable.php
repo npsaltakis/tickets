@@ -61,7 +61,7 @@ class CreatePaymentsTable extends Migration
 
         $this->forge->addForeignKey(
             'ticket_id',
-            'tickets_tickets',
+            'tickets',
             'id',
             'CASCADE',
             'CASCADE'

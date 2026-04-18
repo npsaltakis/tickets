@@ -194,6 +194,8 @@ $assetVersion = static function (string $relativePath): string {
                     data-min-donation="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', ''), 'attr') ?>"
                     data-min-message="<?= esc(lang('App.donationMinimumError'), 'attr') ?>"
                     data-paypal-error="<?= esc(lang('App.paypalGenericError'), 'attr') ?>"
+                    data-total-label="<?= esc(lang('App.donationTotalLabel'), 'attr') ?>"
+                    data-total-template="<?= esc(lang('App.donationTotalSummary'), 'attr') ?>"
                     data-consent-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>"
                     data-csrf-header="<?= esc(csrf_header(), 'attr') ?>"
                     data-csrf-token="<?= esc(csrf_hash(), 'attr') ?>"
@@ -226,6 +228,8 @@ $assetVersion = static function (string $relativePath): string {
                                 <?= $canBook && $isLoggedIn && $paypalClientId !== '' ? '' : 'disabled' ?>>
                         </div>
                     </div>
+
+                    <p id="donation-total" class="meta"><strong><?= esc(lang('App.donationTotalLabel')) ?>:</strong> €<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2)) ?></p>
 
                     <label class="booking-consent" for="donation_booking_consent">
                         <input id="donation_booking_consent" name="accept_terms" type="checkbox" value="1" data-error-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>" <?= $hasExistingBooking ? 'checked' : '' ?> <?= $canBook && $isLoggedIn && $paypalClientId !== '' ? '' : 'disabled' ?>>

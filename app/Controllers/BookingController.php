@@ -86,10 +86,12 @@ class BookingController extends EventBaseController
             return $this->response->setStatusCode(422)->setJSON(['message' => lang('App.eventBookingConsentError')]);
         }
 
-        [$requestedSeats, $donationAmount, $error] = $this->validateDonationBookingRequest($event);
+        [$requestedSeats, $donationAmountPerSeat, $error] = $this->validateDonationBookingRequest($event);
         if ($error !== null) {
             return $this->response->setStatusCode(422)->setJSON(['message' => $error]);
         }
+
+        $totalDonationAmount = $donationAmountPerSeat * $requestedSeats;
 
         [$accessToken, $tokenError] = $this->getPayPalAccessToken();
         if ($accessToken === null) {
@@ -100,7 +102,7 @@ class BookingController extends EventBaseController
             'event:' . (int) $event['id'],
             'user:' . (int) session()->get('user_id'),
             'seats:' . $requestedSeats,
-            'donation:' . number_format($donationAmount, 2, '.', ''),
+            'donation:' . number_format($donationAmountPerSeat, 2, '.', ''),
         ]);
 
         try {
@@ -116,7 +118,7 @@ class BookingController extends EventBaseController
                         'custom_id' => $customId,
                         'amount' => [
                             'currency_code' => 'EUR',
-                            'value' => number_format($donationAmount, 2, '.', ''),
+                            'value' => number_format($totalDonationAmount, 2, '.', ''),
                         ],
                     ]],
                     'application_context' => [

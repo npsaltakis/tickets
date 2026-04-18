@@ -34,7 +34,14 @@ class UserModel extends Model
     protected $createdField = 'created_at';
     protected $updatedField = 'updated_at';
 
-    protected $validationRules = [];
+    protected $validationRules = [
+        'first_name' => ['label' => 'First name', 'rules' => 'if_exist|required|max_length[100]'],
+        'last_name'  => ['label' => 'Last name',  'rules' => 'if_exist|required|max_length[100]'],
+        'email'      => ['label' => 'Email',      'rules' => 'if_exist|required|valid_email|max_length[191]'],
+        'password'   => ['label' => 'Password',   'rules' => 'if_exist|permit_empty|max_length[255]'],
+        'role'       => ['label' => 'Role',       'rules' => 'if_exist|required|in_list[admin,client]'],
+        'status'     => ['label' => 'Status',     'rules' => 'if_exist|permit_empty|in_list[active,inactive,banned]'],
+    ];
     protected $validationMessages = [];
     protected $skipValidation = false;
     protected $cleanValidationRules = true;

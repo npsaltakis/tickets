@@ -46,9 +46,14 @@ class Home extends EventBaseController
             throw PageNotFoundException::forPageNotFound('Event not found');
         }
 
-        $event['remaining_seats'] = $this->getRemainingSeats($event);
         $isLoggedIn = session()->get('is_logged_in') === true;
         $isAdmin = $isLoggedIn && (string) session()->get('user_role') === 'admin';
+
+        if ((string) ($event['status'] ?? '') !== 'active' && ! $isAdmin) {
+            throw PageNotFoundException::forPageNotFound('Event not found');
+        }
+
+        $event['remaining_seats'] = $this->getRemainingSeats($event);
         $hasOnlineAccess = false;
         $userTicketCodes = [];
 

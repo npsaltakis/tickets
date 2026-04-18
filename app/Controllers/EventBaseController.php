@@ -308,10 +308,19 @@ abstract class EventBaseController extends BaseController
 
     protected function storeEventImage(UploadedFile $uploadedImage): ?string
     {
+        if ($uploadedImage->getSize() > 5 * 1024 * 1024) {
+            return null;
+        }
+
         $extension = strtolower((string) $uploadedImage->getExtension());
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
         if (! in_array($extension, $allowedExtensions, true)) {
+            return null;
+        }
+
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (! in_array($uploadedImage->getMimeType(), $allowedMimeTypes, true)) {
             return null;
         }
 
@@ -521,11 +530,10 @@ abstract class EventBaseController extends BaseController
 
         $donationAmount = (float) $donationAmountRaw;
         $minimumDonation = (float) ($event['min_donation'] ?? 0);
-        $minimumTotalDonation = $minimumDonation * $requestedSeats;
 
-        if ($donationAmount < $minimumTotalDonation) {
+        if ($donationAmount < $minimumDonation) {
             return [0, 0.0, strtr(lang('App.donationMinimumError'), [
-                '{min}' => number_format($minimumTotalDonation, 2),
+                '{min}' => number_format($minimumDonation, 2),
             ])];
         }
 

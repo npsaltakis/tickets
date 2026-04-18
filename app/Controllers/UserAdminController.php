@@ -37,7 +37,7 @@ class UserAdminController extends BaseController
         unset($user);
 
         return view('users/index', [
-            'users' => $users,
+            'users'     => $users,
             'pageTitle' => lang('App.usersPageTitle'),
         ]);
     }
@@ -140,11 +140,10 @@ class UserAdminController extends BaseController
             return redirect()->to(base_url('users'))->with('users_error', lang('App.usersSelfBlockError'));
         }
 
-        if ($this->isLastActiveAdmin($user)) {
+        if (! $this->withAtomicAdminGuard(fn() => $this->userModel->update($userId, ['status' => 'banned']))) {
             return redirect()->to(base_url('users'))->with('users_error', lang('App.usersLastAdminError'));
         }
 
-        $this->userModel->update($userId, ['status' => 'banned']);
         $this->logAdminAction('user_block', 'user', [
             'target_user_id' => $userId,
             'email' => (string) ($user['email'] ?? ''),
@@ -192,11 +191,10 @@ class UserAdminController extends BaseController
             return redirect()->to(base_url('users'))->with('users_error', lang('App.usersSelfDeleteError'));
         }
 
-        if ($this->isLastActiveAdmin($user)) {
+        if (! $this->withAtomicAdminGuard(fn() => $this->userModel->delete($userId))) {
             return redirect()->to(base_url('users'))->with('users_error', lang('App.usersLastAdminError'));
         }
 
-        $this->userModel->delete($userId);
         $this->logAdminAction('user_delete', 'user', [
             'target_user_id' => $userId,
             'email' => (string) ($user['email'] ?? ''),
@@ -248,45 +246,6 @@ class UserAdminController extends BaseController
 
         return redirect()->to(base_url('users'))->with('users_info', lang('App.usersVerificationResendSuccess'));
     }
-
-    private function sendVerificationEmail(int $userId, string $email, string $selector, string $token): bool
-    {
-        $verificationUrl = base_url('verify-email?selector=' . urlencode($selector) . '&token=' . urlencode($token));
-
-        $emailService = service('email');
-        $emailService->setTo($email);
-        $emailService->setSubject($this->bilingualSubject('App.verifyEmailSubject'));
-        $emailService->setMailType('html');
-        $emailService->setMessage(
-            '<p>' . esc($this->localizedLine('App.verifyEmailGreeting', [], 'el')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailRequestNotice', [], 'el')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailActionText', [], 'el')) . '</p>'
-            . '<p><a href="' . esc($verificationUrl, 'attr') . '">' . esc($verificationUrl) . '</a></p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailExpiry', [], 'el')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailIgnoreNotice', [], 'el')) . '</p>'
-            . '<p>' . nl2br(esc($this->localizedLine('App.verifyEmailSignature', [], 'el'))) . '</p>'
-            . '<hr>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailGreeting', [], 'en')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailRequestNotice', [], 'en')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailActionText', [], 'en')) . '</p>'
-            . '<p><a href="' . esc($verificationUrl, 'attr') . '">' . esc($verificationUrl) . '</a></p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailExpiry', [], 'en')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailIgnoreNotice', [], 'en')) . '</p>'
-            . '<p>' . nl2br(esc($this->localizedLine('App.verifyEmailSignature', [], 'en'))) . '</p>'
-        );
-
-        if ($emailService->send()) {
-            return true;
-        }
-
-        log_message('error', 'Admin resend verification failed for user {userId} ({email}).', [
-            'userId' => $userId,
-            'email' => $email,
-        ]);
-
-        return false;
-    }
-
 
     private function getLoginLockedUntil(string $email): ?int
     {
@@ -383,12 +342,33 @@ class UserAdminController extends BaseController
             return false;
         }
 
-        $activeAdmins = $this->userModel
-            ->where('role', 'admin')
-            ->where('status', 'active')
-            ->countAllResults();
+        return $this->userModel->where('role', 'admin')->where('status', 'active')->countAllResults() <= 1;
+    }
 
-        return $activeAdmins <= 1;
+    private function withAtomicAdminGuard(callable $operation): bool
+    {
+        $db = \Config\Database::connect();
+        $db->transBegin();
+
+        try {
+            $operation();
+
+            $remaining = $this->userModel
+                ->where('role', 'admin')
+                ->where('status', 'active')
+                ->countAllResults();
+
+            if ($remaining < 1) {
+                $db->transRollback();
+                return false;
+            }
+
+            $db->transCommit();
+            return true;
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            throw $e;
+        }
     }
 
     private function syncSessionUser(array $user): void
