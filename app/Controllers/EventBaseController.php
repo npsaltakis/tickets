@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\EventModel;
+use App\Models\PayPalCaptureModel;
 use App\Models\PaymentModel;
 use App\Models\TicketModel;
 use App\Models\UserModel;
@@ -15,12 +16,14 @@ abstract class EventBaseController extends BaseController
     protected EventModel $eventModel;
     protected TicketModel $ticketModel;
     protected PaymentModel $paymentModel;
+    protected PayPalCaptureModel $payPalCaptureModel;
 
     public function __construct()
     {
         $this->eventModel = new EventModel();
         $this->ticketModel = new TicketModel();
         $this->paymentModel = new PaymentModel();
+        $this->payPalCaptureModel = new PayPalCaptureModel();
     }
 
     protected function renderEventForm(?array $event = null): string

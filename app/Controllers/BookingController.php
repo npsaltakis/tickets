@@ -219,7 +219,10 @@ class BookingController extends EventBaseController
             return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
         }
 
-        if ($this->paymentModel->where('paypal_transaction_id', $captureId)->first() !== null) {
+        if (
+            $this->payPalCaptureModel->where('paypal_transaction_id', $captureId)->first() !== null
+            || $this->paymentModel->where('paypal_transaction_id', $captureId)->first() !== null
+        ) {
             session()->setFlashdata('event_info', lang('App.bookingSuccess'));
 
             return $this->response->setJSON([
@@ -297,7 +300,10 @@ class BookingController extends EventBaseController
         try {
             $db->transException(true)->transStart();
 
-            if ($this->paymentModel->where('paypal_transaction_id', $captureId)->first() !== null) {
+            if (
+                $this->payPalCaptureModel->where('paypal_transaction_id', $captureId)->first() !== null
+                || $this->paymentModel->where('paypal_transaction_id', $captureId)->first() !== null
+            ) {
                 $db->transComplete();
                 session()->setFlashdata('event_info', lang('App.bookingSuccess'));
 
@@ -305,6 +311,10 @@ class BookingController extends EventBaseController
                     'redirectUrl' => base_url('events/' . $slug),
                 ]);
             }
+
+            $this->payPalCaptureModel->insert([
+                'paypal_transaction_id' => $captureId,
+            ]);
 
             for ($i = 0; $i < $requestedSeats; $i++) {
                 $ticketCode = $this->generateTicketCode();
@@ -332,7 +342,10 @@ class BookingController extends EventBaseController
         } catch (Throwable $exception) {
             $db->transRollback();
 
-            if ($this->paymentModel->where('paypal_transaction_id', $captureId)->first() !== null) {
+            if (
+                $this->payPalCaptureModel->where('paypal_transaction_id', $captureId)->first() !== null
+                || $this->paymentModel->where('paypal_transaction_id', $captureId)->first() !== null
+            ) {
                 session()->setFlashdata('event_info', lang('App.bookingSuccess'));
 
                 return $this->response->setJSON([
