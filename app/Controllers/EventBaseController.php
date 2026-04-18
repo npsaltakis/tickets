@@ -493,7 +493,8 @@ abstract class EventBaseController extends BaseController
             $emailService = service('email');
             $emailService->setTo($recipientEmail);
             $emailService->setSubject($this->bilingualSubject('App.bookingEmailSubject'));
-            $emailService->setMessage($this->buildBilingualEmail($greekMessageParts, $englishMessageParts));
+            $emailService->setMailType('html');
+            $emailService->setMessage($this->buildBilingualEmailHtml($greekMessageParts, $englishMessageParts));
 
             return $emailService->send();
         } catch (Throwable) {

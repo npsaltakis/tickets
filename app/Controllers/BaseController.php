@@ -59,6 +59,73 @@ abstract class BaseController extends Controller
         ));
     }
 
+    protected function buildBilingualEmailHtml(array $greekLines, array $englishLines): string
+    {
+        $renderSection = static function (array $lines, string $heading): string {
+            $html = '<div style="margin:0 0 28px;">';
+            $html .= '<div style="display:inline-block;margin:0 0 18px;padding:6px 12px;background:#e2e8f0;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#334155;">'
+                . esc($heading)
+                . '</div>';
+
+            if ($lines !== []) {
+                $greeting = array_shift($lines);
+                $html .= '<h2 style="margin:0 0 10px;font-size:22px;line-height:1.3;color:#0f172a;">' . esc((string) $greeting) . '</h2>';
+            }
+
+            if ($lines !== []) {
+                $intro = array_shift($lines);
+                $html .= '<p style="margin:0 0 22px;font-size:15px;line-height:1.7;color:#475569;">' . esc((string) $intro) . '</p>';
+            }
+
+            $html .= '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:18px 18px 6px;">';
+
+            foreach ($lines as $line) {
+                $line = (string) $line;
+                $parts = explode(':', $line, 2);
+
+                if (count($parts) === 2) {
+                    $label = trim($parts[0]);
+                    $value = ltrim($parts[1]);
+
+                    if (str_contains($value, PHP_EOL)) {
+                        $html .= '<div style="margin:0 0 16px;padding:14px 16px;background:#ffffff;border:1px solid #dbeafe;border-radius:14px;">';
+                        $html .= '<div style="margin:0 0 10px;font-size:13px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#1d4ed8;">' . esc($label) . '</div>';
+                        $html .= '<div style="font-size:14px;line-height:1.7;color:#0f172a;">' . nl2br(esc($value)) . '</div>';
+                        $html .= '</div>';
+                        continue;
+                    }
+
+                    $html .= '<div style="margin:0 0 12px;padding-bottom:12px;border-bottom:1px solid #e2e8f0;">';
+                    $html .= '<div style="margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#64748b;">' . esc($label) . '</div>';
+                    $html .= '<div style="font-size:16px;line-height:1.5;color:#0f172a;">' . esc($value !== '' ? $value : '-') . '</div>';
+                    $html .= '</div>';
+                    continue;
+                }
+
+                $html .= '<p style="margin:0 0 12px;font-size:15px;line-height:1.7;color:#334155;">' . nl2br(esc($line)) . '</p>';
+            }
+
+            $html .= '</div>';
+
+            return $html . '</div>';
+        };
+
+        return '<div style="font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#0f172a 0%,#1e293b 100%);padding:32px 16px;">'
+            . '<div style="max-width:720px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(15,23,42,0.25);">'
+            . '<div style="padding:28px 32px;background:linear-gradient(135deg,#0f172a 0%,#1d4ed8 100%);color:#ffffff;">'
+            . '<div style="font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;opacity:0.78;">Tickets</div>'
+            . '<div style="margin-top:8px;font-size:28px;line-height:1.2;font-weight:700;">Booking Confirmation</div>'
+            . '<div style="margin-top:8px;font-size:15px;line-height:1.6;opacity:0.88;">Τα στοιχεία της κράτησής σου συγκεντρωμένα σε καθαρή μορφή.</div>'
+            . '</div>'
+            . '<div style="padding:32px;">'
+            . $renderSection($greekLines, 'Ελληνικά')
+            . '<div style="height:1px;background:#e2e8f0;margin:8px 0 28px;"></div>'
+            . $renderSection($englishLines, 'English')
+            . '</div>'
+            . '</div>'
+            . '</div>';
+    }
+
     protected function sendVerificationEmail(int $userId, string $email, string $selector, string $token): bool
     {
         $verificationUrl = base_url('verify-email?selector=' . urlencode($selector) . '&token=' . urlencode($token));
