@@ -13,6 +13,7 @@
     const bookingError = document.getElementById('booking-error');
     const consentError = document.getElementById('booking-consent-error');
     const donationInput = document.getElementById('donation_amount');
+    const donationTotal = document.getElementById('donation-total');
     const freeBookingForm = document.getElementById('free-booking-form');
     const consentCheckbox = document.getElementById('donation_booking_consent') || document.getElementById('booking_consent');
     let lastDetailedError = '';
@@ -97,28 +98,44 @@
     const minDonation = Number(donationBooking.dataset.minDonation || 0);
     const minMessageTemplate = donationBooking.dataset.minMessage || 'Minimum donation is {min}.';
     const paypalErrorMessage = donationBooking.dataset.paypalError || 'Something went wrong with PayPal.';
+    const totalLabel = donationBooking.dataset.totalLabel || 'Total';
+    const totalTemplate = donationBooking.dataset.totalTemplate || 'Total: {seats} x {donation} = {total}';
     const createOrderUrl = donationBooking.dataset.createOrderUrl;
     const captureOrderUrl = donationBooking.dataset.captureOrderUrl;
     const csrfHeaderName = donationBooking.dataset.csrfHeader || 'X-CSRF-TOKEN';
     const csrfToken = donationBooking.dataset.csrfToken || '';
 
-    const getMinimumTotalDonation = () => {
+    const getMinimumDonation = () => {
         return minDonation;
     };
 
+    const renderDonationTotal = (seats, donationPerSeat) => {
+        if (!donationTotal) {
+            return;
+        }
+
+        const totalValue = seats * donationPerSeat;
+        donationTotal.innerHTML = `<strong>${totalLabel}:</strong> €${totalValue.toFixed(2)} <span class="meta">(${totalTemplate
+            .replace('{seats}', String(seats))
+            .replace('{donation}', `€${donationPerSeat.toFixed(2)}`)
+            .replace('{total}', `€${totalValue.toFixed(2)}`)})</span>`;
+    };
+
     const syncDonationAmount = (seats, force = false) => {
-        const minimumTotalDonation = getMinimumTotalDonation();
+        const minimumDonation = getMinimumDonation();
         const currentValue = Number(donationInput.value);
         const isAutoSynced = donationInput.dataset.autoSynced !== 'false';
 
-        donationInput.min = minimumTotalDonation.toFixed(2);
+        donationInput.min = minimumDonation.toFixed(2);
 
-        if (force || isAutoSynced || !Number.isFinite(currentValue) || currentValue < minimumTotalDonation) {
-            donationInput.value = minimumTotalDonation.toFixed(2);
+        if (force || isAutoSynced || !Number.isFinite(currentValue) || currentValue < minimumDonation) {
+            donationInput.value = minimumDonation.toFixed(2);
             donationInput.dataset.autoSynced = 'true';
         }
 
-        return minimumTotalDonation;
+        renderDonationTotal(seats, Number(donationInput.value) || minimumDonation);
+
+        return minimumDonation;
     };
 
     const readJsonResponse = async (response) => {
@@ -142,27 +159,29 @@
     const validateDonation = () => {
         const rawValue = donationInput.value.trim();
         const value = Number(rawValue);
-        const minimumTotalDonation = getMinimumTotalDonation();
+        const minimumDonation = getMinimumDonation();
 
         if (!Number.isFinite(value)) {
-            setError(minMessageTemplate.replace('{min}', minimumTotalDonation.toFixed(2)));
+            setError(minMessageTemplate.replace('{min}', minimumDonation.toFixed(2)));
             return null;
         }
 
-        if (value < minimumTotalDonation) {
-            setError(minMessageTemplate.replace('{min}', minimumTotalDonation.toFixed(2)));
+        if (value < minimumDonation) {
+            setError(minMessageTemplate.replace('{min}', minimumDonation.toFixed(2)));
             return null;
         }
 
         setError('');
         donationInput.value = value.toFixed(2);
-        donationInput.dataset.autoSynced = value === minimumTotalDonation ? 'true' : 'false';
+        donationInput.dataset.autoSynced = value === minimumDonation ? 'true' : 'false';
+        renderDonationTotal(validateSeats(), value);
 
         return value;
     };
 
     const handleSeatsChange = () => {
-        validateSeats();
+        const seats = validateSeats();
+        syncDonationAmount(seats);
     };
 
     donationInput.addEventListener('input', () => {
@@ -173,9 +192,10 @@
         lastDetailedError = '';
 
         const currentSeats = validateSeats();
-        const minimumTotalDonation = getMinimumTotalDonation();
+        const minimumDonation = getMinimumDonation();
         const currentValue = Number(donationInput.value);
-        donationInput.dataset.autoSynced = Number.isFinite(currentValue) && currentValue === minimumTotalDonation ? 'true' : 'false';
+        donationInput.dataset.autoSynced = Number.isFinite(currentValue) && currentValue === minimumDonation ? 'true' : 'false';
+        renderDonationTotal(currentSeats, Number.isFinite(currentValue) ? currentValue : minimumDonation);
     });
 
     seatsInput.addEventListener('input', handleSeatsChange);

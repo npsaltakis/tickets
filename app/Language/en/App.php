@@ -87,9 +87,11 @@ return [
 
     'donationFrom' => 'Donation from',
     'freeEvent' => 'Free Event',
-    'donationAmountLabel' => 'Donation Amount',
+    'donationAmountLabel' => 'Donation Per Ticket',
     'donationAmountRequired' => 'Enter a donation amount.',
     'donationMinimumError' => 'Minimum donation is {min}.',
+    'donationTotalLabel' => 'Total Price',
+    'donationTotalSummary' => '{seats} tickets x {donation} = {total}',
 
     'backToEvents' => 'Back to events page',
     'seatsRemaining' => 'Seats remaining',

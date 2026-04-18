@@ -87,9 +87,11 @@ return [
 
     'donationFrom' => 'Δωρεά από',
     'freeEvent' => 'Δωρεάν Event',
-    'donationAmountLabel' => 'Ποσό Δωρεάς',
+    'donationAmountLabel' => 'Δωρεά ανά Εισιτήριο',
     'donationAmountRequired' => 'Δώσε ποσό δωρεάς.',
     'donationMinimumError' => 'Η ελάχιστη δωρεά είναι {min}.',
+    'donationTotalLabel' => 'Τελική Τιμή',
+    'donationTotalSummary' => '{seats} εισιτήρια x {donation} = {total}',
 
     'backToEvents' => 'Πίσω στη σελίδα events',
     'seatsRemaining' => 'Διαθέσιμες θέσεις',

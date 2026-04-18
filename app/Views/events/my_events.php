@@ -71,41 +71,14 @@
                             <span class="pill"><?= esc(lang('App.freeEvent')) ?></span>
                         <?php endif; ?>
                     </a>
-
                     <?php if (!empty($tickets)): ?>
                         <div class="ticket-cancel-block">
                             <p class="meta ticket-code-title"><?= esc(lang('App.myEventsTicketCodes')) ?>:</p>
-                            <?php if (count($tickets) === 1): ?>
-                                <div class="ticket-cancel-row">
-                                    <code class="ticket-cancel-code"><?= esc($tickets[0]['code']) ?></code>
-                                    <form
-                                        method="post"
-                                        action="<?= base_url('tickets/' . urlencode($tickets[0]['code']) . '/cancel') ?>"
-                                        data-confirm-action
-                                        data-confirm-message="<?= esc(lang('App.ticketCancelConfirm'), 'attr') ?>">
-                                        <?= csrf_field() ?>
-                                        <button type="submit" class="auth-link-btn admin-action-btn admin-action-btn--danger"><?= esc(lang('App.ticketCancelButton')) ?></button>
-                                    </form>
-                                </div>
-                            <?php else: ?>
-                                <div class="ticket-cancel-row">
-                                    <select class="ticket-cancel-select js-ticket-select">
-                                        <?php foreach ($tickets as $ticket): ?>
-                                            <option value="<?= esc(urlencode($ticket['code'])) ?>"><?= esc($ticket['code']) ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <form
-                                        method="post"
-                                        action="<?= base_url('tickets/' . urlencode($tickets[0]['code']) . '/cancel') ?>"
-                                        class="js-ticket-cancel-form"
-                                        data-cancel-base="<?= esc(base_url('tickets/')) ?>"
-                                        data-confirm-action
-                                        data-confirm-message="<?= esc(lang('App.ticketCancelConfirm'), 'attr') ?>">
-                                        <?= csrf_field() ?>
-                                        <button type="submit" class="auth-link-btn admin-action-btn admin-action-btn--danger"><?= esc(lang('App.ticketCancelButton')) ?></button>
-                                    </form>
-                                </div>
-                            <?php endif; ?>
+                            <div class="ticket-code-list">
+                                <?php foreach ($tickets as $ticket): ?>
+                                    <code class="ticket-cancel-code"><?= esc($ticket['code']) ?></code>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
                     <?php endif; ?>
                 </article>
@@ -113,5 +86,4 @@
         </section>
     <?php endif; ?>
 </main>
-<script src="<?= base_url('assets/js/my-events.js') ?>"></script>
 <?= $this->endSection() ?>

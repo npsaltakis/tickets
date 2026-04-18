@@ -167,10 +167,24 @@ h1 {
     flex-wrap: wrap;
 }
 
+.ticket-code-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px;
+}
+
 .ticket-cancel-code {
-    flex: 1;
+    display: block;
+    width: 100%;
     min-width: 0;
-    word-break: break-all;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(15, 23, 42, 0.72);
+    color: #f8fafc;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
 }
 
 .ticket-cancel-select {

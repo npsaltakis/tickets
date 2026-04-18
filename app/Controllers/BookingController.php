@@ -86,10 +86,12 @@ class BookingController extends EventBaseController
             return $this->response->setStatusCode(422)->setJSON(['message' => lang('App.eventBookingConsentError')]);
         }
 
-        [$requestedSeats, $donationAmount, $error] = $this->validateDonationBookingRequest($event);
+        [$requestedSeats, $donationAmountPerSeat, $error] = $this->validateDonationBookingRequest($event);
         if ($error !== null) {
             return $this->response->setStatusCode(422)->setJSON(['message' => $error]);
         }
+
+        $totalDonationAmount = $donationAmountPerSeat * $requestedSeats;
 
         [$accessToken, $tokenError] = $this->getPayPalAccessToken();
         if ($accessToken === null) {
@@ -100,7 +102,7 @@ class BookingController extends EventBaseController
             'event:' . (int) $event['id'],
             'user:' . (int) session()->get('user_id'),
             'seats:' . $requestedSeats,
-            'donation:' . number_format($donationAmount, 2, '.', ''),
+            'donation:' . number_format($donationAmountPerSeat, 2, '.', ''),
         ]);
 
         try {
@@ -116,7 +118,7 @@ class BookingController extends EventBaseController
                         'custom_id' => $customId,
                         'amount' => [
                             'currency_code' => 'EUR',
-                            'value' => number_format($donationAmount, 2, '.', ''),
+                            'value' => number_format($totalDonationAmount, 2, '.', ''),
                         ],
                     ]],
                     'application_context' => [
@@ -307,30 +309,5 @@ class BookingController extends EventBaseController
         return $this->response->setJSON([
             'redirectUrl' => base_url('events/' . $slug),
         ]);
-    }
-
-    public function cancelTicket(string $ticketCode): RedirectResponse
-    {
-        if (session()->get('is_logged_in') !== true) {
-            return redirect()->to(base_url('login'))->with('login_info', lang('App.bookingLoginRequired'));
-        }
-
-        $ticket = $this->ticketModel->where('ticket_code', $ticketCode)->first();
-
-        if (empty($ticket)) {
-            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketCancelNotFound'));
-        }
-
-        if ((int) $ticket['user_id'] !== (int) session()->get('user_id')) {
-            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketCancelUnauthorized'));
-        }
-
-        if ((string) $ticket['status'] !== 'valid') {
-            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketCancelAlreadyCancelled'));
-        }
-
-        $this->ticketModel->update((int) $ticket['id'], ['status' => 'cancelled']);
-
-        return redirect()->to(base_url('my-events'))->with('event_info', lang('App.ticketCancelSuccess'));
     }
 }
