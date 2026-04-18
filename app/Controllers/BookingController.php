@@ -91,7 +91,7 @@ class BookingController extends EventBaseController
             return $this->response->setStatusCode(422)->setJSON(['message' => $error]);
         }
 
-        $totalDonationAmount = $donationAmountPerSeat * $requestedSeats;
+        $totalDonationAmount = $this->getExpectedDonationTotal($requestedSeats, $donationAmountPerSeat);
 
         [$accessToken, $tokenError] = $this->getPayPalAccessToken();
         if ($accessToken === null) {
@@ -255,15 +255,31 @@ class BookingController extends EventBaseController
         }
 
         $requestedSeats = (int) ($bookingData['seats'] ?? 0);
+        $donationPerSeat = (float) ($bookingData['donation'] ?? 0);
         $donationAmount = (float) ($capture['amount']['value'] ?? 0);
         $currency = (string) ($capture['amount']['currency_code'] ?? 'EUR');
 
-        if ($requestedSeats < 1 || $donationAmount <= 0) {
-            log_message('error', 'PayPal capture invalid values. seats={seats} amount={amount} currency={currency} body={body}', [
+        $expectedDonationAmount = $this->getExpectedDonationTotal($requestedSeats, $donationPerSeat);
+
+        if ($requestedSeats < 1 || $donationPerSeat <= 0 || $donationAmount <= 0) {
+            log_message('error', 'PayPal capture invalid values. seats={seats} perSeat={perSeat} amount={amount} currency={currency} body={body}', [
                 'seats' => $requestedSeats,
+                'perSeat' => $donationPerSeat,
                 'amount' => $donationAmount,
                 'currency' => $currency,
                 'body' => $paypalResponse->getBody(),
+            ]);
+
+            return $this->response->setStatusCode(422)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
+        }
+
+        if (! $this->amountsMatch($expectedDonationAmount, $donationAmount)) {
+            log_message('error', 'PayPal capture amount mismatch. expected={expected} actual={actual} seats={seats} perSeat={perSeat} captureId={captureId}', [
+                'expected' => $expectedDonationAmount,
+                'actual' => $donationAmount,
+                'seats' => $requestedSeats,
+                'perSeat' => $donationPerSeat,
+                'captureId' => $captureId,
             ]);
 
             return $this->response->setStatusCode(422)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
@@ -276,27 +292,60 @@ class BookingController extends EventBaseController
 
         $ticketCodes = [];
         $splitAmounts = $this->splitAmountAcrossSeats($donationAmount, $requestedSeats);
+        $db = \Config\Database::connect();
 
-        for ($i = 0; $i < $requestedSeats; $i++) {
-            $ticketCode = $this->generateTicketCode();
-            $ticketCodes[] = $ticketCode;
+        try {
+            $db->transException(true)->transStart();
 
-            $ticketId = $this->ticketModel->insert([
-                'event_id' => $event['id'],
-                'user_id' => (int) session()->get('user_id'),
-                'ticket_code' => $ticketCode,
-                'donation_amount' => $splitAmounts[$i],
-                'payment_status' => 'paid',
-                'status' => 'valid',
-            ], true);
+            if ($this->paymentModel->where('paypal_transaction_id', $captureId)->first() !== null) {
+                $db->transComplete();
+                session()->setFlashdata('event_info', lang('App.bookingSuccess'));
 
-            $this->paymentModel->insert([
-                'ticket_id' => (int) $ticketId,
-                'paypal_transaction_id' => $captureId,
-                'amount' => $splitAmounts[$i],
-                'currency' => $currency,
-                'payment_status' => 'completed',
+                return $this->response->setJSON([
+                    'redirectUrl' => base_url('events/' . $slug),
+                ]);
+            }
+
+            for ($i = 0; $i < $requestedSeats; $i++) {
+                $ticketCode = $this->generateTicketCode();
+                $ticketCodes[] = $ticketCode;
+
+                $ticketId = $this->ticketModel->insert([
+                    'event_id' => $event['id'],
+                    'user_id' => (int) session()->get('user_id'),
+                    'ticket_code' => $ticketCode,
+                    'donation_amount' => $splitAmounts[$i],
+                    'payment_status' => 'paid',
+                    'status' => 'valid',
+                ], true);
+
+                $this->paymentModel->insert([
+                    'ticket_id' => (int) $ticketId,
+                    'paypal_transaction_id' => $captureId,
+                    'amount' => $splitAmounts[$i],
+                    'currency' => $currency,
+                    'payment_status' => 'completed',
+                ]);
+            }
+
+            $db->transComplete();
+        } catch (Throwable $exception) {
+            $db->transRollback();
+
+            if ($this->paymentModel->where('paypal_transaction_id', $captureId)->first() !== null) {
+                session()->setFlashdata('event_info', lang('App.bookingSuccess'));
+
+                return $this->response->setJSON([
+                    'redirectUrl' => base_url('events/' . $slug),
+                ]);
+            }
+
+            log_message('error', 'PayPal capture persistence failed. captureId={captureId} message={message}', [
+                'captureId' => $captureId,
+                'message' => $exception->getMessage(),
             ]);
+
+            return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
         }
 
         $bookingMessage = lang('App.bookingSuccess');

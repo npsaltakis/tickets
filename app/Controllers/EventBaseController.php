@@ -697,6 +697,21 @@ abstract class EventBaseController extends BaseController
         ];
     }
 
+    protected function normalizeMoneyAmount(float $amount): float
+    {
+        return round($amount, 2);
+    }
+
+    protected function getExpectedDonationTotal(int $requestedSeats, float $donationPerSeat): float
+    {
+        return $this->normalizeMoneyAmount($requestedSeats * $donationPerSeat);
+    }
+
+    protected function amountsMatch(float $expectedAmount, float $actualAmount): bool
+    {
+        return abs($this->normalizeMoneyAmount($expectedAmount) - $this->normalizeMoneyAmount($actualAmount)) < 0.00001;
+    }
+
     protected function splitAmountAcrossSeats(float $totalAmount, int $seats): array
     {
         $totalCents = (int) round($totalAmount * 100);
