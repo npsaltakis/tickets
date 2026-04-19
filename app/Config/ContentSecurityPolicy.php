@@ -66,7 +66,7 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string
      */
-    public array|string $scriptSrcElem = ['self', 'https://www.paypal.com', 'https://www.sandbox.paypal.com', 'https://*.paypal.com', 'https://challenges.cloudflare.com', 'https://code.jquery.com', 'https://cdn.datatables.net', 'https://cdnjs.cloudflare.com', 'https://unpkg.com'];
+    public array|string $scriptSrcElem = ['self', 'https://www.paypal.com', 'https://www.sandbox.paypal.com', 'https://*.paypal.com', 'https://challenges.cloudflare.com', 'https://code.jquery.com', 'https://cdn.datatables.net', 'https://cdnjs.cloudflare.com'];
 
     /**
      * Specifies valid sources for JavaScript inline event
