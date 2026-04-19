@@ -12,6 +12,7 @@ use Endroid\QrCode\QrCode;
 use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 abstract class BaseController extends Controller
 {
@@ -126,6 +127,50 @@ abstract class BaseController extends Controller
             . $renderSection($greekLines, 'Ελληνικά')
             . '<div style="height:1px;background:#e2e8f0;margin:8px 0 28px;"></div>'
             . $renderSection($englishLines, 'English')
+            . '</div>'
+            . '</div>'
+            . '</div>';
+    }
+
+    protected function buildBilingualActionEmailHtml(array $greekLines, array $englishLines, string $actionUrl, string $greekButton, string $englishButton, string $title): string
+    {
+        $renderSection = static function (array $lines, string $heading, string $buttonText, string $actionUrl): string {
+            $html = '<div style="margin:0 0 28px;">';
+            $html .= '<div style="display:inline-block;margin:0 0 18px;padding:6px 12px;background:#e2e8f0;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#334155;">'
+                . esc($heading)
+                . '</div>';
+
+            if ($lines !== []) {
+                $greeting = array_shift($lines);
+                $html .= '<h2 style="margin:0 0 10px;font-size:22px;line-height:1.3;color:#0f172a;">' . esc((string) $greeting) . '</h2>';
+            }
+
+            $html .= '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:18px;">';
+
+            foreach ($lines as $line) {
+                $normalizedLine = str_replace('\\n', PHP_EOL, (string) $line);
+                $html .= '<p style="margin:0 0 14px;font-size:15px;line-height:1.7;color:#334155;">' . nl2br(esc($normalizedLine)) . '</p>';
+            }
+
+            $html .= '<p style="margin:20px 0 16px;">';
+            $html .= '<a href="' . esc($actionUrl, 'attr') . '" style="display:inline-block;padding:13px 18px;border-radius:12px;background:#1d4ed8;color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;">' . esc($buttonText) . '</a>';
+            $html .= '</p>';
+            $html .= '<p style="margin:0;font-size:12px;line-height:1.6;color:#64748b;word-break:break-all;">' . esc($actionUrl) . '</p>';
+            $html .= '</div>';
+
+            return $html . '</div>';
+        };
+
+        return '<div style="font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#0f172a 0%,#1e293b 100%);padding:32px 16px;">'
+            . '<div style="max-width:720px;margin:0 auto;background:#ffffff;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(15,23,42,0.25);">'
+            . '<div style="padding:28px 32px;background:linear-gradient(135deg,#0f172a 0%,#1d4ed8 100%);color:#ffffff;">'
+            . '<div style="font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;opacity:0.78;">Tickets / Εισιτήρια</div>'
+            . '<div style="margin-top:8px;font-size:28px;line-height:1.2;font-weight:700;">' . esc($title) . '</div>'
+            . '</div>'
+            . '<div style="padding:32px;">'
+            . $renderSection($greekLines, 'Ελληνικά', $greekButton, $actionUrl)
+            . '<div style="height:1px;background:#e2e8f0;margin:8px 0 28px;"></div>'
+            . $renderSection($englishLines, 'English', $englishButton, $actionUrl)
             . '</div>'
             . '</div>'
             . '</div>';
@@ -265,23 +310,28 @@ abstract class BaseController extends Controller
         $emailService->setTo($email);
         $emailService->setSubject($this->bilingualSubject('App.verifyEmailSubject'));
         $emailService->setMailType('html');
-        $emailService->setMessage(
-            '<p>' . esc($this->localizedLine('App.verifyEmailGreeting', [], 'el')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailRequestNotice', [], 'el')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailActionText', [], 'el')) . '</p>'
-            . '<p><a href="' . esc($verificationUrl, 'attr') . '">' . esc($verificationUrl) . '</a></p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailExpiry', [], 'el')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailIgnoreNotice', [], 'el')) . '</p>'
-            . '<p>' . nl2br(esc($this->localizedLine('App.verifyEmailSignature', [], 'el'))) . '</p>'
-            . '<hr>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailGreeting', [], 'en')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailRequestNotice', [], 'en')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailActionText', [], 'en')) . '</p>'
-            . '<p><a href="' . esc($verificationUrl, 'attr') . '">' . esc($verificationUrl) . '</a></p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailExpiry', [], 'en')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.verifyEmailIgnoreNotice', [], 'en')) . '</p>'
-            . '<p>' . nl2br(esc($this->localizedLine('App.verifyEmailSignature', [], 'en'))) . '</p>'
-        );
+        $emailService->setMessage($this->buildBilingualActionEmailHtml(
+            [
+                $this->localizedLine('App.verifyEmailGreeting', [], 'el'),
+                $this->localizedLine('App.verifyEmailRequestNotice', [], 'el'),
+                $this->localizedLine('App.verifyEmailActionText', [], 'el'),
+                $this->localizedLine('App.verifyEmailExpiry', [], 'el'),
+                $this->localizedLine('App.verifyEmailIgnoreNotice', [], 'el'),
+                $this->localizedLine('App.verifyEmailSignature', [], 'el'),
+            ],
+            [
+                $this->localizedLine('App.verifyEmailGreeting', [], 'en'),
+                $this->localizedLine('App.verifyEmailRequestNotice', [], 'en'),
+                $this->localizedLine('App.verifyEmailActionText', [], 'en'),
+                $this->localizedLine('App.verifyEmailExpiry', [], 'en'),
+                $this->localizedLine('App.verifyEmailIgnoreNotice', [], 'en'),
+                $this->localizedLine('App.verifyEmailSignature', [], 'en'),
+            ],
+            $verificationUrl,
+            $this->localizedLine('App.verifyEmailButton', [], 'el'),
+            $this->localizedLine('App.verifyEmailButton', [], 'en'),
+            $this->bilingualSubject('App.verifyEmailSubject')
+        ));
 
         if ($emailService->send()) {
             return true;
@@ -298,16 +348,36 @@ abstract class BaseController extends Controller
     protected function logAdminAction(string $action, string $targetType, array $context = []): void
     {
         $session = session();
+        $payload = [
+            'action' => $action,
+            'target_type' => $targetType,
+            'admin_id' => (int) ($session->get('user_id') ?? 0),
+            'admin_email' => (string) ($session->get('user_email') ?? ''),
+            'ip' => method_exists($this->request, 'getIPAddress') ? (string) $this->request->getIPAddress() : '',
+            'context' => $context,
+        ];
 
         log_message('info', 'admin_action {payload}', [
-            'payload' => json_encode([
+            'payload' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        ]);
+
+        try {
+            $db = db_connect();
+            if (! $db->tableExists('admin_logs')) {
+                return;
+            }
+
+            $db->table('admin_logs')->insert([
                 'action' => $action,
                 'target_type' => $targetType,
-                'admin_id' => (int) ($session->get('user_id') ?? 0),
-                'admin_email' => (string) ($session->get('user_email') ?? ''),
-                'ip' => method_exists($this->request, 'getIPAddress') ? (string) $this->request->getIPAddress() : '',
-                'context' => $context,
-            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-        ]);
+                'admin_id' => $payload['admin_id'] > 0 ? $payload['admin_id'] : null,
+                'admin_email' => $payload['admin_email'] !== '' ? $payload['admin_email'] : null,
+                'ip_address' => $payload['ip'] !== '' ? $payload['ip'] : null,
+                'context' => json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                'created_at' => date('Y-m-d H:i:s'),
+            ]);
+        } catch (Throwable) {
+            // File logging above remains the fallback if the audit table is unavailable.
+        }
     }
 }

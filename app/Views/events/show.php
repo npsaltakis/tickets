@@ -10,7 +10,8 @@ $assetVersion = static function (string $relativePath): string {
     <?php
     $status = strtolower((string) ($event['status'] ?? 'inactive'));
     $remainingSeats = isset($event['remaining_seats']) ? (int) $event['remaining_seats'] : 0;
-    $canBook = $remainingSeats > 0 && $status === 'active';
+    $bookingsEnabled = (int) ($event['bookings_enabled'] ?? 1) === 1;
+    $canBook = $bookingsEnabled && $remainingSeats > 0 && $status === 'active';
     $isDonationEvent = ($event['event_type'] ?? 'free') === 'donation';
     $isLoggedIn = session()->get('is_logged_in') === true;
     $isAdmin = $isLoggedIn && (string) session()->get('user_role') === 'admin';
@@ -71,9 +72,13 @@ $assetVersion = static function (string $relativePath): string {
             </div>
 
             <?php if ($isAdmin): ?>
-                <p class="event-admin-actions">
+                <div class="event-admin-actions">
                     <a class="book-btn event-edit-btn" href="<?= base_url('events/' . $event['slug'] . '/edit') ?>"><?= esc(lang('App.eventEditButton')) ?></a>
-                </p>
+                    <form method="post" action="<?= base_url('events/' . $event['slug'] . '/duplicate') ?>" class="event-inline-form">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="book-btn event-duplicate-btn"><?= esc(lang('App.eventDuplicateButton')) ?></button>
+                    </form>
+                </div>
             <?php endif; ?>
 
             <?php if (!empty($startDate)): ?>
@@ -104,6 +109,10 @@ $assetVersion = static function (string $relativePath): string {
 
             <p class="meta"><strong><?= esc(lang('App.type')) ?>:</strong> <?= esc($event['event_type'] ?? 'free') ?></p>
             <p class="meta"><strong><?= esc(lang('App.seatsRemaining')) ?>:</strong> <?= esc((string) $remainingSeats) ?></p>
+
+            <?php if ($status === 'active' && ! $bookingsEnabled): ?>
+                <p class="auth-info alert-inline"><?= esc(lang('App.bookingClosedMessage')) ?></p>
+            <?php endif; ?>
 
             <?php if ($isDonationEvent): ?>
                 <p class="meta"><strong><?= esc(lang('App.minimumDonation')) ?>:</strong> €<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2)) ?></p>

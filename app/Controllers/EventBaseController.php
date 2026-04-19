@@ -59,6 +59,7 @@ abstract class EventBaseController extends BaseController
         $onlineAccessNotes = trim((string) $this->request->getPost('online_access_notes'));
         $minDonation = trim((string) $this->request->getPost('min_donation'));
         $status = trim((string) $this->request->getPost('status'));
+        $bookingsEnabled = $this->request->getPost('bookings_enabled') === '1' ? 1 : 0;
         $uploadedImage = $this->request->getFile('image_upload');
 
         if (
@@ -172,6 +173,7 @@ abstract class EventBaseController extends BaseController
             'online_access_notes' => $onlineAccessNotes !== '' ? $onlineAccessNotes : null,
             'min_donation' => $normalizedMinDonation,
             'status' => $status,
+            'bookings_enabled' => $bookingsEnabled,
         ];
 
         if ($existingEvent === null) {
@@ -530,6 +532,10 @@ abstract class EventBaseController extends BaseController
     {
         if ((string) ($event['status'] ?? '') !== 'active') {
             return [0, 0.0, lang('App.bookingEventUnavailable')];
+        }
+
+        if ((int) ($event['bookings_enabled'] ?? 1) !== 1) {
+            return [0, 0.0, lang('App.bookingClosedMessage')];
         }
 
         if (($event['event_type'] ?? 'free') !== 'donation') {

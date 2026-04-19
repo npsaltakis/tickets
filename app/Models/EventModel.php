@@ -32,6 +32,7 @@ class EventModel extends Model
         'online_access_notes',
         'min_donation',
         'status',
+        'bookings_enabled',
     ];
 
     protected bool $allowEmptyInserts = false;

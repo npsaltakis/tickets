@@ -58,6 +58,8 @@ $assetVersion = static function (string $relativePath): string {
                                 <th><?= esc(lang('App.reportCapacity')) ?></th>
                                 <th><?= esc(lang('App.reportFreeTickets')) ?></th>
                                 <th><?= esc(lang('App.reportPaidTickets')) ?></th>
+                                <th><?= esc(lang('App.reportCheckedInTickets')) ?></th>
+                                <th><?= esc(lang('App.reportNotCheckedInTickets')) ?></th>
                                 <th><?= esc(lang('App.reportRemainingSeats')) ?></th>
                                 <th><?= esc(lang('App.reportDonationTotal')) ?></th>
                             </tr>
@@ -78,6 +80,8 @@ $assetVersion = static function (string $relativePath): string {
                                     <td><?= esc((string) ($row['capacity'] ?? 0)) ?></td>
                                     <td><?= esc((string) ($row['free_tickets'] ?? 0)) ?></td>
                                     <td><?= esc((string) ($row['paid_tickets'] ?? 0)) ?></td>
+                                    <td><?= esc((string) ($row['checked_in_tickets'] ?? 0)) ?></td>
+                                    <td><?= esc((string) ($row['not_checked_in_tickets'] ?? 0)) ?></td>
                                     <td><?= esc((string) ($row['remaining_seats'] ?? 0)) ?></td>
                                     <td>EUR <?= esc(number_format((float) ($row['donation_total'] ?? 0), 2)) ?></td>
                                 </tr>
@@ -165,6 +169,9 @@ $assetVersion = static function (string $relativePath): string {
                                     <th><?= esc(lang('App.reportPaymentStatus')) ?></th>
                                     <th><?= esc(lang('App.reportDonationAmount')) ?></th>
                                     <th><?= esc(lang('App.reportBookedAt')) ?></th>
+                                    <th><?= esc(lang('App.reportCheckInStatus')) ?></th>
+                                    <th><?= esc(lang('App.checkInCheckedInAt')) ?></th>
+                                    <th><?= esc(lang('App.reportCheckedInBy')) ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -177,6 +184,9 @@ $assetVersion = static function (string $relativePath): string {
                                         <td><?= esc(lang('App.paymentStatus' . ucfirst($paymentStatus))) ?></td>
                                         <td>EUR <?= esc(number_format((float) ($ticketRow['donation_amount'] ?? 0), 2)) ?></td>
                                         <td data-order="<?= esc(strtotime((string) ($ticketRow['booked_at'] ?? '')) ?: 0) ?>"><?= esc(! empty($ticketRow['booked_at']) ? date('d/m/Y H:i', strtotime((string) $ticketRow['booked_at'])) : '-') ?></td>
+                                        <td><?= esc((string) ($ticketRow['checked_in_label'] ?? '-')) ?></td>
+                                        <td data-order="<?= esc(strtotime((string) ($ticketRow['checked_in_at'] ?? '')) ?: 0) ?>"><?= esc((string) ($ticketRow['checked_in_at_formatted'] ?? '-')) ?></td>
+                                        <td><?= esc((string) ($ticketRow['checked_in_by_name'] ?? '-')) ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>

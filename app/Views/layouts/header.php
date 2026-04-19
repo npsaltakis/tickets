@@ -8,6 +8,7 @@ $currentLocale = service('request')->getLocale();
 $selectedLanguage = $currentLocale === 'en' ? 'en' : 'el';
 $currentPath = trim((string) service('request')->getUri()->getPath(), '/');
 $isUsersSection = $currentPath === 'users' || str_starts_with($currentPath, 'users/');
+$isAdminLogsSection = $currentPath === 'admin-logs';
 
 $session = session();
 $isLoggedIn = $session->get('is_logged_in') === true;
@@ -36,6 +37,7 @@ $avatarTitle = $userName !== '' ? $userName : ($userEmail !== '' ? $userEmail : 
                         <li><a class="menu-link <?= $currentPath === 'report' ? 'is-active' : '' ?>" href="<?= base_url('report') ?>"><?= esc(lang('App.navReport')) ?></a></li>
                         <li><a class="menu-link <?= $currentPath === 'check-in' ? 'is-active' : '' ?>" href="<?= base_url('check-in') ?>"><?= esc(lang('App.navCheckIn')) ?></a></li>
                         <li><a class="menu-link <?= $isUsersSection ? 'is-active' : '' ?>" href="<?= base_url('users') ?>"><?= esc(lang('App.navUsers')) ?></a></li>
+                        <li><a class="menu-link <?= $isAdminLogsSection ? 'is-active' : '' ?>" href="<?= base_url('admin-logs') ?>"><?= esc(lang('App.navAdminLogs')) ?></a></li>
                     <?php endif; ?>
                     <?php if (! $isLoggedIn): ?>
                         <li><a class="menu-link <?= $currentPath === 'login' ? 'is-active' : '' ?>" href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a></li>

@@ -360,23 +360,28 @@ class LoginController extends BaseController
         $emailService->setTo($email);
         $emailService->setSubject($this->bilingualSubject('App.resetEmailSubject'));
         $emailService->setMailType('html');
-        $emailService->setMessage(
-            '<p>' . esc($this->localizedLine('App.resetEmailGreeting', [], 'el')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.resetEmailRequestNotice', [], 'el')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.resetEmailActionText', [], 'el')) . '</p>'
-            . '<p><a href="' . esc($resetUrl, 'attr') . '">' . esc($resetUrl) . '</a></p>'
-            . '<p>' . esc($this->localizedLine('App.resetEmailExpiry', [], 'el')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.resetEmailIgnoreNotice', [], 'el')) . '</p>'
-            . '<p>' . nl2br(esc($this->localizedLine('App.resetEmailSignature', [], 'el'))) . '</p>'
-            . '<hr>'
-            . '<p>' . esc($this->localizedLine('App.resetEmailGreeting', [], 'en')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.resetEmailRequestNotice', [], 'en')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.resetEmailActionText', [], 'en')) . '</p>'
-            . '<p><a href="' . esc($resetUrl, 'attr') . '">' . esc($resetUrl) . '</a></p>'
-            . '<p>' . esc($this->localizedLine('App.resetEmailExpiry', [], 'en')) . '</p>'
-            . '<p>' . esc($this->localizedLine('App.resetEmailIgnoreNotice', [], 'en')) . '</p>'
-            . '<p>' . nl2br(esc($this->localizedLine('App.resetEmailSignature', [], 'en'))) . '</p>'
-        );
+        $emailService->setMessage($this->buildBilingualActionEmailHtml(
+            [
+                $this->localizedLine('App.resetEmailGreeting', [], 'el'),
+                $this->localizedLine('App.resetEmailRequestNotice', [], 'el'),
+                $this->localizedLine('App.resetEmailActionText', [], 'el'),
+                $this->localizedLine('App.resetEmailExpiry', [], 'el'),
+                $this->localizedLine('App.resetEmailIgnoreNotice', [], 'el'),
+                $this->localizedLine('App.resetEmailSignature', [], 'el'),
+            ],
+            [
+                $this->localizedLine('App.resetEmailGreeting', [], 'en'),
+                $this->localizedLine('App.resetEmailRequestNotice', [], 'en'),
+                $this->localizedLine('App.resetEmailActionText', [], 'en'),
+                $this->localizedLine('App.resetEmailExpiry', [], 'en'),
+                $this->localizedLine('App.resetEmailIgnoreNotice', [], 'en'),
+                $this->localizedLine('App.resetEmailSignature', [], 'en'),
+            ],
+            $resetUrl,
+            $this->localizedLine('App.resetEmailButton', [], 'el'),
+            $this->localizedLine('App.resetEmailButton', [], 'en'),
+            $this->bilingualSubject('App.resetEmailSubject')
+        ));
 
         if ($emailService->send()) {
             return true;

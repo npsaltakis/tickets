@@ -19,6 +19,7 @@ $assetVersion = static function (string $relativePath): string {
     $selectedType = (string) old('event_type', (string) ($event['event_type'] ?? 'free'));
     $selectedFormat = (string) old('event_format', (string) ($event['event_format'] ?? 'physical'));
     $selectedStatus = (string) old('status', (string) ($event['status'] ?? 'active'));
+    $bookingsEnabled = (string) old('bookings_enabled', (string) ($event['bookings_enabled'] ?? '1')) === '1';
     $formAction = $isEditMode ? base_url('events/' . $event['slug'] . '/update') : base_url('events');
     $heading = $isEditMode ? lang('App.eventEditTitle') : lang('App.eventCreateTitle');
     $subtitle = $isEditMode ? lang('App.eventEditSubtitle') : lang('App.eventCreateSubtitle');
@@ -174,6 +175,15 @@ $assetVersion = static function (string $relativePath): string {
                     <option value="inactive" <?= $selectedStatus === 'inactive' ? 'selected' : '' ?>><?= esc(lang('App.eventStatusInactive')) ?></option>
                     <option value="cancelled" <?= $selectedStatus === 'cancelled' ? 'selected' : '' ?>><?= esc(lang('App.eventStatusCancelled')) ?></option>
                 </select>
+            </div>
+
+            <div class="event-field">
+                <span class="auth-label"><?= esc(lang('App.eventCreateBookingsLabel')) ?></span>
+                <input type="hidden" name="bookings_enabled" value="0">
+                <label class="booking-consent event-toggle-row" for="bookings_enabled">
+                    <input id="bookings_enabled" name="bookings_enabled" type="checkbox" value="1" <?= $bookingsEnabled ? 'checked' : '' ?>>
+                    <span><?= esc(lang('App.eventCreateBookingsHint')) ?></span>
+                </label>
             </div>
 
             <div class="event-field event-field-full">

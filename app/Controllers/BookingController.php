@@ -24,6 +24,10 @@ class BookingController extends EventBaseController
             return redirect()->back()->with('event_error', lang('App.bookingEventUnavailable'));
         }
 
+        if ((int) ($event['bookings_enabled'] ?? 1) !== 1) {
+            return redirect()->back()->with('event_error', lang('App.bookingClosedMessage'));
+        }
+
         if (! $this->hasAcceptedBookingTerms()) {
             return redirect()->back()->withInput()->with('event_error', lang('App.eventBookingConsentError'));
         }

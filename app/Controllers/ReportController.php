@@ -19,7 +19,7 @@ class ReportController extends EventBaseController
         $usersTable = $db->prefixTable('users');
 
         $reportRows = $db->table($eventsTable . ' events')
-            ->select("events.id, events.slug, events.title, events.location, events.start_date, events.end_date, events.capacity, events.event_type, events.status, COUNT(CASE WHEN tickets.status = 'valid' THEN tickets.id END) AS issued_tickets, SUM(CASE WHEN tickets.status = 'valid' AND tickets.payment_status = 'free' THEN 1 ELSE 0 END) AS free_tickets, SUM(CASE WHEN tickets.status = 'valid' AND tickets.payment_status = 'paid' THEN 1 ELSE 0 END) AS paid_tickets, SUM(CASE WHEN tickets.status = 'valid' THEN tickets.donation_amount ELSE 0 END) AS donation_total", false)
+            ->select("events.id, events.slug, events.title, events.location, events.start_date, events.end_date, events.capacity, events.event_type, events.status, COUNT(CASE WHEN tickets.status = 'valid' THEN tickets.id END) AS issued_tickets, SUM(CASE WHEN tickets.status = 'valid' AND tickets.payment_status = 'free' THEN 1 ELSE 0 END) AS free_tickets, SUM(CASE WHEN tickets.status = 'valid' AND tickets.payment_status = 'paid' THEN 1 ELSE 0 END) AS paid_tickets, SUM(CASE WHEN tickets.status = 'valid' AND tickets.checked_in_at IS NOT NULL THEN 1 ELSE 0 END) AS checked_in_tickets, SUM(CASE WHEN tickets.status = 'valid' THEN tickets.donation_amount ELSE 0 END) AS donation_total", false)
             ->join($ticketsTable . ' tickets', 'tickets.event_id = events.id', 'left', false)
             ->groupBy('events.id')
             ->orderBy('events.start_date', 'ASC')
@@ -30,8 +30,10 @@ class ReportController extends EventBaseController
             $row['issued_tickets'] = (int) ($row['issued_tickets'] ?? 0);
             $row['free_tickets'] = (int) ($row['free_tickets'] ?? 0);
             $row['paid_tickets'] = (int) ($row['paid_tickets'] ?? 0);
+            $row['checked_in_tickets'] = (int) ($row['checked_in_tickets'] ?? 0);
             $row['capacity'] = (int) ($row['capacity'] ?? 0);
             $row['remaining_seats'] = max($row['capacity'] - $row['issued_tickets'], 0);
+            $row['not_checked_in_tickets'] = max($row['issued_tickets'] - $row['checked_in_tickets'], 0);
             $row['donation_total'] = number_format((float) ($row['donation_total'] ?? 0), 2, '.', '');
         }
 
@@ -55,11 +57,16 @@ class ReportController extends EventBaseController
                     'tickets.payment_status',
                     'tickets.donation_amount',
                     'tickets.created_at AS booked_at',
+                    'tickets.checked_in_at',
+                    'checkin_admin.first_name AS checked_in_by_first_name',
+                    'checkin_admin.last_name AS checked_in_by_last_name',
+                    'checkin_admin.email AS checked_in_by_email',
                     'users.first_name',
                     'users.last_name',
                     'users.email',
                 ])
                 ->join($usersTable . ' users', 'users.id = tickets.user_id', 'left', false)
+                ->join($usersTable . ' checkin_admin', 'checkin_admin.id = tickets.checked_in_by', 'left', false)
                 ->where('tickets.event_id', $selectedEventId)
                 ->where('tickets.status', 'valid')
                 ->orderBy('tickets.created_at', 'DESC')
@@ -68,6 +75,10 @@ class ReportController extends EventBaseController
 
             foreach ($ticketRows as &$ticketRow) {
                 $ticketRow['customer_name'] = trim(((string) ($ticketRow['first_name'] ?? '')) . ' ' . ((string) ($ticketRow['last_name'] ?? '')));
+                $checkedInByName = trim(((string) ($ticketRow['checked_in_by_first_name'] ?? '')) . ' ' . ((string) ($ticketRow['checked_in_by_last_name'] ?? '')));
+                $ticketRow['checked_in_label'] = ! empty($ticketRow['checked_in_at']) ? lang('App.reportCheckedInYes') : lang('App.reportCheckedInNo');
+                $ticketRow['checked_in_at_formatted'] = ! empty($ticketRow['checked_in_at']) ? date('d/m/Y H:i', strtotime((string) $ticketRow['checked_in_at'])) : '-';
+                $ticketRow['checked_in_by_name'] = $checkedInByName !== '' ? $checkedInByName : (string) ($ticketRow['checked_in_by_email'] ?? '-');
                 $ticketRow['donation_amount'] = number_format((float) ($ticketRow['donation_amount'] ?? 0), 2, '.', '');
             }
 
@@ -267,6 +278,12 @@ class ReportController extends EventBaseController
         $this->ticketModel->update((int) $ticket['id'], [
             'checked_in_at' => Time::now()->toDateTimeString(),
             'checked_in_by' => (int) session()->get('user_id'),
+        ]);
+
+        $this->logAdminAction('ticket_check_in', 'ticket', [
+            'target_ticket_id' => (int) $ticket['id'],
+            'ticket_code' => $ticketCode,
+            'event_title' => (string) ($ticket['event_title'] ?? ''),
         ]);
 
         $details['checked_in_at'] = date('d/m/Y H:i');
