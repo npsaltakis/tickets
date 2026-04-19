@@ -21,6 +21,14 @@
             $targetFilter = (string) ($filters['target'] ?? '');
             ?>
 
+            <?php if (session()->getFlashdata('admin_logs_info')): ?>
+                <p class="auth-info"><?= esc((string) session()->getFlashdata('admin_logs_info')) ?></p>
+            <?php endif; ?>
+
+            <?php if (session()->getFlashdata('admin_logs_error')): ?>
+                <p class="auth-error"><?= esc((string) session()->getFlashdata('admin_logs_error')) ?></p>
+            <?php endif; ?>
+
             <div class="admin-log-stats">
                 <article class="admin-log-stat">
                     <span><?= esc(lang('App.adminLogsStatTotal')) ?></span>
@@ -75,6 +83,15 @@
                         <a class="book-btn admin-log-export" href="<?= esc((string) $pagination['exportUrl']) ?>"><?= esc(lang('App.adminLogsExportCsv')) ?></a>
                     <?php endif; ?>
                 </div>
+            </form>
+
+            <form method="post" action="<?= base_url('admin-logs/clear') ?>" class="admin-log-clear-form" onsubmit="return confirm('<?= esc(lang('App.adminLogsClearConfirm'), 'attr') ?>');">
+                <?= csrf_field() ?>
+                <div>
+                    <strong><?= esc(lang('App.adminLogsDangerTitle')) ?></strong>
+                    <p><?= esc(lang('App.adminLogsDangerText')) ?></p>
+                </div>
+                <button type="submit" class="book-btn admin-log-clear-danger"><?= esc(lang('App.adminLogsClearAll')) ?></button>
             </form>
 
             <?php if (empty($logs)): ?>

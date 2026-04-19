@@ -111,6 +111,34 @@ class AdminLogController extends BaseController
         ]);
     }
 
+    public function clear(): RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'))->with('login_error', lang('App.eventCreateUnauthorized'));
+        }
+
+        $db = db_connect();
+        if (! $db->tableExists('admin_logs')) {
+            return redirect()->to(base_url('admin-logs'))->with('admin_logs_error', lang('App.adminLogsMigrationRequired'));
+        }
+
+        $deletedRows = (new AdminLogModel())->countAllResults();
+        $db->table('admin_logs')->truncate();
+
+        log_message('warning', 'admin_audit_logs_cleared {payload}', [
+            'payload' => json_encode([
+                'admin_id' => (int) (session()->get('user_id') ?? 0),
+                'admin_email' => (string) (session()->get('user_email') ?? ''),
+                'ip' => method_exists($this->request, 'getIPAddress') ? (string) $this->request->getIPAddress() : '',
+                'deleted_rows' => $deletedRows,
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        ]);
+
+        return redirect()->to(base_url('admin-logs'))->with('admin_logs_info', strtr(lang('App.adminLogsClearSuccess'), [
+            '{count}' => (string) $deletedRows,
+        ]));
+    }
+
     private function isAdmin(): bool
     {
         return session()->get('is_logged_in') === true && (string) session()->get('user_role') === 'admin';

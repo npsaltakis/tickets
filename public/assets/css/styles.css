@@ -573,6 +573,35 @@ h1 {
     background: rgba(15, 23, 42, 0.42);
 }
 
+.admin-log-clear-form {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border: 1px solid rgba(248, 113, 113, 0.24);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(127, 29, 29, 0.24), rgba(15, 23, 42, 0.58));
+}
+
+.admin-log-clear-form strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #fecaca;
+}
+
+.admin-log-clear-form p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.admin-log-clear-danger {
+    flex: 0 0 auto;
+    background: #f87171;
+    color: #2f0707;
+}
+
 .admin-log-filters .auth-label {
     margin-bottom: 0.35rem;
 }

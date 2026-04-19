@@ -11,6 +11,7 @@ $routes->get('report', 'ReportController::report');
 $routes->get('check-in', 'ReportController::checkIn');
 $routes->post('check-in', 'ReportController::processCheckIn');
 $routes->get('admin-logs', 'AdminLogController::index');
+$routes->post('admin-logs/clear', 'AdminLogController::clear');
 $routes->get('users', 'UserAdminController::index');
 $routes->get('users/create', 'UserAdminController::create');
 $routes->post('users', 'UserAdminController::store');
