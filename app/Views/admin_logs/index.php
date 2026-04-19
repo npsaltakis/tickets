@@ -17,6 +17,7 @@
             <?php
             $filters = is_array($filters ?? null) ? $filters : [];
             $stats = is_array($stats ?? null) ? $stats : [];
+            $pagination = is_array($pagination ?? null) ? $pagination : [];
             $targetFilter = (string) ($filters['target'] ?? '');
             ?>
 
@@ -70,12 +71,23 @@
                 <div class="admin-log-filter-actions">
                     <button type="submit" class="book-btn"><?= esc(lang('App.adminLogsApplyFilters')) ?></button>
                     <a class="book-btn admin-log-clear" href="<?= base_url('admin-logs') ?>"><?= esc(lang('App.adminLogsClearFilters')) ?></a>
+                    <?php if (! empty($pagination['exportUrl'])): ?>
+                        <a class="book-btn admin-log-export" href="<?= esc((string) $pagination['exportUrl']) ?>"><?= esc(lang('App.adminLogsExportCsv')) ?></a>
+                    <?php endif; ?>
                 </div>
             </form>
 
             <?php if (empty($logs)): ?>
                 <p><?= esc(lang('App.adminLogsEmpty')) ?></p>
             <?php else: ?>
+                <div class="admin-log-pagination-summary">
+                    <?= esc(strtr(lang('App.adminLogsPaginationSummary'), [
+                        '{page}' => (string) ($pagination['page'] ?? 1),
+                        '{pages}' => (string) ($pagination['totalPages'] ?? 1),
+                        '{total}' => (string) ($pagination['total'] ?? count($logs)),
+                    ])) ?>
+                </div>
+
                 <div class="admin-log-list">
                     <?php foreach ($logs as $log): ?>
                         <article class="admin-log-item">
@@ -108,6 +120,25 @@
                         </article>
                     <?php endforeach; ?>
                 </div>
+
+                <nav class="admin-log-pagination" aria-label="<?= esc(lang('App.adminLogsPagination')) ?>">
+                    <?php if (! empty($pagination['previousUrl'])): ?>
+                        <a class="book-btn admin-log-clear" href="<?= esc((string) $pagination['previousUrl']) ?>"><?= esc(lang('App.adminLogsPrevious')) ?></a>
+                    <?php else: ?>
+                        <span class="book-btn admin-log-clear is-disabled"><?= esc(lang('App.adminLogsPrevious')) ?></span>
+                    <?php endif; ?>
+
+                    <span><?= esc(strtr(lang('App.adminLogsPageIndicator'), [
+                        '{page}' => (string) ($pagination['page'] ?? 1),
+                        '{pages}' => (string) ($pagination['totalPages'] ?? 1),
+                    ])) ?></span>
+
+                    <?php if (! empty($pagination['nextUrl'])): ?>
+                        <a class="book-btn admin-log-clear" href="<?= esc((string) $pagination['nextUrl']) ?>"><?= esc(lang('App.adminLogsNext')) ?></a>
+                    <?php else: ?>
+                        <span class="book-btn admin-log-clear is-disabled"><?= esc(lang('App.adminLogsNext')) ?></span>
+                    <?php endif; ?>
+                </nav>
             <?php endif; ?>
         <?php endif; ?>
     </div>

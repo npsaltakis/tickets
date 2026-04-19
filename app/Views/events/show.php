@@ -78,6 +78,10 @@ $assetVersion = static function (string $relativePath): string {
                         <?= csrf_field() ?>
                         <button type="submit" class="book-btn event-duplicate-btn"><?= esc(lang('App.eventDuplicateButton')) ?></button>
                     </form>
+                    <form method="post" action="<?= base_url('events/' . $event['slug'] . '/delete') ?>" class="event-inline-form" onsubmit="return confirm('<?= esc(lang('App.eventDeleteConfirm'), 'attr') ?>');">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="book-btn event-delete-btn"><?= esc(lang('App.eventDeleteButton')) ?></button>
+                    </form>
                 </div>
             <?php endif; ?>
 

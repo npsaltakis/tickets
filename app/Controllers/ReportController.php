@@ -21,6 +21,7 @@ class ReportController extends EventBaseController
         $reportRows = $db->table($eventsTable . ' events')
             ->select("events.id, events.slug, events.title, events.location, events.start_date, events.end_date, events.capacity, events.event_type, events.status, COUNT(CASE WHEN tickets.status = 'valid' THEN tickets.id END) AS issued_tickets, SUM(CASE WHEN tickets.status = 'valid' AND tickets.payment_status = 'free' THEN 1 ELSE 0 END) AS free_tickets, SUM(CASE WHEN tickets.status = 'valid' AND tickets.payment_status = 'paid' THEN 1 ELSE 0 END) AS paid_tickets, SUM(CASE WHEN tickets.status = 'valid' AND tickets.checked_in_at IS NOT NULL THEN 1 ELSE 0 END) AS checked_in_tickets, SUM(CASE WHEN tickets.status = 'valid' THEN tickets.donation_amount ELSE 0 END) AS donation_total", false)
             ->join($ticketsTable . ' tickets', 'tickets.event_id = events.id', 'left', false)
+            ->where('events.deleted_at', null)
             ->groupBy('events.id')
             ->orderBy('events.start_date', 'ASC')
             ->get()
@@ -122,6 +123,7 @@ class ReportController extends EventBaseController
             ->join('events', 'events.id = tickets.event_id')
             ->where('tickets.user_id', $userId)
             ->where('tickets.status', 'valid')
+            ->where('events.deleted_at', null)
             ->orderBy('events.start_date', 'ASC')
             ->orderBy('tickets.created_at', 'DESC')
             ->findAll();
@@ -186,10 +188,14 @@ class ReportController extends EventBaseController
             return redirect()->to(base_url('/'))->with('login_error', lang('App.checkInUnauthorized'));
         }
 
+        [$checkInEvents, $checkInTotals] = $this->getCheckInDashboardData();
+
         return view('events/check_in', [
             'pageTitle' => lang('App.checkInPageTitle'),
             'result' => session()->getFlashdata('check_in_result'),
             'enteredCode' => (string) session()->getFlashdata('check_in_code'),
+            'checkInEvents' => $checkInEvents,
+            'checkInTotals' => $checkInTotals,
         ]);
     }
 
@@ -295,5 +301,50 @@ class ReportController extends EventBaseController
                 'message' => lang('App.checkInSuccess'),
                 'details' => $details,
             ]);
+    }
+
+    private function getCheckInDashboardData(): array
+    {
+        $db = db_connect();
+        $eventsTable = $db->prefixTable('events');
+        $ticketsTable = $db->prefixTable('tickets');
+
+        $rows = $db->table($eventsTable . ' events')
+            ->select("events.id, events.slug, events.title, events.start_date, events.location, events.capacity, COUNT(CASE WHEN tickets.status = 'valid' THEN tickets.id END) AS issued_tickets, SUM(CASE WHEN tickets.status = 'valid' AND tickets.checked_in_at IS NOT NULL THEN 1 ELSE 0 END) AS checked_in_tickets", false)
+            ->join($ticketsTable . ' tickets', 'tickets.event_id = events.id', 'left', false)
+            ->whereIn('events.status', ['active', 'inactive'])
+            ->where('events.deleted_at', null)
+            ->groupBy('events.id')
+            ->orderBy('events.start_date', 'DESC')
+            ->limit(12)
+            ->get()
+            ->getResultArray();
+
+        $totals = [
+            'issued' => 0,
+            'checked_in' => 0,
+            'pending' => 0,
+            'rate' => 0,
+        ];
+
+        foreach ($rows as &$row) {
+            $issued = (int) ($row['issued_tickets'] ?? 0);
+            $checkedIn = (int) ($row['checked_in_tickets'] ?? 0);
+            $pending = max($issued - $checkedIn, 0);
+            $row['issued_tickets'] = $issued;
+            $row['checked_in_tickets'] = $checkedIn;
+            $row['pending_tickets'] = $pending;
+            $row['check_in_rate'] = $issued > 0 ? (int) round(($checkedIn / $issued) * 100) : 0;
+            $row['start_date_label'] = ! empty($row['start_date']) ? date('d/m/Y H:i', strtotime((string) $row['start_date'])) : '-';
+
+            $totals['issued'] += $issued;
+            $totals['checked_in'] += $checkedIn;
+            $totals['pending'] += $pending;
+        }
+        unset($row);
+
+        $totals['rate'] = $totals['issued'] > 0 ? (int) round(($totals['checked_in'] / $totals['issued']) * 100) : 0;
+
+        return [$rows, $totals];
     }
 }

@@ -14,6 +14,57 @@
         <h1 class="auth-title"><?= esc(lang('App.checkInTitle')) ?></h1>
         <p class="subtitle"><?= esc(lang('App.checkInSubtitle')) ?></p>
 
+        <?php
+        $checkInEvents = is_array($checkInEvents ?? null) ? $checkInEvents : [];
+        $checkInTotals = is_array($checkInTotals ?? null) ? $checkInTotals : [];
+        ?>
+        <section class="check-in-dashboard" aria-label="<?= esc(lang('App.checkInDashboardTitle')) ?>">
+            <div class="check-in-dashboard-header">
+                <div>
+                    <h2><?= esc(lang('App.checkInDashboardTitle')) ?></h2>
+                    <p><?= esc(lang('App.checkInDashboardSubtitle')) ?></p>
+                </div>
+                <strong><?= esc((string) ($checkInTotals['rate'] ?? 0)) ?>%</strong>
+            </div>
+
+            <div class="check-in-dashboard-stats">
+                <article>
+                    <span><?= esc(lang('App.checkInDashboardIssued')) ?></span>
+                    <strong><?= esc((string) ($checkInTotals['issued'] ?? 0)) ?></strong>
+                </article>
+                <article>
+                    <span><?= esc(lang('App.checkInDashboardCheckedIn')) ?></span>
+                    <strong><?= esc((string) ($checkInTotals['checked_in'] ?? 0)) ?></strong>
+                </article>
+                <article>
+                    <span><?= esc(lang('App.checkInDashboardPending')) ?></span>
+                    <strong><?= esc((string) ($checkInTotals['pending'] ?? 0)) ?></strong>
+                </article>
+            </div>
+
+            <?php if ($checkInEvents === []): ?>
+                <p class="subtitle"><?= esc(lang('App.checkInDashboardEmpty')) ?></p>
+            <?php else: ?>
+                <div class="check-in-event-list">
+                    <?php foreach ($checkInEvents as $eventRow): ?>
+                        <?php $rate = (int) ($eventRow['check_in_rate'] ?? 0); ?>
+                        <article class="check-in-event-row">
+                            <div class="check-in-event-meta">
+                                <a href="<?= base_url('report?event_id=' . (int) ($eventRow['id'] ?? 0)) ?>"><?= esc((string) ($eventRow['title'] ?? '-')) ?></a>
+                                <span><?= esc((string) ($eventRow['start_date_label'] ?? '-')) ?> · <?= esc((string) ($eventRow['location'] ?? '-')) ?></span>
+                            </div>
+                            <div class="check-in-event-progress">
+                                <div class="check-in-progress-track">
+                                    <span style="width: <?= esc((string) min(max($rate, 0), 100)) ?>%"></span>
+                                </div>
+                                <strong><?= esc((string) ($eventRow['checked_in_tickets'] ?? 0)) ?>/<?= esc((string) ($eventRow['issued_tickets'] ?? 0)) ?></strong>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </section>
+
         <div class="check-in-scanner-panel">
             <div class="check-in-scanner-actions">
                 <button type="button" class="book-btn" id="check-in-camera-start"><?= esc(lang('App.checkInCameraStart')) ?></button>

@@ -292,10 +292,7 @@ abstract class EventBaseController extends BaseController
     }
     protected function generateUniqueSlug(string $title, ?int $ignoreEventId = null): string
     {
-        $baseSlug = url_title($title, '-', true);
-        if ($baseSlug === '') {
-            $baseSlug = 'event';
-        }
+        $baseSlug = $this->normalizeSlug($title);
 
         $slug = $baseSlug;
         $counter = 2;
@@ -309,6 +306,31 @@ abstract class EventBaseController extends BaseController
             $slug = $baseSlug . '-' . $counter;
             $counter++;
         }
+    }
+
+    protected function normalizeSlug(string $value): string
+    {
+        $value = trim($value);
+
+        if (function_exists('transliterator_transliterate')) {
+            $transliterated = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $value);
+            if (is_string($transliterated)) {
+                $value = $transliterated;
+            }
+        } elseif (function_exists('iconv')) {
+            $transliterated = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
+            if (is_string($transliterated)) {
+                $value = $transliterated;
+            }
+        }
+
+        $slug = strtolower($value);
+        $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? '';
+        $slug = trim($slug, '-');
+        $slug = substr($slug, 0, 180);
+        $slug = trim($slug, '-');
+
+        return $slug !== '' ? $slug : 'event';
     }
 
     protected function storeEventImage(UploadedFile $uploadedImage): ?string
@@ -355,7 +377,11 @@ abstract class EventBaseController extends BaseController
     protected function fetchEventBatch(string $query, int $offset, int $limit): array
     {
         $builder = $this->eventModel->builder();
-        $builder->where('status', 'active');
+        $builder->where('deleted_at', null);
+
+        if (! $this->isAdmin()) {
+            $builder->where('status', 'active');
+        }
 
         if ($query !== '') {
             $builder

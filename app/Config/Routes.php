@@ -28,6 +28,7 @@ $routes->post('events', 'EventAdminController::store');
 $routes->get('events/(:segment)/edit', 'EventAdminController::edit/$1');
 $routes->post('events/(:segment)/update', 'EventAdminController::update/$1');
 $routes->post('events/(:segment)/duplicate', 'EventAdminController::duplicate/$1');
+$routes->post('events/(:segment)/delete', 'EventAdminController::delete/$1');
 $routes->post('events/(:segment)/book', 'BookingController::book/$1');
 $routes->post('events/(:segment)/paypal/order', 'BookingController::createDonationOrder/$1');
 $routes->post('events/(:segment)/paypal/capture', 'BookingController::captureDonationOrder/$1');

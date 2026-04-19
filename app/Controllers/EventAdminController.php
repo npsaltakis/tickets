@@ -104,4 +104,27 @@ class EventAdminController extends EventBaseController
             ->to(base_url('events/' . $copySlug . '/edit'))
             ->with('event_info', lang('App.eventDuplicateSuccess'));
     }
+
+    public function delete(string $slug): RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'))->with('login_error', lang('App.eventCreateUnauthorized'));
+        }
+
+        $event = $this->eventModel->where('slug', $slug)->first();
+
+        if (empty($event)) {
+            throw PageNotFoundException::forPageNotFound('Event not found');
+        }
+
+        $this->eventModel->delete((int) $event['id']);
+
+        $this->logAdminAction('event_delete', 'event', [
+            'target_event_id' => (int) ($event['id'] ?? 0),
+            'slug' => $slug,
+            'title' => (string) ($event['title'] ?? ''),
+        ]);
+
+        return redirect()->to(base_url('/'))->with('event_info', lang('App.eventDeleteSuccess'));
+    }
 }

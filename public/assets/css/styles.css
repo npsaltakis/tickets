@@ -508,6 +508,11 @@ h1 {
     line-height: 1.2;
 }
 
+.event-delete-btn {
+    background: #f87171;
+    color: #2f0707;
+}
+
 .event-toggle-row {
     align-items: flex-start;
     margin: 0;
@@ -585,6 +590,29 @@ h1 {
     background: rgba(148, 163, 184, 0.18);
     color: var(--text);
     border-color: rgba(148, 163, 184, 0.25);
+}
+
+.admin-log-export {
+    background: #38bdf8;
+}
+
+.admin-log-pagination-summary {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.admin-log-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: flex-end;
+    color: var(--muted);
+}
+
+.admin-log-pagination .is-disabled {
+    opacity: 0.45;
+    pointer-events: none;
 }
 
 .admin-log-list {
@@ -2195,6 +2223,129 @@ a.dt-button:hover:not(.disabled) {
     max-width: 820px;
 }
 
+.check-in-dashboard {
+    display: grid;
+    gap: 1rem;
+    margin: 20px 0 22px;
+    padding: 18px;
+    border: 1px solid rgba(94, 234, 212, 0.18);
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at top right, rgba(20, 184, 166, 0.18), transparent 30%),
+        rgba(15, 23, 42, 0.5);
+}
+
+.check-in-dashboard-header {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.check-in-dashboard-header h2 {
+    margin: 0 0 0.35rem;
+    color: var(--text);
+    font-size: 1.15rem;
+}
+
+.check-in-dashboard-header p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.check-in-dashboard-header > strong {
+    flex: 0 0 auto;
+    padding: 0.45rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(45, 212, 191, 0.14);
+    color: #99f6e4;
+    font-size: 1.25rem;
+}
+
+.check-in-dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.check-in-dashboard-stats article {
+    padding: 0.85rem;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 14px;
+    background: rgba(2, 6, 23, 0.22);
+}
+
+.check-in-dashboard-stats span {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.check-in-dashboard-stats strong {
+    color: var(--text);
+    font-size: 1.25rem;
+}
+
+.check-in-event-list {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.check-in-event-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(180px, 0.8fr);
+    gap: 0.85rem;
+    align-items: center;
+    padding: 0.8rem;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 14px;
+    background: rgba(15, 23, 42, 0.44);
+}
+
+.check-in-event-meta a {
+    display: inline-block;
+    margin-bottom: 0.25rem;
+    color: #f8fafc;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.check-in-event-meta span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.86rem;
+}
+
+.check-in-event-progress {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.check-in-progress-track {
+    height: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.2);
+}
+
+.check-in-progress-track span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #14b8a6, #38bdf8);
+}
+
+.check-in-event-progress strong {
+    color: #ccfbf1;
+    text-align: right;
+    font-size: 0.88rem;
+}
+
 .check-in-input {
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -2282,6 +2433,15 @@ a.dt-button:hover:not(.disabled) {
 
     .check-in-result-grid {
         grid-template-columns: 1fr;
+    }
+
+    .check-in-dashboard-stats,
+    .check-in-event-row {
+        grid-template-columns: 1fr;
+    }
+
+    .check-in-event-progress strong {
+        text-align: left;
     }
 }
 

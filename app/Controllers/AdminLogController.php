@@ -4,10 +4,11 @@ namespace App\Controllers;
 
 use App\Models\AdminLogModel;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 
 class AdminLogController extends BaseController
 {
-    public function index(): string|RedirectResponse
+    public function index(): string|RedirectResponse|ResponseInterface
     {
         if (! $this->isAdmin()) {
             return redirect()->to(base_url('/'))->with('login_error', lang('App.eventCreateUnauthorized'));
@@ -29,45 +30,44 @@ class AdminLogController extends BaseController
         $actionFilter = trim((string) $this->request->getGet('action'));
         $targetFilter = trim((string) $this->request->getGet('target'));
         $query = trim((string) $this->request->getGet('q'));
+        $page = max(1, (int) ($this->request->getGet('page') ?? 1));
+        $perPage = 25;
         $actions = $model
             ->select('action')
             ->groupBy('action')
             ->orderBy('action', 'ASC')
             ->findAll();
         $actionOptions = array_values(array_filter(array_map(static fn (array $row): string => (string) ($row['action'] ?? ''), $actions)));
-        $builder = $model->builder();
-        $builder->orderBy('created_at', 'DESC')->limit(250);
+        $builder = $this->buildFilteredLogBuilder($model, $actionFilter, $targetFilter, $query);
+        $totalFiltered = (clone $builder)->countAllResults();
+        $totalPages = max(1, (int) ceil($totalFiltered / $perPage));
+        $page = min($page, $totalPages);
 
-        if ($actionFilter !== '') {
-            $builder->where('action', $actionFilter);
+        if ((string) $this->request->getGet('export') === 'csv') {
+            $exportRows = $this->buildFilteredLogBuilder($model, $actionFilter, $targetFilter, $query)
+                ->orderBy('created_at', 'DESC')
+                ->limit(5000)
+                ->get()
+                ->getResultArray();
+
+            return $this->exportCsv($exportRows);
         }
 
-        if ($targetFilter !== '') {
-            $builder->where('target_type', $targetFilter);
-        }
-
-        if ($query !== '') {
-            $builder
-                ->groupStart()
-                ->like('admin_email', $query)
-                ->orLike('ip_address', $query)
-                ->orLike('action', $query)
-                ->orLike('target_type', $query)
-                ->orLike('context', $query)
-                ->groupEnd();
-        }
-
-        $logs = $builder->get()->getResultArray();
-        $todayLogs = $model
+        $logs = $builder
+            ->orderBy('created_at', 'DESC')
+            ->limit($perPage, ($page - 1) * $perPage)
+            ->get()
+            ->getResultArray();
+        $todayLogs = (new AdminLogModel())
             ->where('created_at >=', date('Y-m-d 00:00:00'))
             ->countAllResults();
-        $totalLogs = $model->countAllResults();
-        $uniqueAdminRows = $model
+        $totalLogs = (new AdminLogModel())->countAllResults();
+        $uniqueAdminRows = (new AdminLogModel())
             ->select('admin_email')
             ->where('admin_email IS NOT NULL', null, false)
             ->groupBy('admin_email')
             ->findAll();
-        $latestLog = $model
+        $latestLog = (new AdminLogModel())
             ->select('created_at')
             ->orderBy('created_at', 'DESC')
             ->limit(1)
@@ -92,6 +92,15 @@ class AdminLogController extends BaseController
                 'target' => $targetFilter,
                 'q' => $query,
             ],
+            'pagination' => [
+                'page' => $page,
+                'perPage' => $perPage,
+                'total' => $totalFiltered,
+                'totalPages' => $totalPages,
+                'previousUrl' => $page > 1 ? $this->buildLogPageUrl($page - 1) : '',
+                'nextUrl' => $page < $totalPages ? $this->buildLogPageUrl($page + 1) : '',
+                'exportUrl' => $this->buildLogPageUrl($page, ['export' => 'csv']),
+            ],
             'stats' => [
                 'total' => $totalLogs,
                 'today' => $todayLogs,
@@ -105,6 +114,83 @@ class AdminLogController extends BaseController
     private function isAdmin(): bool
     {
         return session()->get('is_logged_in') === true && (string) session()->get('user_role') === 'admin';
+    }
+
+    private function buildFilteredLogBuilder(AdminLogModel $model, string $actionFilter, string $targetFilter, string $query)
+    {
+        $builder = $model->builder();
+
+        if ($actionFilter !== '') {
+            $builder->where('action', $actionFilter);
+        }
+
+        if ($targetFilter !== '') {
+            $builder->where('target_type', $targetFilter);
+        }
+
+        if ($query !== '') {
+            $builder
+                ->groupStart()
+                ->like('admin_email', $query)
+                ->orLike('ip_address', $query)
+                ->orLike('action', $query)
+                ->orLike('target_type', $query)
+                ->orLike('context', $query)
+                ->groupEnd();
+        }
+
+        return $builder;
+    }
+
+    private function buildLogPageUrl(int $page, array $extra = []): string
+    {
+        $params = array_filter([
+            'q' => trim((string) $this->request->getGet('q')),
+            'action' => trim((string) $this->request->getGet('action')),
+            'target' => trim((string) $this->request->getGet('target')),
+            'page' => $page > 1 ? (string) $page : '',
+        ], static fn (string $value): bool => $value !== '');
+
+        $params = array_merge($params, $extra);
+
+        return base_url('admin-logs') . ($params !== [] ? '?' . http_build_query($params) : '');
+    }
+
+    private function exportCsv(array $rows): ResponseInterface
+    {
+        $handle = fopen('php://temp', 'r+');
+        if ($handle === false) {
+            return $this->response->setStatusCode(500)->setBody('Unable to export audit logs.');
+        }
+
+        fputcsv($handle, [
+            lang('App.adminLogsCreatedAt'),
+            lang('App.adminLogsAdmin'),
+            lang('App.adminLogsAction'),
+            lang('App.adminLogsTarget'),
+            lang('App.adminLogsIp'),
+            lang('App.adminLogsContext'),
+        ]);
+
+        foreach ($rows as $row) {
+            fputcsv($handle, [
+                (string) ($row['created_at'] ?? ''),
+                (string) ($row['admin_email'] ?? ''),
+                $this->formatActionLabel((string) ($row['action'] ?? '')),
+                (string) ($row['target_type'] ?? ''),
+                (string) ($row['ip_address'] ?? ''),
+                (string) ($row['context'] ?? ''),
+            ]);
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        return $this->response
+            ->setHeader('Content-Type', 'text/csv; charset=UTF-8')
+            ->setHeader('Content-Disposition', 'attachment; filename="audit-logs-' . date('Ymd-His') . '.csv"')
+            ->setBody("\xEF\xBB\xBF" . (string) $csv);
     }
 
     private function formatContextItems(array $context): array
