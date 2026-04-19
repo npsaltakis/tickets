@@ -24,7 +24,10 @@
                     <h2><?= esc(lang('App.checkInDashboardTitle')) ?></h2>
                     <p><?= esc(lang('App.checkInDashboardSubtitle')) ?></p>
                 </div>
-                <strong><?= esc((string) ($checkInTotals['rate'] ?? 0)) ?>%</strong>
+                <div class="check-in-dashboard-actions">
+                    <a class="book-btn check-in-export-btn" href="<?= base_url('check-in/export') ?>"><?= esc(lang('App.checkInExportCsv')) ?></a>
+                    <strong><?= esc((string) ($checkInTotals['rate'] ?? 0)) ?>%</strong>
+                </div>
             </div>
 
             <div class="check-in-dashboard-stats">

@@ -16,7 +16,14 @@ $assetVersion = static function (string $relativePath): string {
         </div>
 
         <?php if ($isAdmin): ?>
-            <a href="<?= base_url('events/create') ?>" class="admin-event-btn"><?= esc(lang('App.adminNewEventButton')) ?></a>
+            <div class="admin-home-actions">
+                <a href="<?= base_url('events/create') ?>" class="admin-event-btn"><?= esc(lang('App.adminNewEventButton')) ?></a>
+                <a href="<?= base_url('events/deleted') ?>" class="admin-event-btn admin-event-btn--secondary"><?= esc(lang('App.deletedEventsButton')) ?></a>
+                <form method="post" action="<?= base_url('admin/test-email') ?>" class="event-inline-form">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="admin-event-btn admin-event-btn--secondary"><?= esc(lang('App.adminTestEmailButton')) ?></button>
+                </form>
+            </div>
         <?php endif; ?>
     </div>
 
@@ -35,6 +42,14 @@ $assetVersion = static function (string $relativePath): string {
 
     <?php if (session()->getFlashdata('login_error')): ?>
         <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('login_error')) ?></p>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('event_info')): ?>
+        <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('event_info')) ?></p>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('event_error')): ?>
+        <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('event_error')) ?></p>
     <?php endif; ?>
 
     <?php if (empty($events)): ?>

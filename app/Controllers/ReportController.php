@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\I18n\Time;
 
 class ReportController extends EventBaseController
@@ -16,6 +17,7 @@ class ReportController extends EventBaseController
         $db = db_connect();
         $eventsTable = $db->prefixTable('events');
         $ticketsTable = $db->prefixTable('tickets');
+        $paymentsTable = $db->prefixTable('payments');
         $usersTable = $db->prefixTable('users');
 
         $reportRows = $db->table($eventsTable . ' events')
@@ -59,6 +61,8 @@ class ReportController extends EventBaseController
                     'tickets.donation_amount',
                     'tickets.created_at AS booked_at',
                     'tickets.checked_in_at',
+                    'payments.paypal_transaction_id',
+                    'payments.payment_status AS gateway_payment_status',
                     'checkin_admin.first_name AS checked_in_by_first_name',
                     'checkin_admin.last_name AS checked_in_by_last_name',
                     'checkin_admin.email AS checked_in_by_email',
@@ -66,6 +70,7 @@ class ReportController extends EventBaseController
                     'users.last_name',
                     'users.email',
                 ])
+                ->join($paymentsTable . ' payments', 'payments.ticket_id = tickets.id', 'left', false)
                 ->join($usersTable . ' users', 'users.id = tickets.user_id', 'left', false)
                 ->join($usersTable . ' checkin_admin', 'checkin_admin.id = tickets.checked_in_by', 'left', false)
                 ->where('tickets.event_id', $selectedEventId)
@@ -81,6 +86,8 @@ class ReportController extends EventBaseController
                 $ticketRow['checked_in_at_formatted'] = ! empty($ticketRow['checked_in_at']) ? date('d/m/Y H:i', strtotime((string) $ticketRow['checked_in_at'])) : '-';
                 $ticketRow['checked_in_by_name'] = $checkedInByName !== '' ? $checkedInByName : (string) ($ticketRow['checked_in_by_email'] ?? '-');
                 $ticketRow['donation_amount'] = number_format((float) ($ticketRow['donation_amount'] ?? 0), 2, '.', '');
+                $ticketRow['paypal_transaction_id'] = (string) ($ticketRow['paypal_transaction_id'] ?? '-');
+                $ticketRow['gateway_payment_status'] = (string) ($ticketRow['gateway_payment_status'] ?? '-');
             }
 
             unset($ticketRow);
@@ -301,6 +308,81 @@ class ReportController extends EventBaseController
                 'message' => lang('App.checkInSuccess'),
                 'details' => $details,
             ]);
+    }
+
+    public function exportCheckIn(): RedirectResponse|ResponseInterface
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'))->with('login_error', lang('App.checkInUnauthorized'));
+        }
+
+        $db = db_connect();
+        $rows = $db->table($db->prefixTable('tickets') . ' tickets')
+            ->select([
+                'tickets.ticket_code',
+                'tickets.payment_status',
+                'tickets.donation_amount',
+                'tickets.created_at AS booked_at',
+                'tickets.checked_in_at',
+                'events.title AS event_title',
+                'events.start_date AS event_start_date',
+                'users.first_name',
+                'users.last_name',
+                'users.email',
+            ])
+            ->join($db->prefixTable('events') . ' events', 'events.id = tickets.event_id')
+            ->join($db->prefixTable('users') . ' users', 'users.id = tickets.user_id', 'left')
+            ->where('tickets.status', 'valid')
+            ->where('events.deleted_at', null)
+            ->orderBy('events.start_date', 'DESC')
+            ->orderBy('tickets.checked_in_at', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        $handle = fopen('php://temp', 'r+');
+        if ($handle === false) {
+            return $this->response->setStatusCode(500)->setBody('Unable to export check-in list.');
+        }
+
+        fputcsv($handle, [
+            lang('App.reportEvent'),
+            lang('App.startDate'),
+            lang('App.reportTicketCode'),
+            lang('App.reportCustomer'),
+            lang('App.reportCustomerEmail'),
+            lang('App.reportPaymentStatus'),
+            lang('App.reportDonationAmount'),
+            lang('App.reportBookedAt'),
+            lang('App.reportCheckInStatus'),
+            lang('App.checkInCheckedInAt'),
+        ]);
+
+        foreach ($rows as $row) {
+            $customerName = trim(((string) ($row['first_name'] ?? '')) . ' ' . ((string) ($row['last_name'] ?? '')));
+            $checkedInAt = (string) ($row['checked_in_at'] ?? '');
+
+            fputcsv($handle, [
+                (string) ($row['event_title'] ?? ''),
+                ! empty($row['event_start_date']) ? date('d/m/Y H:i', strtotime((string) $row['event_start_date'])) : '',
+                (string) ($row['ticket_code'] ?? ''),
+                $customerName,
+                (string) ($row['email'] ?? ''),
+                (string) ($row['payment_status'] ?? ''),
+                number_format((float) ($row['donation_amount'] ?? 0), 2, '.', ''),
+                ! empty($row['booked_at']) ? date('d/m/Y H:i', strtotime((string) $row['booked_at'])) : '',
+                $checkedInAt !== '' ? lang('App.reportCheckedInYes') : lang('App.reportCheckedInNo'),
+                $checkedInAt !== '' ? date('d/m/Y H:i', strtotime($checkedInAt)) : '',
+            ]);
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+
+        return $this->response
+            ->setHeader('Content-Type', 'text/csv; charset=UTF-8')
+            ->setHeader('Content-Disposition', 'attachment; filename="check-in-list-' . date('Ymd-His') . '.csv"')
+            ->setBody("\xEF\xBB\xBF" . (string) $csv);
     }
 
     private function getCheckInDashboardData(): array

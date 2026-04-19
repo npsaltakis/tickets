@@ -167,6 +167,8 @@ $assetVersion = static function (string $relativePath): string {
                                     <th><?= esc(lang('App.reportCustomer')) ?></th>
                                     <th><?= esc(lang('App.reportCustomerEmail')) ?></th>
                                     <th><?= esc(lang('App.reportPaymentStatus')) ?></th>
+                                    <th><?= esc(lang('App.reportGatewayStatus')) ?></th>
+                                    <th><?= esc(lang('App.reportPayPalTransaction')) ?></th>
                                     <th><?= esc(lang('App.reportDonationAmount')) ?></th>
                                     <th><?= esc(lang('App.reportBookedAt')) ?></th>
                                     <th><?= esc(lang('App.reportCheckInStatus')) ?></th>
@@ -182,6 +184,8 @@ $assetVersion = static function (string $relativePath): string {
                                         <td><?= esc(($ticketRow['customer_name'] ?? '') !== '' ? $ticketRow['customer_name'] : '-') ?></td>
                                         <td><?= esc($ticketRow['email'] ?? '-') ?></td>
                                         <td><?= esc(lang('App.paymentStatus' . ucfirst($paymentStatus))) ?></td>
+                                        <td><?= esc((string) ($ticketRow['gateway_payment_status'] ?? '-')) ?></td>
+                                        <td><code><?= esc((string) ($ticketRow['paypal_transaction_id'] ?? '-')) ?></code></td>
                                         <td>EUR <?= esc(number_format((float) ($ticketRow['donation_amount'] ?? 0), 2)) ?></td>
                                         <td data-order="<?= esc(strtotime((string) ($ticketRow['booked_at'] ?? '')) ?: 0) ?>"><?= esc(! empty($ticketRow['booked_at']) ? date('d/m/Y H:i', strtotime((string) $ticketRow['booked_at'])) : '-') ?></td>
                                         <td><?= esc((string) ($ticketRow['checked_in_label'] ?? '-')) ?></td>

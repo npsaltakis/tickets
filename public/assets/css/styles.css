@@ -911,6 +911,9 @@ h1 {
 }
 
 .admin-event-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     text-decoration: none;
     border: 1px solid var(--border);
     color: #f8fafc;
@@ -919,10 +922,28 @@ h1 {
     font-size: 0.9rem;
     font-weight: 700;
     background: rgba(20, 184, 166, 0.16);
+    cursor: pointer;
 }
 
 .admin-event-btn:hover {
     border-color: var(--accent);
+}
+
+.admin-home-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+.admin-home-actions form {
+    margin: 0;
+}
+
+.admin-event-btn--secondary {
+    background: rgba(148, 163, 184, 0.18);
+    color: var(--text);
+    border: 1px solid rgba(148, 163, 184, 0.24);
 }
 
 
@@ -2283,13 +2304,26 @@ a.dt-button:hover:not(.disabled) {
     line-height: 1.55;
 }
 
-.check-in-dashboard-header > strong {
+.check-in-dashboard-actions {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.check-in-dashboard-actions > strong {
     flex: 0 0 auto;
     padding: 0.45rem 0.7rem;
     border-radius: 999px;
     background: rgba(45, 212, 191, 0.14);
     color: #99f6e4;
     font-size: 1.25rem;
+}
+
+.check-in-export-btn {
+    background: #38bdf8;
 }
 
 .check-in-dashboard-stats {
@@ -2373,6 +2407,38 @@ a.dt-button:hover:not(.disabled) {
     color: #ccfbf1;
     text-align: right;
     font-size: 0.88rem;
+}
+
+.deleted-events-page {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.deleted-events-list {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.deleted-event-card {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.84), rgba(30, 41, 59, 0.62));
+}
+
+.deleted-event-card h2 {
+    margin: 0 0 0.4rem;
+    color: var(--text);
+    font-size: 1.05rem;
+}
+
+.deleted-event-card p {
+    margin: 0.2rem 0;
+    color: var(--muted);
 }
 
 .check-in-input {
@@ -2471,6 +2537,11 @@ a.dt-button:hover:not(.disabled) {
 
     .check-in-event-progress strong {
         text-align: left;
+    }
+
+    .deleted-event-card {
+        align-items: stretch;
+        flex-direction: column;
     }
 }
 

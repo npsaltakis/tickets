@@ -127,4 +127,46 @@ class EventAdminController extends EventBaseController
 
         return redirect()->to(base_url('/'))->with('event_info', lang('App.eventDeleteSuccess'));
     }
+
+    public function deleted(): string|RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'))->with('login_error', lang('App.eventCreateUnauthorized'));
+        }
+
+        $events = $this->eventModel
+            ->onlyDeleted()
+            ->orderBy('deleted_at', 'DESC')
+            ->findAll();
+
+        return view('events/deleted', [
+            'events' => $events,
+            'pageTitle' => lang('App.deletedEventsPageTitle'),
+        ]);
+    }
+
+    public function restore(string $slug): RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'))->with('login_error', lang('App.eventCreateUnauthorized'));
+        }
+
+        $event = $this->eventModel->withDeleted()->where('slug', $slug)->first();
+
+        if (empty($event) || empty($event['deleted_at'])) {
+            return redirect()->to(base_url('events/deleted'))->with('event_error', lang('App.deletedEventsNotFound'));
+        }
+
+        db_connect()->table('events')
+            ->where('id', (int) $event['id'])
+            ->update(['deleted_at' => null]);
+
+        $this->logAdminAction('event_restore', 'event', [
+            'target_event_id' => (int) ($event['id'] ?? 0),
+            'slug' => $slug,
+            'title' => (string) ($event['title'] ?? ''),
+        ]);
+
+        return redirect()->to(base_url('events/' . $slug))->with('event_info', lang('App.eventRestoreSuccess'));
+    }
 }
