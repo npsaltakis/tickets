@@ -415,11 +415,8 @@ abstract class EventBaseController extends BaseController
             ->groupStart()
                 ->where('end_date >=', $now)
                 ->orGroupStart()
-                    ->groupStart()
-                        ->where('end_date', null)
-                        ->orWhere('end_date', '')
-                    ->groupEnd()
-                    ->where('start_date >=', $now)
+                    ->where('end_date', null)
+                    ->orWhere('end_date', '')
                 ->groupEnd()
             ->groupEnd();
     }
