@@ -179,6 +179,10 @@ class ReportController extends EventBaseController
         foreach ($events as &$event) {
             $event['donation_total'] = number_format((float) $event['donation_total'], 2, '.', '');
             $event['payment_summary'] = isset($event['payment_statuses']['paid']) ? 'paid' : 'free';
+            $event['google_calendar_url'] = $this->buildGoogleCalendarUrl(
+                $event,
+                array_map(static fn(array $ticket): string => (string) ($ticket['code'] ?? ''), (array) ($event['tickets'] ?? []))
+            );
         }
 
         unset($event);

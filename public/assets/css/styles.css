@@ -227,6 +227,17 @@ h1 {
     color: #e2e8f0;
 }
 
+.ticket-export-btn--google {
+    background: rgba(34, 197, 94, 0.14);
+    border-color: rgba(34, 197, 94, 0.3);
+    color: #bbf7d0;
+}
+
+.ticket-export-btn--google:hover {
+    background: rgba(34, 197, 94, 0.22);
+    border-color: rgba(134, 239, 172, 0.54);
+}
+
 .ticket-cancel-select {
     flex: 1;
     min-width: 0;

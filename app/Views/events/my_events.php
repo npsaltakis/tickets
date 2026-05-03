@@ -50,6 +50,7 @@ $assetVersion = static function (string $relativePath): string {
                 $startDateFormatted = !empty($event['start_date']) ? date('d/m/Y H:i', strtotime((string) $event['start_date'])) : '';
                 $endDateFormatted = !empty($event['end_date']) ? date('d/m/Y H:i', strtotime((string) $event['end_date'])) : '';
                 $bookedAtFormatted = !empty($event['booked_at']) ? date('d/m/Y H:i', strtotime((string) $event['booked_at'])) : '';
+                $googleCalendarUrl = trim((string) ($event['google_calendar_url'] ?? ''));
                 $eventPdfPayload = [
                     'title' => (string) ($event['title'] ?? ''),
                     'location' => (string) ($event['location'] ?? ''),
@@ -118,6 +119,11 @@ $assetVersion = static function (string $relativePath): string {
                                     >
                                         <?= esc(lang('App.myEventsExportAllTicketsPdf')) ?>
                                     </button>
+                                <?php endif; ?>
+                                <?php if ($googleCalendarUrl !== ''): ?>
+                                    <a class="ticket-export-btn ticket-export-link ticket-export-btn--google" href="<?= esc($googleCalendarUrl, 'attr') ?>" target="_blank" rel="noopener noreferrer">
+                                        <?= esc(lang('App.myEventsAddToGoogleCalendar')) ?>
+                                    </a>
                                 <?php endif; ?>
                             </div>
                             <div class="ticket-code-list">

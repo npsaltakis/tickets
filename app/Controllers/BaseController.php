@@ -176,9 +176,9 @@ abstract class BaseController extends Controller
             . '</div>';
     }
 
-    protected function buildBookingConfirmationEmailHtml(array $greekLines, array $englishLines, array $ticketCodes, array $ticketQrSources = []): string
+    protected function buildBookingConfirmationEmailHtml(array $greekLines, array $englishLines, array $ticketCodes, array $ticketQrSources = [], string $googleCalendarUrl = ''): string
     {
-        $renderSection = function (array $lines, string $heading, string $qrTitle, string $qrHint, string $ticketCodeLabel) use ($ticketCodes, $ticketQrSources): string {
+        $renderSection = function (array $lines, string $heading, string $qrTitle, string $qrHint, string $ticketCodeLabel, string $calendarButton, string $calendarHint) use ($ticketCodes, $ticketQrSources, $googleCalendarUrl): string {
             $html = '<div style="margin:0 0 28px;">';
             $html .= '<div style="display:inline-block;margin:0 0 18px;padding:6px 12px;background:#e2e8f0;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#334155;">'
                 . esc($heading)
@@ -254,6 +254,13 @@ abstract class BaseController extends Controller
                 $html .= '</div>';
             }
 
+            if ($googleCalendarUrl !== '') {
+                $html .= '<div style="margin:12px 0 18px;padding:18px;background:#ecfdf5;border:1px solid #bbf7d0;border-radius:18px;">';
+                $html .= '<p style="margin:0 0 14px;font-size:14px;line-height:1.6;color:#166534;">' . esc($calendarHint) . '</p>';
+                $html .= '<a href="' . esc($googleCalendarUrl, 'attr') . '" style="display:inline-block;padding:12px 16px;border-radius:12px;background:#16a34a;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;">' . esc($calendarButton) . '</a>';
+                $html .= '</div>';
+            }
+
             $html .= '</div>';
 
             return $html . '</div>';
@@ -272,7 +279,9 @@ abstract class BaseController extends Controller
                 'Ελληνικά',
                 $this->localizedLine('App.bookingEmailQrTitle', [], 'el'),
                 $this->localizedLine('App.bookingEmailQrHint', [], 'el'),
-                $this->localizedLine('App.bookingEmailTicketCodeLabel', [], 'el')
+                $this->localizedLine('App.bookingEmailTicketCodeLabel', [], 'el'),
+                $this->localizedLine('App.bookingEmailGoogleCalendarButton', [], 'el'),
+                $this->localizedLine('App.bookingEmailGoogleCalendarHint', [], 'el')
             )
             . '<div style="height:1px;background:#e2e8f0;margin:8px 0 28px;"></div>'
             . $renderSection(
@@ -280,7 +289,9 @@ abstract class BaseController extends Controller
                 'English',
                 $this->localizedLine('App.bookingEmailQrTitle', [], 'en'),
                 $this->localizedLine('App.bookingEmailQrHint', [], 'en'),
-                $this->localizedLine('App.bookingEmailTicketCodeLabel', [], 'en')
+                $this->localizedLine('App.bookingEmailTicketCodeLabel', [], 'en'),
+                $this->localizedLine('App.bookingEmailGoogleCalendarButton', [], 'en'),
+                $this->localizedLine('App.bookingEmailGoogleCalendarHint', [], 'en')
             )
             . '</div>'
             . '</div>'

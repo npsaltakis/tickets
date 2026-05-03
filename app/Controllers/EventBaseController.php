@@ -555,7 +555,13 @@ abstract class EventBaseController extends BaseController
                 }
             }
 
-            $emailService->setMessage($this->buildBookingConfirmationEmailHtml($greekMessageParts, $englishMessageParts, $ticketCodes, $ticketQrSources));
+            $emailService->setMessage($this->buildBookingConfirmationEmailHtml(
+                $greekMessageParts,
+                $englishMessageParts,
+                $ticketCodes,
+                $ticketQrSources,
+                $this->buildGoogleCalendarUrl($event, $ticketCodes)
+            ));
 
             return $emailService->send();
         } catch (Throwable) {
@@ -566,6 +572,52 @@ abstract class EventBaseController extends BaseController
     protected function hasAcceptedBookingTerms(): bool
     {
         return $this->getRequestValue('accept_terms') === '1';
+    }
+
+    protected function buildGoogleCalendarUrl(array $event, array $ticketCodes = []): string
+    {
+        $startValue = trim((string) ($event['start_date'] ?? ''));
+        if ($startValue === '') {
+            return '';
+        }
+
+        $timezone = trim((string) (config('App')->appTimezone ?? 'Europe/Athens')) ?: 'Europe/Athens';
+
+        try {
+            $timezoneObject = new \DateTimeZone($timezone);
+            $start = new \DateTimeImmutable($startValue, $timezoneObject);
+        } catch (\Throwable) {
+            return '';
+        }
+
+        $endValue = trim((string) ($event['end_date'] ?? ''));
+        try {
+            $end = $endValue !== ''
+                ? new \DateTimeImmutable($endValue, $timezoneObject)
+                : $start->modify('+1 hour');
+        } catch (\Throwable) {
+            $end = $start->modify('+1 hour');
+        }
+
+        if ($end <= $start) {
+            $end = $start->modify('+1 hour');
+        }
+
+        $location = trim((string) ($event['location'] ?? '') . ' ' . (string) ($event['address'] ?? ''));
+        $details = trim(implode("\n", array_filter([
+            lang('App.bookingEmailEventLabel') . ': ' . (string) ($event['title'] ?? lang('App.siteTitle')),
+            $ticketCodes !== [] ? lang('App.bookingEmailTicketCodesLabel') . ': ' . implode(', ', array_map('strval', $ticketCodes)) : '',
+            ! empty($event['slug']) ? base_url('events/' . (string) $event['slug']) : '',
+        ])));
+
+        return 'https://calendar.google.com/calendar/render?' . http_build_query([
+            'action' => 'TEMPLATE',
+            'text' => (string) ($event['title'] ?? lang('App.siteTitle')),
+            'dates' => $start->format('Ymd\THis') . '/' . $end->format('Ymd\THis'),
+            'details' => $details,
+            'location' => $location,
+            'ctz' => $timezone,
+        ], '', '&', PHP_QUERY_RFC3986);
     }
 
     protected function validateDonationBookingRequest(array $event): array
