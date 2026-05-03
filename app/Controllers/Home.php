@@ -16,6 +16,8 @@ class Home extends EventBaseController
             'batchSize' => $batchSize,
             'hasMore' => $hasMore,
             'pageTitle' => 'All Events | Ticketing System',
+            'metaDescription' => lang('App.eventsPageSubtitle'),
+            'canonicalUrl' => base_url('/'),
         ]);
     }
 
@@ -76,12 +78,114 @@ class Home extends EventBaseController
             $hasOnlineAccess = $userTicketCodes !== [];
         }
 
+        $canonicalUrl = base_url('events/' . (string) $event['slug']);
+        $metaDescription = $this->buildEventMetaDescription($event);
+        $metaImage = $this->normalizeEventImageUrl((string) ($event['image'] ?? ''));
+
         return view('events/show', [
             'event' => $event,
             'pageTitle' => $event['title'] . ' | Ticketing System',
+            'metaDescription' => $metaDescription,
+            'canonicalUrl' => $canonicalUrl,
+            'metaImage' => $metaImage,
+            'metaType' => 'event',
+            'structuredData' => [$this->buildEventStructuredData($event, $canonicalUrl, $metaImage)],
             'paypalClientId' => $this->getPayPalClientId(),
             'hasOnlineAccess' => $hasOnlineAccess,
             'userTicketCodes' => $userTicketCodes,
         ]);
+    }
+
+    private function buildEventMetaDescription(array $event): string
+    {
+        $description = trim(strip_tags((string) ($event['description'] ?? '')));
+        if ($description !== '') {
+            return mb_substr(preg_replace('/\s+/', ' ', $description) ?? $description, 0, 155, 'UTF-8');
+        }
+
+        $parts = array_filter([
+            (string) ($event['title'] ?? ''),
+            ! empty($event['start_date']) ? date('d/m/Y H:i', strtotime((string) $event['start_date'])) : '',
+            (string) ($event['location'] ?? ''),
+        ]);
+
+        return implode(' - ', $parts);
+    }
+
+    private function normalizeEventImageUrl(string $image): string
+    {
+        $image = trim($image);
+        if ($image === '') {
+            return '';
+        }
+
+        return preg_match('#^https?://#i', $image) ? $image : base_url(ltrim($image, '/'));
+    }
+
+    private function buildEventStructuredData(array $event, string $canonicalUrl, string $metaImage): array
+    {
+        $startDate = ! empty($event['start_date']) ? date(DATE_ATOM, strtotime((string) $event['start_date'])) : null;
+        $endDate = ! empty($event['end_date']) ? date(DATE_ATOM, strtotime((string) $event['end_date'])) : null;
+        $status = (string) ($event['status'] ?? 'active');
+        $eventStatus = $status === 'cancelled'
+            ? 'https://schema.org/EventCancelled'
+            : 'https://schema.org/EventScheduled';
+        $eventFormat = (string) ($event['event_format'] ?? 'physical');
+        $attendanceMode = match ($eventFormat) {
+            'online' => 'https://schema.org/OnlineEventAttendanceMode',
+            'hybrid' => 'https://schema.org/MixedEventAttendanceMode',
+            default => 'https://schema.org/OfflineEventAttendanceMode',
+        };
+
+        $data = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Event',
+            'name' => (string) ($event['title'] ?? ''),
+            'description' => $this->buildEventMetaDescription($event),
+            'url' => $canonicalUrl,
+            'eventStatus' => $eventStatus,
+            'eventAttendanceMode' => $attendanceMode,
+            'organizer' => [
+                '@type' => 'Organization',
+                'name' => lang('App.siteTitle'),
+                'url' => base_url('/'),
+            ],
+            'offers' => [
+                '@type' => 'Offer',
+                'url' => $canonicalUrl,
+                'availability' => ((int) ($event['remaining_seats'] ?? 0) > 0 && $status === 'active')
+                    ? 'https://schema.org/InStock'
+                    : 'https://schema.org/SoldOut',
+                'priceCurrency' => 'EUR',
+                'price' => (string) (($event['event_type'] ?? 'free') === 'donation' ? (float) ($event['min_donation'] ?? 0) : 0),
+            ],
+        ];
+
+        if ($startDate !== null) {
+            $data['startDate'] = $startDate;
+        }
+
+        if ($endDate !== null) {
+            $data['endDate'] = $endDate;
+        }
+
+        if ($metaImage !== '') {
+            $data['image'] = [$metaImage];
+        }
+
+        if ($eventFormat === 'online') {
+            $data['location'] = [
+                '@type' => 'VirtualLocation',
+                'url' => trim((string) ($event['online_url'] ?? $canonicalUrl)) ?: $canonicalUrl,
+            ];
+        } else {
+            $data['location'] = [
+                '@type' => 'Place',
+                'name' => (string) ($event['location'] ?? ''),
+                'address' => trim((string) ($event['address'] ?? ($event['location'] ?? ''))),
+            ];
+        }
+
+        return $data;
     }
 }

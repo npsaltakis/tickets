@@ -13,7 +13,7 @@
                 $rawImage = (string) $event['image'];
                 $imageUrl = preg_match('#^https?://#i', $rawImage) ? $rawImage : base_url(ltrim($rawImage, '/'));
                 ?>
-                <img class="event-image" src="<?= esc($imageUrl) ?>" alt="<?= esc($event['title']) ?>">
+                <img class="event-image" src="<?= esc($imageUrl) ?>" alt="<?= esc($event['title']) ?>" width="640" height="360" loading="lazy" decoding="async">
             <?php else: ?>
                 <div class="event-image event-image-placeholder"><?= esc(lang('App.noImage')) ?></div>
             <?php endif; ?>

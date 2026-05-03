@@ -60,7 +60,7 @@ $assetVersion = static function (string $relativePath): string {
 
     <section class="event-details-card">
         <?php if ($imageUrl !== ''): ?>
-            <img class="event-hero" src="<?= esc($imageUrl) ?>" alt="<?= esc($event['title']) ?>">
+            <img class="event-hero" src="<?= esc($imageUrl) ?>" alt="<?= esc($event['title']) ?>" width="1200" height="675" fetchpriority="high">
         <?php else: ?>
             <div class="event-hero event-image-placeholder"><?= esc(lang('App.noImage')) ?></div>
         <?php endif; ?>

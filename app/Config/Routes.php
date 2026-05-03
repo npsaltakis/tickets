@@ -6,6 +6,8 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'Home::index');
+$routes->get('robots.txt', 'SeoController::robots');
+$routes->get('sitemap.xml', 'SeoController::sitemap');
 $routes->get('my-events', 'ReportController::myEvents');
 $routes->get('report', 'ReportController::report');
 $routes->get('check-in', 'ReportController::checkIn');
