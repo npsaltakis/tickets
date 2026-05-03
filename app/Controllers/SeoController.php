@@ -48,7 +48,6 @@ class SeoController extends BaseController
                     ->where('end_date >=', $now)
                     ->orGroupStart()
                         ->where('end_date', null)
-                        ->orWhere('end_date', '')
                     ->groupEnd()
                 ->groupEnd()
                 ->orderBy('start_date', 'ASC')
