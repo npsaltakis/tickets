@@ -54,7 +54,6 @@ class CreateAdminLogsTable extends Migration
         $this->forge->addKey('target_type');
         $this->forge->addKey('admin_id');
         $this->forge->addKey('created_at');
-        $this->forge->addForeignKey('admin_id', 'users', 'id', 'CASCADE', 'SET NULL');
         $this->forge->createTable('admin_logs');
     }
 
