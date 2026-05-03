@@ -378,6 +378,7 @@ abstract class EventBaseController extends BaseController
     {
         $builder = $this->eventModel->builder();
         $builder->where('deleted_at', null);
+        $this->applyUpcomingEventsFilter($builder);
 
         if (! $this->isAdmin()) {
             $builder->where('status', 'active');
@@ -404,6 +405,23 @@ abstract class EventBaseController extends BaseController
         }
 
         return [$this->attachRemainingSeats($rows), $hasMore];
+    }
+
+    protected function applyUpcomingEventsFilter($builder): void
+    {
+        $now = date('Y-m-d H:i:s');
+
+        $builder
+            ->groupStart()
+                ->where('end_date >=', $now)
+                ->orGroupStart()
+                    ->groupStart()
+                        ->where('end_date', null)
+                        ->orWhere('end_date', '')
+                    ->groupEnd()
+                    ->where('start_date >=', $now)
+                ->groupEnd()
+            ->groupEnd();
     }
 
     protected function attachRemainingSeats(array $events): array

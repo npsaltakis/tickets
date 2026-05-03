@@ -39,10 +39,21 @@ class SeoController extends BaseController
         $events = [];
 
         try {
+            $now = date('Y-m-d H:i:s');
             $eventModel = new EventModel();
             $events = $eventModel
                 ->select('slug, updated_at, start_date')
                 ->where('status', 'active')
+                ->groupStart()
+                    ->where('end_date >=', $now)
+                    ->orGroupStart()
+                        ->groupStart()
+                            ->where('end_date', null)
+                            ->orWhere('end_date', '')
+                        ->groupEnd()
+                        ->where('start_date >=', $now)
+                    ->groupEnd()
+                ->groupEnd()
                 ->orderBy('start_date', 'ASC')
                 ->findAll();
         } catch (Throwable $exception) {
