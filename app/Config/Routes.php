@@ -20,6 +20,8 @@ $routes->post('check-in', 'ReportController::processCheckIn');
 $routes->get('admin-logs', 'AdminLogController::index');
 $routes->post('admin-logs/clear', 'AdminLogController::clear');
 $routes->post('admin/test-email', 'AdminToolsController::sendTestEmail');
+$routes->get('admin/cleanup-demo-data', 'AdminToolsController::cleanupDemoDataPreview');
+$routes->post('admin/cleanup-demo-data', 'AdminToolsController::cleanupDemoData');
 $routes->get('users', 'UserAdminController::index');
 $routes->get('users/create', 'UserAdminController::create');
 $routes->post('users', 'UserAdminController::store');

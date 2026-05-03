@@ -23,6 +23,10 @@ document.addEventListener('DOMContentLoaded', function () {
         tabButtons.forEach(function (button) {
             button.addEventListener('click', function () {
                 setActiveTab(button.dataset.reportTab || 'summary');
+
+                if (window.jQuery && window.jQuery.fn.DataTable) {
+                    window.jQuery('.js-report-table').DataTable().columns.adjust();
+                }
             });
         });
     }
@@ -143,11 +147,13 @@ document.addEventListener('DOMContentLoaded', function () {
         var orderDirection = table.dataset.orderDirection || 'asc';
 
         window.jQuery(table).DataTable({
-            dom: 'Blfrtip',
+            dom: '<"report-datatable-toolbar"<"report-datatable-actions"B><"report-datatable-length"l><"report-datatable-search"f>>rt<"report-datatable-footer"<"report-datatable-info"i><"report-datatable-pages"p>>',
             paging: true,
             lengthChange: true,
             pageLength: 10,
             lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+            autoWidth: false,
+            scrollX: true,
             order: [[orderColumn, orderDirection]],
             buttons: [
                 {

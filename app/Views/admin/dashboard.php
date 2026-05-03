@@ -69,5 +69,22 @@
             <?php endif; ?>
         </div>
     </section>
+
+    <section class="card admin-dashboard-panel admin-dashboard-danger">
+        <h2><?= esc(lang('App.adminDashboardCleanupTitle')) ?></h2>
+        <p class="meta"><?= esc(lang('App.adminDashboardCleanupText')) ?></p>
+        <div class="admin-dashboard-cleanup-actions">
+            <a class="admin-event-btn admin-event-btn--secondary" href="<?= base_url('admin/cleanup-demo-data') ?>" target="_blank" rel="noopener noreferrer">
+                <?= esc(lang('App.adminDashboardCleanupPreview')) ?>
+            </a>
+            <form method="post" action="<?= base_url('admin/cleanup-demo-data') ?>" onsubmit="return confirm('<?= esc(lang('App.adminDashboardCleanupConfirm'), 'attr') ?>');">
+                <?= csrf_field() ?>
+                <input type="hidden" name="confirm" value="DELETE_DEMO_DATA">
+                <button type="submit" class="book-btn event-delete-btn">
+                    <?= esc(lang('App.adminDashboardCleanupRun')) ?>
+                </button>
+            </form>
+        </div>
+    </section>
 </main>
 <?= $this->endSection() ?>
