@@ -11,7 +11,8 @@ $assetVersion = static function (string $relativePath): string {
     $status = strtolower((string) ($event['status'] ?? 'inactive'));
     $remainingSeats = isset($event['remaining_seats']) ? (int) $event['remaining_seats'] : 0;
     $bookingsEnabled = (int) ($event['bookings_enabled'] ?? 1) === 1;
-    $canBook = $bookingsEnabled && $remainingSeats > 0 && $status === 'active';
+    $isExpired = !empty($event['end_date']) && strtotime((string) $event['end_date']) !== false && strtotime((string) $event['end_date']) < time();
+    $canBook = $bookingsEnabled && ! $isExpired && $remainingSeats > 0 && $status === 'active';
     $isDonationEvent = ($event['event_type'] ?? 'free') === 'donation';
     $isLoggedIn = session()->get('is_logged_in') === true;
     $isAdmin = $isLoggedIn && (string) session()->get('user_role') === 'admin';

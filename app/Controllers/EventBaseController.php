@@ -560,6 +560,10 @@ abstract class EventBaseController extends BaseController
             return [0, 0.0, lang('App.bookingEventUnavailable')];
         }
 
+        if (! empty($event['end_date']) && strtotime((string) $event['end_date']) !== false && strtotime((string) $event['end_date']) < time()) {
+            return [0, 0.0, lang('App.bookingClosedMessage')];
+        }
+
         if ((int) ($event['bookings_enabled'] ?? 1) !== 1) {
             return [0, 0.0, lang('App.bookingClosedMessage')];
         }

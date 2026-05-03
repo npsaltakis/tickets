@@ -10,6 +10,10 @@ class BookingController extends EventBaseController
 {
     public function book(string $slug): RedirectResponse
     {
+        if (! $this->passesBookingThrottle('free_book')) {
+            return redirect()->back()->with('event_error', lang('App.bookingRateLimited'));
+        }
+
         $event = $this->eventModel->where('slug', $slug)->first();
 
         if (empty($event)) {
@@ -22,6 +26,10 @@ class BookingController extends EventBaseController
 
         if ((string) ($event['status'] ?? '') !== 'active') {
             return redirect()->back()->with('event_error', lang('App.bookingEventUnavailable'));
+        }
+
+        if (! empty($event['end_date']) && strtotime((string) $event['end_date']) !== false && strtotime((string) $event['end_date']) < time()) {
+            return redirect()->back()->with('event_error', lang('App.bookingClosedMessage'));
         }
 
         if ((int) ($event['bookings_enabled'] ?? 1) !== 1) {
@@ -76,6 +84,10 @@ class BookingController extends EventBaseController
 
     public function createDonationOrder(string $slug)
     {
+        if (! $this->passesBookingThrottle('paypal_order')) {
+            return $this->response->setStatusCode(429)->setJSON(['message' => lang('App.bookingRateLimited')]);
+        }
+
         $event = $this->eventModel->where('slug', $slug)->first();
 
         if (empty($event)) {
@@ -157,6 +169,10 @@ class BookingController extends EventBaseController
 
     public function captureDonationOrder(string $slug)
     {
+        if (! $this->passesBookingThrottle('paypal_capture')) {
+            return $this->response->setStatusCode(429)->setJSON(['message' => lang('App.bookingRateLimited')]);
+        }
+
         $event = $this->eventModel->where('slug', $slug)->first();
 
         if (empty($event)) {
@@ -375,5 +391,21 @@ class BookingController extends EventBaseController
         return $this->response->setJSON([
             'redirectUrl' => base_url('events/' . $slug),
         ]);
+    }
+
+    private function passesBookingThrottle(string $scope): bool
+    {
+        $identity = (string) (session()->get('user_id') ?? $this->request->getIPAddress());
+        $key = 'booking_rate_' . $scope . '_' . sha1($identity . '|' . $this->request->getIPAddress());
+        $cache = cache();
+        $attempts = (int) ($cache->get($key) ?? 0);
+
+        if ($attempts >= 30) {
+            return false;
+        }
+
+        $cache->save($key, $attempts + 1, 60);
+
+        return true;
     }
 }

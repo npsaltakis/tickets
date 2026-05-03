@@ -12,6 +12,8 @@ use CodeIgniter\Filters\InvalidChars;
 use CodeIgniter\Filters\PageCache;
 use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
+use App\Filters\AdminFilter;
+use App\Filters\AuthFilter;
 
 class Filters extends BaseFilters
 {
@@ -34,6 +36,8 @@ class Filters extends BaseFilters
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
+        'admin'         => AdminFilter::class,
+        'auth'          => AuthFilter::class,
     ];
 
     /**
@@ -101,5 +105,33 @@ class Filters extends BaseFilters
      *
      * @var array<string, array<string, list<string>>>
      */
-    public array $filters = [];
+    public array $filters = [
+        'admin' => [
+            'before' => [
+                'admin/*',
+                'admin-logs',
+                'admin-logs/*',
+                'check-in',
+                'check-in/*',
+                'events/create',
+                'events/deleted',
+                'events/*/edit',
+                'events',
+                'events/*/update',
+                'events/*/duplicate',
+                'events/*/delete',
+                'events/*/restore',
+                'report',
+                'report/*',
+                'users',
+                'users/*',
+            ],
+        ],
+        'auth' => [
+            'before' => [
+                'my-events',
+                'my-events/*',
+            ],
+        ],
+    ];
 }

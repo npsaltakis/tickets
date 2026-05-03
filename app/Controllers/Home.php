@@ -84,12 +84,15 @@ class Home extends EventBaseController
 
         return view('events/show', [
             'event' => $event,
-            'pageTitle' => $event['title'] . ' | Ticketing System',
+            'pageTitle' => $this->buildEventSeoTitle($event),
             'metaDescription' => $metaDescription,
             'canonicalUrl' => $canonicalUrl,
             'metaImage' => $metaImage,
             'metaType' => 'event',
-            'structuredData' => [$this->buildEventStructuredData($event, $canonicalUrl, $metaImage)],
+            'structuredData' => [
+                $this->buildEventStructuredData($event, $canonicalUrl, $metaImage),
+                $this->buildEventBreadcrumbStructuredData($event, $canonicalUrl),
+            ],
             'paypalClientId' => $this->getPayPalClientId(),
             'hasOnlineAccess' => $hasOnlineAccess,
             'userTicketCodes' => $userTicketCodes,
@@ -110,6 +113,17 @@ class Home extends EventBaseController
         ]);
 
         return implode(' - ', $parts);
+    }
+
+    private function buildEventSeoTitle(array $event): string
+    {
+        $parts = array_filter([
+            (string) ($event['title'] ?? ''),
+            (string) ($event['location'] ?? ''),
+            ! empty($event['start_date']) ? date('d/m/Y', strtotime((string) $event['start_date'])) : '',
+        ]);
+
+        return implode(' | ', $parts) . ' | ' . lang('App.siteTitle');
     }
 
     private function normalizeEventImageUrl(string $image): string
@@ -187,5 +201,27 @@ class Home extends EventBaseController
         }
 
         return $data;
+    }
+
+    private function buildEventBreadcrumbStructuredData(array $event, string $canonicalUrl): array
+    {
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => lang('App.eventsPageTitle'),
+                    'item' => base_url('/'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => (string) ($event['title'] ?? ''),
+                    'item' => $canonicalUrl,
+                ],
+            ],
+        ];
     }
 }

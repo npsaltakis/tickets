@@ -189,6 +189,77 @@ class ReportController extends EventBaseController
         ]);
     }
 
+    public function ticketCalendar(string $ticketCode): RedirectResponse|ResponseInterface
+    {
+        if (session()->get('is_logged_in') !== true) {
+            return redirect()->to(base_url('login'))->with('login_info', lang('App.bookingLoginRequired'));
+        }
+
+        $ticket = $this->findUserTicketWithEvent($ticketCode);
+        if ($ticket === null) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketCalendarNotFound'));
+        }
+
+        $uid = preg_replace('/[^A-Z0-9]/i', '', (string) ($ticket['ticket_code'] ?? $ticketCode)) . '@' . parse_url(base_url('/'), PHP_URL_HOST);
+        $start = $this->formatIcsDate((string) ($ticket['event_start_date'] ?? ''));
+        $end = $this->formatIcsDate((string) ($ticket['event_end_date'] ?? ''));
+        $summary = $this->escapeIcsText((string) ($ticket['event_title'] ?? lang('App.siteTitle')));
+        $location = $this->escapeIcsText(trim((string) ($ticket['event_location'] ?? '') . ' ' . (string) ($ticket['event_address'] ?? '')));
+        $description = $this->escapeIcsText(lang('App.reportTicketCode') . ': ' . (string) ($ticket['ticket_code'] ?? ''));
+
+        $lines = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//Ticketing System//Tickets//EN',
+            'BEGIN:VEVENT',
+            'UID:' . $uid,
+            'DTSTAMP:' . gmdate('Ymd\THis\Z'),
+            'DTSTART:' . $start,
+            'DTEND:' . $end,
+            'SUMMARY:' . $summary,
+            'LOCATION:' . $location,
+            'DESCRIPTION:' . $description,
+            'URL:' . base_url('events/' . (string) ($ticket['event_slug'] ?? '')),
+            'END:VEVENT',
+            'END:VCALENDAR',
+        ];
+
+        return $this->response
+            ->setHeader('Content-Type', 'text/calendar; charset=UTF-8')
+            ->setHeader('Content-Disposition', 'attachment; filename="ticket-' . strtolower((string) ($ticket['ticket_code'] ?? $ticketCode)) . '.ics"')
+            ->setBody(implode("\r\n", $lines) . "\r\n");
+    }
+
+    public function resendTicketEmail(string $ticketCode): RedirectResponse
+    {
+        if (session()->get('is_logged_in') !== true) {
+            return redirect()->to(base_url('login'))->with('login_info', lang('App.bookingLoginRequired'));
+        }
+
+        $ticket = $this->findUserTicketWithEvent($ticketCode);
+        if ($ticket === null) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketResendNotFound'));
+        }
+
+        $event = [
+            'id' => (int) ($ticket['event_id'] ?? 0),
+            'title' => (string) ($ticket['event_title'] ?? ''),
+            'slug' => (string) ($ticket['event_slug'] ?? ''),
+            'location' => (string) ($ticket['event_location'] ?? ''),
+            'start_date' => $ticket['event_start_date'] ?? null,
+            'end_date' => $ticket['event_end_date'] ?? null,
+            'event_format' => (string) ($ticket['event_format'] ?? 'physical'),
+            'online_url' => $ticket['online_url'] ?? null,
+            'online_access_notes' => $ticket['online_access_notes'] ?? null,
+        ];
+
+        if (! $this->sendBookingConfirmationEmail($event, 1, [(string) ($ticket['ticket_code'] ?? $ticketCode)], (float) ($ticket['donation_amount'] ?? 0), 'EUR')) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketResendFailed'));
+        }
+
+        return redirect()->to(base_url('my-events'))->with('event_info', lang('App.ticketResendSuccess'));
+    }
+
     public function checkIn(): RedirectResponse|string
     {
         if (! $this->isAdmin()) {
@@ -428,5 +499,51 @@ class ReportController extends EventBaseController
         $totals['rate'] = $totals['issued'] > 0 ? (int) round(($totals['checked_in'] / $totals['issued']) * 100) : 0;
 
         return [$rows, $totals];
+    }
+
+    private function findUserTicketWithEvent(string $ticketCode): ?array
+    {
+        $ticketCode = strtoupper(preg_replace('/\s+/', '', trim($ticketCode)));
+        if ($ticketCode === '') {
+            return null;
+        }
+
+        $ticket = $this->ticketModel
+            ->select([
+                'tickets.id',
+                'tickets.ticket_code',
+                'tickets.donation_amount',
+                'tickets.payment_status',
+                'events.id AS event_id',
+                'events.slug AS event_slug',
+                'events.title AS event_title',
+                'events.location AS event_location',
+                'events.address AS event_address',
+                'events.start_date AS event_start_date',
+                'events.end_date AS event_end_date',
+                'events.event_format',
+                'events.online_url',
+                'events.online_access_notes',
+            ])
+            ->join('events', 'events.id = tickets.event_id')
+            ->where('tickets.ticket_code', $ticketCode)
+            ->where('tickets.user_id', (int) session()->get('user_id'))
+            ->where('tickets.status', 'valid')
+            ->where('events.deleted_at', null)
+            ->first();
+
+        return $ticket ?: null;
+    }
+
+    private function formatIcsDate(string $value): string
+    {
+        $timestamp = $value !== '' ? strtotime($value) : false;
+
+        return $timestamp !== false ? gmdate('Ymd\THis\Z', $timestamp) : gmdate('Ymd\THis\Z');
+    }
+
+    private function escapeIcsText(string $value): string
+    {
+        return str_replace(["\\", "\r", "\n", ',', ';'], ['\\\\', '', '\n', '\,', '\;'], $value);
     }
 }

@@ -133,6 +133,15 @@ $assetVersion = static function (string $relativePath): string {
                                         >
                                             <?= esc(lang('App.myEventsExportTicketPdf')) ?>
                                         </button>
+                                        <a class="ticket-export-btn ticket-export-link" href="<?= base_url('my-events/tickets/' . urlencode((string) ($ticket['code'] ?? '')) . '/calendar.ics') ?>">
+                                            <?= esc(lang('App.myEventsAddToCalendar')) ?>
+                                        </a>
+                                        <form method="post" action="<?= base_url('my-events/tickets/' . urlencode((string) ($ticket['code'] ?? '')) . '/resend-email') ?>" class="ticket-resend-form">
+                                            <?= csrf_field() ?>
+                                            <button type="submit" class="ticket-export-btn ticket-export-btn--secondary">
+                                                <?= esc(lang('App.myEventsResendEmail')) ?>
+                                            </button>
+                                        </form>
                                     </div>
                                 <?php endforeach; ?>
                             </div>

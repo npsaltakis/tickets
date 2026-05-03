@@ -41,9 +41,17 @@ class AdminToolsController extends BaseController
             ));
 
             if (! $emailService->send()) {
+                log_message('error', 'Admin test email failed. debug={debug}', [
+                    'debug' => $emailService->printDebugger(['headers', 'subject']),
+                ]);
+
                 return redirect()->back()->with('event_error', lang('App.adminTestEmailFailed'));
             }
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
+            log_message('error', 'Admin test email exception: {message}', [
+                'message' => $exception->getMessage(),
+            ]);
+
             return redirect()->back()->with('event_error', lang('App.adminTestEmailFailed'));
         }
 
