@@ -106,7 +106,7 @@ $assetVersion = static function (string $relativePath): string {
                         <?php endif; ?>
                     </a>
                     <?php if (!empty($tickets)): ?>
-                        <div class="ticket-cancel-block">
+                        <div class="ticket-codes-block">
                             <div class="ticket-code-header">
                                 <p class="meta ticket-code-title"><?= esc(lang('App.myEventsTicketCodes')) ?>:</p>
                                 <?php if (count($tickets) > 1): ?>
@@ -129,7 +129,7 @@ $assetVersion = static function (string $relativePath): string {
                             <div class="ticket-code-list">
                                 <?php foreach ($tickets as $ticket): ?>
                                     <div class="ticket-code-item">
-                                        <code class="ticket-cancel-code"><?= esc($ticket['code']) ?></code>
+                                        <code class="ticket-code"><?= esc($ticket['code']) ?></code>
                                         <button
                                             type="button"
                                             class="ticket-export-btn"

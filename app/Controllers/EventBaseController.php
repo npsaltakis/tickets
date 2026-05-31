@@ -359,7 +359,7 @@ abstract class EventBaseController extends BaseController
         $relativeDirectory = 'assets/images/' . $userId;
         $targetDirectory = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativeDirectory);
 
-        if (! is_dir($targetDirectory) && ! mkdir($targetDirectory, 0775, true) && ! is_dir($targetDirectory)) {
+        if (! is_dir($targetDirectory) && ! mkdir($targetDirectory, 0755, true) && ! is_dir($targetDirectory)) {
             return null;
         }
 

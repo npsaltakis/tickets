@@ -15,7 +15,7 @@ class Security extends BaseConfig
      *
      * @var string 'cookie' or 'session'
      */
-    public string $csrfProtection = 'cookie';
+    public string $csrfProtection = 'session';
 
     /**
      * --------------------------------------------------------------------------
@@ -24,7 +24,7 @@ class Security extends BaseConfig
      *
      * Randomize the CSRF Token for added security.
      */
-    public bool $tokenRandomize = false;
+    public bool $tokenRandomize = true;
 
     /**
      * --------------------------------------------------------------------------
@@ -33,7 +33,7 @@ class Security extends BaseConfig
      *
      * Token name for Cross Site Request Forgery protection.
      */
-    public string $tokenName = 'csrf_test_name';
+    public string $tokenName = '_token';
 
     /**
      * --------------------------------------------------------------------------
@@ -51,7 +51,7 @@ class Security extends BaseConfig
      *
      * Cookie name for Cross Site Request Forgery protection.
      */
-    public string $cookieName = 'csrf_cookie_name';
+    public string $cookieName = '_csrf';
 
     /**
      * --------------------------------------------------------------------------
@@ -71,6 +71,8 @@ class Security extends BaseConfig
      *
      * Regenerate CSRF Token on every submission.
      */
+    // Kept false intentionally: PayPal donation uses two sequential fetch() calls (createOrder + captureOrder)
+    // that share the same page-rendered token. Regenerating between them would invalidate captureOrder.
     public bool $regenerate = false;
 
     /**
