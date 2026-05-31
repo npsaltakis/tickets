@@ -73,6 +73,21 @@ $assetVersion = static function (string $relativePath): string {
                 <p class="field-hint"><?= esc(lang('App.eventCreateLocationHint')) ?></p>
             </div>
 
+            <div class="event-field">
+                <label for="category_id" class="auth-label"><?= esc(lang('App.categoriesPageTitle')) ?> *</label>
+                <select id="category_id" name="category_id" class="auth-input" required>
+                    <option value=""><?= esc(lang('App.categoryNone')) ?></option>
+                    <?php foreach (($categories ?? []) as $cat): ?>
+                        <option value="<?= esc($cat['id']) ?>" <?= (int)($event['category_id'] ?? 0) === (int)$cat['id'] ? 'selected' : '' ?>>
+                            <?= esc($cat['name']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <?php if (empty($categories)): ?>
+                    <p class="field-hint" style="color:#fca5a5"><?= esc(lang('App.categoryCreateFirst')) ?></p>
+                <?php endif; ?>
+            </div>
+
             <div class="event-field event-field-full" id="address-field-wrapper">
                 <label for="address" class="auth-label"><?= esc(lang('App.eventCreateAddressLabel')) ?></label>
                 <input id="address" name="address" type="text" class="auth-input" value="<?= esc((string) old('address', (string) ($event['address'] ?? ''))) ?>" <?= in_array($selectedFormat, ['physical', 'hybrid'], true) ? 'required' : '' ?>>
@@ -176,20 +191,6 @@ $assetVersion = static function (string $relativePath): string {
                     <option value="cancelled" <?= $selectedStatus === 'cancelled' ? 'selected' : '' ?>><?= esc(lang('App.eventStatusCancelled')) ?></option>
                 </select>
             </div>
-
-            <?php if (!empty($categories)): ?>
-            <div class="event-field">
-                <label for="category_id" class="auth-label"><?= esc(lang('App.categoriesPageTitle')) ?></label>
-                <select id="category_id" name="category_id" class="auth-input">
-                    <option value=""><?= esc(lang('App.categoryNone')) ?></option>
-                    <?php foreach ($categories as $cat): ?>
-                        <option value="<?= esc($cat['id']) ?>" <?= (int)($event['category_id'] ?? 0) === (int)$cat['id'] ? 'selected' : '' ?>>
-                            <?= esc($cat['name']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <?php endif; ?>
 
             <div class="event-field">
                 <span class="auth-label"><?= esc(lang('App.eventCreateBookingsLabel')) ?></span>

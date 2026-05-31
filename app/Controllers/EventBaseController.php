@@ -63,6 +63,8 @@ abstract class EventBaseController extends BaseController
         $bookingsEnabled = $this->request->getPost('bookings_enabled') === '1' ? 1 : 0;
         $uploadedImage = $this->request->getFile('image_upload');
 
+        $categoryId = (int) $this->request->getPost('category_id');
+
         if (
             $title === ''
             || $location === ''
@@ -74,6 +76,7 @@ abstract class EventBaseController extends BaseController
             || $eventType === ''
             || $eventFormat === ''
             || $status === ''
+            || $categoryId < 1
         ) {
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateRequiredFields'));
         }
@@ -175,7 +178,7 @@ abstract class EventBaseController extends BaseController
             'min_donation' => $normalizedMinDonation,
             'status' => $status,
             'bookings_enabled' => $bookingsEnabled,
-            'category_id'     => (int) $this->request->getPost('category_id') > 0 ? (int) $this->request->getPost('category_id') : null,
+            'category_id'     => $categoryId,
         ];
 
         if ($existingEvent === null) {
