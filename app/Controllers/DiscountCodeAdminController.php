@@ -82,7 +82,7 @@ class DiscountCodeAdminController extends BaseController
         return redirect()->to(base_url('admin/discount-codes'))->with('dc_info', lang('App.discountCodesDeleted'));
     }
 
-    public function validate(): ResponseInterface
+    public function validateCode(): ResponseInterface
     {
         $code    = strtoupper(trim((string) $this->request->getPost('code')));
         $eventId = (int) $this->request->getPost('event_id');

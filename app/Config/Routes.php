@@ -68,7 +68,7 @@ $routes->post('admin/categories/(:num)/delete', 'CategoryAdminController::delete
 $routes->get('admin/discount-codes', 'DiscountCodeAdminController::index');
 $routes->post('admin/discount-codes', 'DiscountCodeAdminController::store');
 $routes->post('admin/discount-codes/(:num)/delete', 'DiscountCodeAdminController::delete/$1');
-$routes->post('admin/discount-codes/validate', 'DiscountCodeAdminController::validate');
+$routes->post('admin/discount-codes/validate', 'DiscountCodeAdminController::validateCode');
 
 $routes->get('admin/events/(:segment)/tickets/export', 'TicketAdminController::export/$1');
 
