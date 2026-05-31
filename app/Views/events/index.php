@@ -58,6 +58,19 @@ $assetVersion = static function (string $relativePath): string {
 
     <div id="calendar-wrap" class="calendar-wrap" style="display:none"></div>
 
+    <?php if (!empty($categories)): ?>
+        <div class="category-filter">
+            <a href="<?= base_url('/') ?>" class="category-pill <?= ($activeCatId ?? 0) === 0 ? 'is-active' : '' ?>">
+                <?= esc(lang('App.categoryAll')) ?>
+            </a>
+            <?php foreach ($categories as $cat): ?>
+                <a href="<?= base_url('/?cat=' . (int)$cat['id']) ?>" class="category-pill <?= ($activeCatId ?? 0) === (int)$cat['id'] ? 'is-active' : '' ?>" style="--cat-color:<?= esc($cat['color'] ?? '#14b8a6') ?>">
+                    <?= esc($cat['name']) ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
     <?php if (session()->getFlashdata('login_error')): ?>
         <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('login_error')) ?></p>
     <?php endif; ?>

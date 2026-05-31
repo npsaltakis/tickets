@@ -20,7 +20,7 @@
             </p>
         </div>
         <div>
-            <a href="<?= base_url('admin/events/' . $event['slug'] . '/tickets/print-all') ?>" class="admin-event-btn admin-event-btn--secondary" target="_blank" id="print-all-qr"><?= esc(lang('App.adminTicketsPrintAll')) ?></a>
+            <a href="<?= base_url('admin/events/' . $event['slug'] . '/tickets/export') ?>" class="admin-event-btn admin-event-btn--secondary"><?= esc(lang('App.adminEventsExport')) ?> CSV</a>
         </div>
     </div>
 

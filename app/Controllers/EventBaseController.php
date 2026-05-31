@@ -31,9 +31,10 @@ abstract class EventBaseController extends BaseController
         $isEditMode = ! empty($event);
 
         return view('events/create', [
-            'event' => $event,
+            'event'      => $event,
             'isEditMode' => $isEditMode,
-            'pageTitle' => $isEditMode ? lang('App.eventEditPageTitle') : lang('App.eventCreatePageTitle'),
+            'categories' => (new \App\Models\CategoryModel())->orderBy('name', 'ASC')->findAll(),
+            'pageTitle'  => $isEditMode ? lang('App.eventEditPageTitle') : lang('App.eventCreatePageTitle'),
         ]);
     }
 
@@ -174,6 +175,7 @@ abstract class EventBaseController extends BaseController
             'min_donation' => $normalizedMinDonation,
             'status' => $status,
             'bookings_enabled' => $bookingsEnabled,
+            'category_id'     => (int) $this->request->getPost('category_id') > 0 ? (int) $this->request->getPost('category_id') : null,
         ];
 
         if ($existingEvent === null) {
@@ -374,7 +376,7 @@ abstract class EventBaseController extends BaseController
         return session()->get('is_logged_in') === true && (string) session()->get('user_role') === 'admin';
     }
 
-    protected function fetchEventBatch(string $query, int $offset, int $limit): array
+    protected function fetchEventBatch(string $query, int $offset, int $limit, int $categoryId = 0): array
     {
         $builder = $this->eventModel->builder();
         $builder->where('deleted_at', null);
@@ -382,6 +384,10 @@ abstract class EventBaseController extends BaseController
 
         if (! $this->isAdmin()) {
             $builder->where('status', 'active');
+        }
+
+        if ($categoryId > 0) {
+            $builder->where('category_id', $categoryId);
         }
 
         if ($query !== '') {
@@ -464,6 +470,65 @@ abstract class EventBaseController extends BaseController
             ->countAllResults();
 
         return max($capacity - $bookedSeats, 0);
+    }
+
+    protected function notifyTicketHoldersCancellation(array $event): void
+    {
+        try {
+            $db     = db_connect();
+            $tTable = $db->prefixTable('tickets');
+            $uTable = $db->prefixTable('users');
+
+            $holders = $db->table($tTable . ' t')
+                ->select('u.email, u.first_name, t.ticket_code')
+                ->join($uTable . ' u', 'u.id = t.user_id')
+                ->where('t.event_id', (int) ($event['id'] ?? 0))
+                ->where('t.status', 'valid')
+                ->get()
+                ->getResultArray();
+
+            if (empty($holders)) {
+                return;
+            }
+
+            $title     = (string) ($event['title'] ?? '-');
+            $startDate = ! empty($event['start_date']) ? date('d/m/Y H:i', strtotime((string) $event['start_date'])) : '-';
+            $eventUrl  = base_url('events/' . ($event['slug'] ?? ''));
+            $subject   = $this->bilingualSubject('App.eventCancelledEmailSubject', [$title]);
+
+            foreach ($holders as $holder) {
+                $email = trim((string) ($holder['email'] ?? ''));
+                if ($email === '') {
+                    continue;
+                }
+
+                $name     = trim((string) ($holder['first_name'] ?? ''));
+                $greeting = $name !== '' ? lang('App.reminderEmailGreeting') . ' ' . $name . ',' : lang('App.reminderEmailGreeting') . ',';
+
+                $emailService = service('email');
+                $emailService->setTo($email);
+                $emailService->setSubject($subject);
+                $emailService->setMailType('html');
+                $emailService->setMessage(
+                    $this->buildBilingualActionEmailHtml(
+                        [
+                            $greeting,
+                            $this->localizedLine('App.eventCancelledEmailBody', [$title, $startDate], 'el'),
+                        ],
+                        [
+                            $greeting,
+                            $this->localizedLine('App.eventCancelledEmailBody', [$title, $startDate], 'en'),
+                        ],
+                        $eventUrl,
+                        $this->localizedLine('App.adminEventFullButton', [], 'el'),
+                        $this->localizedLine('App.adminEventFullButton', [], 'en'),
+                        $subject
+                    )
+                );
+                $emailService->send(false);
+            }
+        } catch (\Throwable) {
+        }
     }
 
     protected function notifyAdminEventFull(array $event): void

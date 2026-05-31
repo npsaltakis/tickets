@@ -112,6 +112,11 @@ class EventAdminController extends EventBaseController
         }
 
         $this->eventModel->update((int) $event['id'], ['status' => $newStatus]);
+
+        if ($newStatus === 'cancelled' && (string) ($event['status'] ?? '') !== 'cancelled') {
+            $this->notifyTicketHoldersCancellation($event);
+        }
+
         $this->logAdminAction('event_status_update', 'event', [
             'event_id'   => (int) $event['id'],
             'slug'       => $slug,
@@ -155,7 +160,12 @@ class EventAdminController extends EventBaseController
                 $this->eventModel->whereIn('id', $eventIds)->set(['status' => 'inactive'])->update();
                 break;
             case 'cancel':
-                $this->eventModel->whereIn('id', $eventIds)->set(['status' => 'cancelled'])->update();
+                foreach ($events as $ev) {
+                    if ((string) ($ev['status'] ?? '') !== 'cancelled') {
+                        $this->eventModel->update((int) $ev['id'], ['status' => 'cancelled']);
+                        $this->notifyTicketHoldersCancellation($ev);
+                    }
+                }
                 break;
         }
 

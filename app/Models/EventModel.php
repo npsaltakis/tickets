@@ -33,6 +33,7 @@ class EventModel extends Model
         'min_donation',
         'status',
         'bookings_enabled',
+        'category_id',
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -54,6 +55,7 @@ class EventModel extends Model
         'start_date'   => ['label' => 'Start date',   'rules' => 'if_exist|required'],
         'end_date'     => ['label' => 'End date',     'rules' => 'if_exist|required'],
         'capacity'     => ['label' => 'Capacity',     'rules' => 'if_exist|permit_empty|is_natural_no_zero'],
+        'category_id'  => ['label' => 'Category',      'rules' => 'if_exist|permit_empty|is_natural_no_zero'],
         'event_type'   => ['label' => 'Event type',   'rules' => 'if_exist|required|in_list[free,donation]'],
         'event_format' => ['label' => 'Event format', 'rules' => 'if_exist|required|in_list[physical,online,hybrid]'],
         'status'       => ['label' => 'Status',       'rules' => 'if_exist|required|in_list[active,inactive,cancelled]'],

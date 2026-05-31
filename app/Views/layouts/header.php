@@ -111,6 +111,7 @@ $structuredData = array_values(array_filter((array) ($structuredData ?? [])));
                     </summary>
                     <div class="user-dropdown">
                         <a href="<?= base_url('my-events') ?>" class="user-dropdown-link"><?= esc(lang('App.navMyEvents')) ?></a>
+                        <a href="<?= base_url('profile') ?>" class="user-dropdown-link"><?= esc(lang('App.profilePageTitle')) ?></a>
                         <a href="<?= base_url('logout') ?>" class="user-dropdown-link user-dropdown-logout"><?= esc(lang('App.navLogout')) ?></a>
                     </div>
                 </details>

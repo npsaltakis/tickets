@@ -58,6 +58,20 @@ $routes->post('events/(:segment)/paypal/capture', 'BookingController::captureDon
 $routes->get('events/feed', 'Home::eventsFeed');
 $routes->get('events/(:segment)', 'Home::show/$1');
 
+$routes->get('profile', 'ProfileController::index');
+$routes->post('profile', 'ProfileController::update');
+
+$routes->get('admin/categories', 'CategoryAdminController::index');
+$routes->post('admin/categories', 'CategoryAdminController::store');
+$routes->post('admin/categories/(:num)/delete', 'CategoryAdminController::delete/$1');
+
+$routes->get('admin/discount-codes', 'DiscountCodeAdminController::index');
+$routes->post('admin/discount-codes', 'DiscountCodeAdminController::store');
+$routes->post('admin/discount-codes/(:num)/delete', 'DiscountCodeAdminController::delete/$1');
+$routes->post('admin/discount-codes/validate', 'DiscountCodeAdminController::validate');
+
+$routes->get('admin/events/(:segment)/tickets/export', 'TicketAdminController::export/$1');
+
 $routes->get('login', 'LoginController::index');
 $routes->post('login', 'LoginController::authenticate');
 $routes->get('logout', 'LoginController::logout');

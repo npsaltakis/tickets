@@ -2,20 +2,25 @@
 
 namespace App\Controllers;
 
+use App\Models\CategoryModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class Home extends EventBaseController
 {
     public function index(): string
     {
-        $batchSize = 12;
-        [$events, $hasMore] = $this->fetchEventBatch('', 0, $batchSize);
+        $batchSize  = 12;
+        $categoryId = max(0, (int) ($this->request->getGet('cat') ?? 0));
+        [$events, $hasMore] = $this->fetchEventBatch('', 0, $batchSize, $categoryId);
+        $categories = (new CategoryModel())->orderBy('name', 'ASC')->findAll();
 
         return view('events/index', [
-            'events' => $events,
-            'batchSize' => $batchSize,
-            'hasMore' => $hasMore,
-            'pageTitle' => 'All Events | Ticketing System',
+            'events'       => $events,
+            'batchSize'    => $batchSize,
+            'hasMore'      => $hasMore,
+            'categories'   => $categories,
+            'activeCatId'  => $categoryId,
+            'pageTitle'    => 'All Events | Ticketing System',
             'metaDescription' => lang('App.eventsPageSubtitle'),
             'canonicalUrl' => base_url('/'),
         ]);
@@ -28,9 +33,10 @@ class Home extends EventBaseController
             $query = '';
         }
 
+        $categoryId = max(0, (int) ($this->request->getGet('cat') ?? 0));
         $offset = max(0, (int) $this->request->getGet('offset'));
         $limit = max(1, min(24, (int) ($this->request->getGet('limit') ?? 12)));
-        [$events, $hasMore] = $this->fetchEventBatch($query, $offset, $limit);
+        [$events, $hasMore] = $this->fetchEventBatch($query, $offset, $limit, $categoryId);
 
         return $this->response->setJSON([
             'html' => view('events/_event_cards', ['events' => $events]),

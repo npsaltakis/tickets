@@ -151,6 +151,61 @@ class TicketAdminController extends BaseController
         }
     }
 
+    public function export(string $slug): ResponseInterface
+    {
+        if (! $this->ensureAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Unauthorized');
+        }
+
+        $event = $this->eventModel->where('slug', $slug)->first();
+        if (empty($event)) {
+            return $this->response->setStatusCode(404)->setBody('Event not found');
+        }
+
+        $db           = db_connect();
+        $ticketsTable = $db->prefixTable('tickets');
+        $usersTable   = $db->prefixTable('users');
+
+        $rows = $db->table($ticketsTable . ' t')
+            ->select('t.ticket_code, t.status, t.payment_status, t.donation_amount, t.created_at, t.checked_in_at, u.first_name, u.last_name, u.email')
+            ->join($usersTable . ' u', 'u.id = t.user_id', 'left')
+            ->where('t.event_id', (int) $event['id'])
+            ->orderBy('t.created_at', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $csvRows = [['Ticket Code', 'First Name', 'Last Name', 'Email', 'Status', 'Payment', 'Amount', 'Booked At', 'Checked In At']];
+
+        foreach ($rows as $row) {
+            $csvRows[] = [
+                $row['ticket_code'] ?? '',
+                $row['first_name'] ?? '',
+                $row['last_name'] ?? '',
+                $row['email'] ?? '',
+                $row['status'] ?? '',
+                $row['payment_status'] ?? '',
+                $row['donation_amount'] ?? 0,
+                $row['created_at'] ?? '',
+                $row['checked_in_at'] ?? '',
+            ];
+        }
+
+        $csv = '';
+        foreach ($csvRows as $row) {
+            $csv .= implode(',', array_map(
+                static fn ($c) => '"' . str_replace('"', '""', (string) $c) . '"',
+                $row
+            )) . "\r\n";
+        }
+
+        $filename = 'attendees-' . $slug . '-' . date('Y-m-d') . '.csv';
+
+        return $this->response
+            ->setHeader('Content-Type', 'text/csv; charset=utf-8')
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
+            ->setBody("\xEF\xBB\xBF" . $csv);
+    }
+
     private function ensureAdmin(): bool
     {
         return session()->get('is_logged_in') === true && (string) session()->get('user_role') === 'admin';
