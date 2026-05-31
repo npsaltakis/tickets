@@ -10,7 +10,7 @@
     data-camera-ready="<?= esc(lang('App.checkInCameraReady'), 'attr') ?>"
     data-camera-stopped="<?= esc(lang('App.checkInCameraStopped'), 'attr') ?>"
 >
-    <section class="auth-card check-in-card">
+    <section class="check-in-card">
         <h1 class="auth-title"><?= esc(lang('App.checkInTitle')) ?></h1>
         <p class="subtitle"><?= esc(lang('App.checkInSubtitle')) ?></p>
 
