@@ -20,9 +20,11 @@ body {
 
 
 .wrapper {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 36px 20px 56px;
+    padding: 36px 40px 56px;
+}
+
+@media (max-width: 768px) {
+    .wrapper { padding: 24px 16px 40px; }
 }
 
 h1 {
@@ -379,6 +381,7 @@ h1 {
 
 @media (max-width: 640px) {
     .top-nav-inner {
+        padding: 12px 16px;
         flex-direction: column;
         align-items: stretch;
     }
@@ -1534,9 +1537,7 @@ h1 {
 }
 
 .top-nav-inner {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 14px 20px;
+    padding: 14px 40px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1650,7 +1651,7 @@ h1 {
 
 @media (max-width: 640px) {
     .top-nav-inner {
-        padding: 12px;
+        padding: 12px 16px;
         flex-direction: column;
         align-items: stretch;
     }
@@ -1734,8 +1735,7 @@ h1 {
     }
 
     .footer-inner-shell {
-        padding-top: 12px;
-        padding-bottom: 12px;
+        padding: 12px 16px;
     }
 
     .footer-menu-card {
