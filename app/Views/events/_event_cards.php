@@ -1,6 +1,7 @@
 <?php foreach ($events as $event): ?>
     <?php
     $status = strtolower((string) ($event['status'] ?? 'inactive'));
+    $statusLabel = lang('App.eventStatus' . ucfirst($status));
     $eventUrl = ! empty($event['slug']) ? base_url('events/' . $event['slug']) : '#';
     $startDate = $event['start_date'] ?? null;
     $endDate = $event['end_date'] ?? null;
@@ -20,19 +21,15 @@
 
             <div class="row">
                 <h2 class="title"><?= esc($event['title']) ?></h2>
-                <span class="status <?= esc($status) ?>"><?= esc($status) ?></span>
+                <span class="status <?= esc($status) ?>"><?= esc($statusLabel) ?></span>
             </div>
 
             <?php if (! empty($startDate)): ?>
-                <p class="meta">
-                    <?= esc(lang('App.startDate')) ?>: <?= esc(date('d/m/Y H:i', strtotime((string) $startDate))) ?>
-                </p>
+                <p class="meta"><?= esc(lang('App.startDate')) ?>: <?= esc(date('d/m/Y H:i', strtotime((string) $startDate))) ?></p>
             <?php endif; ?>
 
             <?php if (! empty($endDate)): ?>
-                <p class="meta">
-                    <?= esc(lang('App.endDate')) ?>: <?= esc(date('d/m/Y H:i', strtotime((string) $endDate))) ?>
-                </p>
+                <p class="meta"><?= esc(lang('App.endDate')) ?>: <?= esc(date('d/m/Y H:i', strtotime((string) $endDate))) ?></p>
             <?php endif; ?>
 
             <?php if (! empty($event['location'])): ?>
@@ -42,15 +39,11 @@
             <p class="meta"><?= esc(lang('App.seatsRemaining')) ?>: <?= esc((string) $remainingSeats) ?></p>
 
             <?php if (! empty($event['description'])): ?>
-                <?php $description = (string) $event['description']; ?>
-                <?php $shortDescription = strlen($description) > 140 ? substr($description, 0, 140) . '...' : $description; ?>
-                <p class="meta"><?= esc($shortDescription) ?></p>
+                <p class="card-description"><?= esc($event['description']) ?></p>
             <?php endif; ?>
 
             <?php if (($event['event_type'] ?? 'free') === 'donation'): ?>
-                <span class="pill">
-                    <?= esc(lang('App.donationFrom')) ?> €<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2)) ?>
-                </span>
+                <span class="pill"><?= esc(lang('App.donationFrom')) ?> €<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2)) ?></span>
             <?php else: ?>
                 <span class="pill"><?= esc(lang('App.freeEvent')) ?></span>
             <?php endif; ?>

@@ -3,7 +3,7 @@ $assetVersion = static function (string $relativePath): string {
     $fullPath = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
     return is_file($fullPath) ? (string) filemtime($fullPath) : (string) time();
 };
-?><?= $this->extend('layouts/main') ?>
+?><?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('content') ?>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">

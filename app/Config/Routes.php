@@ -34,6 +34,7 @@ $routes->post('users/(:num)/resend-verification', 'UserAdminController::resendVe
 $routes->get('gdpr', 'PagesController::gdpr');
 $routes->get('privacy-policy', 'PagesController::privacy');
 $routes->get('terms', 'PagesController::terms');
+$routes->get('admin/events', 'EventAdminController::index');
 $routes->get('events/create', 'EventAdminController::create');
 $routes->post('events', 'EventAdminController::store');
 $routes->get('events/(:segment)/edit', 'EventAdminController::edit/$1');

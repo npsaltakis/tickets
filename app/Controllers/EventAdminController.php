@@ -7,6 +7,38 @@ use CodeIgniter\HTTP\RedirectResponse;
 
 class EventAdminController extends EventBaseController
 {
+    public function index(): string|RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'))->with('login_error', lang('App.eventCreateUnauthorized'));
+        }
+
+        $events = $this->eventModel
+            ->orderBy('created_at', 'DESC')
+            ->findAll();
+
+        $issuedMap = [];
+        if (! empty($events)) {
+            $ticketModel = new \App\Models\TicketModel();
+            $rows = $ticketModel
+                ->select('event_id, COUNT(*) as cnt')
+                ->whereIn('event_id', array_column($events, 'id'))
+                ->where('status', 'valid')
+                ->where('payment_status !=', 'failed')
+                ->groupBy('event_id')
+                ->findAll();
+            foreach ($rows as $row) {
+                $issuedMap[(int) $row['event_id']] = (int) $row['cnt'];
+            }
+        }
+
+        return view('events/admin_index', [
+            'events'     => $events,
+            'issuedMap'  => $issuedMap,
+            'pageTitle'  => lang('App.adminEventsPageTitle'),
+        ]);
+    }
+
     public function create(): string|RedirectResponse
     {
         if (! $this->isAdmin()) {
