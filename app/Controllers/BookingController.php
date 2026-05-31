@@ -79,11 +79,22 @@ class BookingController extends EventBaseController
             $bookingMessage .= ' ' . lang('App.bookingEmailFailed');
         }
 
-        if ($this->getRemainingSeats($event) === 0) {
+        $remaining = $this->getRemainingSeats($event);
+        $capacity  = max(1, (int) ($event['capacity'] ?? 1));
+
+        if ($remaining === 0) {
             $this->notifyAdminEventFull($event);
+        } elseif ($remaining / $capacity <= 0.2) {
+            $cacheKey = 'event_80pct_notified_' . (int) $event['id'];
+            if (! cache()->get($cacheKey)) {
+                $this->notifyAdminCapacityAlert($event, $remaining, $capacity);
+                cache()->save($cacheKey, true, 86400);
+            }
         }
 
-        return redirect()->to(base_url('events/' . $slug))->with('event_info', $bookingMessage);
+        return redirect()->to(base_url('events/' . $slug . '/success'))
+            ->with('booking_success_codes', $ticketCodes)
+            ->with('booking_success_message', $bookingMessage);
     }
 
     public function createDonationOrder(string $slug)

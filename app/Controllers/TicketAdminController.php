@@ -151,6 +151,30 @@ class TicketAdminController extends BaseController
         }
     }
 
+    public function printQr(string $slug): string|RedirectResponse
+    {
+        if (! $this->ensureAdmin()) {
+            return redirect()->to(base_url('/'));
+        }
+
+        $event = $this->eventModel->where('slug', $slug)->first();
+        if (empty($event)) {
+            throw new \CodeIgniter\Exceptions\PageNotFoundException();
+        }
+
+        $tickets = $this->ticketModel
+            ->where('event_id', (int) $event['id'])
+            ->where('status', 'valid')
+            ->orderBy('created_at', 'ASC')
+            ->findAll();
+
+        return view('events/admin_print_qr', [
+            'event'   => $event,
+            'tickets' => $tickets,
+            'qrBase'  => base_url('admin/tickets/qr/'),
+        ]);
+    }
+
     public function export(string $slug): ResponseInterface
     {
         if (! $this->ensureAdmin()) {

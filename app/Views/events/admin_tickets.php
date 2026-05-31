@@ -21,6 +21,8 @@
         </div>
         <div>
             <a href="<?= base_url('admin/events/' . $event['slug'] . '/tickets/export') ?>" class="admin-event-btn admin-event-btn--secondary"><?= esc(lang('App.adminEventsExport')) ?> CSV</a>
+            <a href="<?= base_url('admin/events/' . $event['slug'] . '/tickets/print-qr') ?>" class="admin-event-btn admin-event-btn--secondary" target="_blank"><?= esc(lang('App.printQrTitle')) ?></a>
+            <a href="<?= base_url('admin/events/' . $event['slug'] . '/email-attendees') ?>" class="admin-event-btn"><?= esc(lang('App.emailAttendeesTitle')) ?></a>
         </div>
     </div>
 

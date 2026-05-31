@@ -177,6 +177,93 @@ class EventAdminController extends EventBaseController
         return $this->response->setJSON(['success' => true, 'count' => count($eventIds)]);
     }
 
+    public function emailAttendeesForm(string $slug): string|RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'));
+        }
+
+        $event = $this->eventModel->where('slug', $slug)->first();
+        if (empty($event)) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        return view('events/admin_email_attendees', [
+            'event'     => $event,
+            'pageTitle' => lang('App.emailAttendeesTitle'),
+        ]);
+    }
+
+    public function emailAttendees(string $slug): RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'));
+        }
+
+        $event = $this->eventModel->where('slug', $slug)->first();
+        if (empty($event)) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        $subject = trim((string) $this->request->getPost('subject'));
+        $message = trim((string) $this->request->getPost('message'));
+
+        if ($subject === '' || $message === '') {
+            return redirect()->back()->withInput()->with('email_error', lang('App.emailAttendeesRequired'));
+        }
+
+        $db     = db_connect();
+        $tTable = $db->prefixTable('tickets');
+        $uTable = $db->prefixTable('users');
+
+        $holders = $db->table($tTable . ' t')
+            ->select('u.email, u.first_name')
+            ->join($uTable . ' u', 'u.id = t.user_id')
+            ->where('t.event_id', (int) $event['id'])
+            ->where('t.status', 'valid')
+            ->groupBy('u.id')
+            ->get()
+            ->getResultArray();
+
+        $sent = 0;
+        foreach ($holders as $holder) {
+            $email = trim((string) ($holder['email'] ?? ''));
+            if ($email === '') {
+                continue;
+            }
+
+            try {
+                $mailer = service('email');
+                $mailer->setTo($email);
+                $mailer->setSubject($subject);
+                $mailer->setMailType('html');
+                $mailer->setMessage(
+                    $this->buildBilingualActionEmailHtml(
+                        [trim((string) ($holder['first_name'] ?? '')), $message],
+                        [trim((string) ($holder['first_name'] ?? '')), $message],
+                        base_url('events/' . $slug),
+                        lang('App.adminEventFullButton'),
+                        lang('App.adminEventFullButton'),
+                        $subject
+                    )
+                );
+                if ($mailer->send(false)) {
+                    $sent++;
+                }
+            } catch (\Throwable) {
+            }
+        }
+
+        $this->logAdminAction('email_attendees', 'event', [
+            'event_id' => (int) $event['id'],
+            'subject'  => $subject,
+            'sent'     => $sent,
+        ]);
+
+        return redirect()->to(base_url('admin/events/' . $slug . '/email-attendees'))
+            ->with('email_info', strtr(lang('App.emailAttendeesSent'), ['{n}' => $sent]));
+    }
+
     public function create(): string|RedirectResponse
     {
         if (! $this->isAdmin()) {

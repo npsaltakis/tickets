@@ -534,6 +534,36 @@ abstract class EventBaseController extends BaseController
         }
     }
 
+    protected function notifyAdminCapacityAlert(array $event, int $remaining, int $capacity): void
+    {
+        try {
+            $adminEmail = trim((string) getenv('ADMIN_NOTIFY_EMAIL'));
+            if ($adminEmail === '') {
+                $adminEmail = trim((string) ((new \App\Models\UserModel())
+                    ->where('role', 'admin')->where('status', 'active')
+                    ->orderBy('id', 'ASC')->first()['email'] ?? ''));
+            }
+            if ($adminEmail === '') {
+                return;
+            }
+            $title   = (string) ($event['title'] ?? '-');
+            $pct     = (int) round((($capacity - $remaining) / $capacity) * 100);
+            $subject = lang('App.capacityAlertSubject', [$pct, $title]);
+            $body    = lang('App.capacityAlertBody', [$title, $pct, $remaining, $capacity]);
+            $mailer  = service('email');
+            $mailer->setTo($adminEmail);
+            $mailer->setSubject($subject);
+            $mailer->setMailType('html');
+            $mailer->setMessage($this->buildBilingualActionEmailHtml(
+                [$subject, $body], [$subject, $body],
+                base_url('events/' . ($event['slug'] ?? '')),
+                lang('App.adminEventFullButton'), lang('App.adminEventFullButton'), $subject
+            ));
+            $mailer->send(false);
+        } catch (\Throwable) {
+        }
+    }
+
     protected function notifyAdminEventFull(array $event): void
     {
         try {

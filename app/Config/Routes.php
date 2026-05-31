@@ -71,6 +71,11 @@ $routes->post('admin/discount-codes/(:num)/delete', 'DiscountCodeAdminController
 $routes->post('admin/discount-codes/validate', 'DiscountCodeAdminController::validateCode');
 
 $routes->get('admin/events/(:segment)/tickets/export', 'TicketAdminController::export/$1');
+$routes->get('admin/events/(:segment)/tickets/print-qr', 'TicketAdminController::printQr/$1');
+$routes->get('admin/events/(:segment)/email-attendees', 'EventAdminController::emailAttendeesForm/$1');
+$routes->post('admin/events/(:segment)/email-attendees', 'EventAdminController::emailAttendees/$1');
+$routes->get('admin/analytics', 'AdminDashboardController::analytics');
+$routes->get('events/(:segment)/success', 'Home::bookingSuccess/$1');
 
 $routes->get('login', 'LoginController::index');
 $routes->post('login', 'LoginController::authenticate');

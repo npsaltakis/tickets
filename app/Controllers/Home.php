@@ -46,6 +46,24 @@ class Home extends EventBaseController
         ]);
     }
 
+    public function bookingSuccess(string $slug): string
+    {
+        $event = $this->eventModel->where('slug', $slug)->first();
+        if (empty($event)) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+
+        $ticketCodes = (array) session()->getFlashdata('booking_success_codes');
+        $message     = (string) (session()->getFlashdata('booking_success_message') ?? '');
+
+        return view('events/booking_success', [
+            'event'       => $event,
+            'ticketCodes' => $ticketCodes,
+            'message'     => $message,
+            'pageTitle'   => lang('App.bookingSuccessTitle'),
+        ]);
+    }
+
     public function calendarFeed()
     {
         $month = max(1, min(12, (int) ($this->request->getGet('month') ?? (int) date('n'))));
