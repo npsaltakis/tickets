@@ -124,15 +124,15 @@
             <div class="check-in-dashboard-stats">
                 <article>
                     <span><?= esc(lang('App.checkInDashboardIssued')) ?></span>
-                    <strong><?= esc((string) ($checkInTotals['issued'] ?? 0)) ?></strong>
+                    <strong id="ci-stat-issued"><?= esc((string) ($checkInTotals['issued'] ?? 0)) ?></strong>
                 </article>
                 <article>
                     <span><?= esc(lang('App.checkInDashboardCheckedIn')) ?></span>
-                    <strong><?= esc((string) ($checkInTotals['checked_in'] ?? 0)) ?></strong>
+                    <strong id="ci-stat-checkedin"><?= esc((string) ($checkInTotals['checked_in'] ?? 0)) ?></strong>
                 </article>
                 <article>
                     <span><?= esc(lang('App.checkInDashboardPending')) ?></span>
-                    <strong><?= esc((string) ($checkInTotals['pending'] ?? 0)) ?></strong>
+                    <strong id="ci-stat-pending"><?= esc((string) ($checkInTotals['pending'] ?? 0)) ?></strong>
                 </article>
             </div>
 
@@ -162,4 +162,24 @@
 </main>
 <script src="<?= base_url('assets/vendor/html5-qrcode/html5-qrcode.min.js') ?>?v=<?= esc((string) (is_file(FCPATH . 'assets/vendor/html5-qrcode/html5-qrcode.min.js') ? filemtime(FCPATH . 'assets/vendor/html5-qrcode/html5-qrcode.min.js') : time())) ?>"></script>
 <script src="<?= base_url('assets/js/check-in.js') ?>?v=<?= esc((string) (is_file(FCPATH . 'assets/js/check-in.js') ? filemtime(FCPATH . 'assets/js/check-in.js') : time())) ?>"></script>
+<script>
+window.baseUrl = '<?= base_url('/') ?>';
+(function () {
+    const statsUrl = window.baseUrl + 'check-in/stats';
+
+    const updateEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+    async function refresh() {
+        try {
+            const data = await (await fetch(statsUrl, { credentials: 'same-origin' })).json();
+            const t = data.totals || {};
+            updateEl('ci-stat-issued', t.issued ?? '');
+            updateEl('ci-stat-checkedin', t.checked_in ?? '');
+            updateEl('ci-stat-pending', t.pending ?? '');
+        } catch {}
+    }
+
+    setInterval(refresh, 15000);
+})();
+</script>
 <?= $this->endSection() ?>

@@ -466,6 +466,46 @@ abstract class EventBaseController extends BaseController
         return max($capacity - $bookedSeats, 0);
     }
 
+    protected function notifyAdminEventFull(array $event): void
+    {
+        try {
+            $adminEmail = trim((string) getenv('ADMIN_NOTIFY_EMAIL'));
+            if ($adminEmail === '') {
+                $adminEmail = trim((string) (new \App\Models\UserModel())
+                    ->where('role', 'admin')
+                    ->where('status', 'active')
+                    ->orderBy('id', 'ASC')
+                    ->first()['email'] ?? '');
+            }
+
+            if ($adminEmail === '') {
+                return;
+            }
+
+            $title     = (string) ($event['title'] ?? '-');
+            $capacity  = (int) ($event['capacity'] ?? 0);
+            $eventUrl  = base_url('events/' . ($event['slug'] ?? ''));
+            $subject   = lang('App.adminEventFullSubject', [$title]);
+
+            $emailService = service('email');
+            $emailService->setTo($adminEmail);
+            $emailService->setSubject($subject);
+            $emailService->setMailType('html');
+            $emailService->setMessage(
+                $this->buildBilingualActionEmailHtml(
+                    [$subject, lang('App.adminEventFullBody', [$title, $capacity])],
+                    [$subject, lang('App.adminEventFullBody', [$title, $capacity])],
+                    $eventUrl,
+                    lang('App.adminEventFullButton'),
+                    lang('App.adminEventFullButton'),
+                    $subject
+                )
+            );
+            $emailService->send(false);
+        } catch (\Throwable) {
+        }
+    }
+
     protected function generateTicketCode(): string
     {
         do {

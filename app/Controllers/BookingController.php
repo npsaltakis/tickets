@@ -79,6 +79,10 @@ class BookingController extends EventBaseController
             $bookingMessage .= ' ' . lang('App.bookingEmailFailed');
         }
 
+        if ($this->getRemainingSeats($event) === 0) {
+            $this->notifyAdminEventFull($event);
+        }
+
         return redirect()->to(base_url('events/' . $slug))->with('event_info', $bookingMessage);
     }
 

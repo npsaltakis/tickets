@@ -264,6 +264,27 @@ class ReportController extends EventBaseController
         return redirect()->to(base_url('my-events'))->with('event_info', lang('App.ticketResendSuccess'));
     }
 
+    public function checkInStats(): ResponseInterface
+    {
+        if (! $this->isAdmin()) {
+            return $this->response->setStatusCode(403)->setJSON(['error' => 'Unauthorized']);
+        }
+
+        [$events, $totals] = $this->getCheckInDashboardData();
+
+        return $this->response->setJSON([
+            'totals' => $totals,
+            'events' => array_map(static fn ($r) => [
+                'id'               => (int) ($r['id'] ?? 0),
+                'title'            => (string) ($r['title'] ?? ''),
+                'issued_tickets'   => (int) ($r['issued_tickets'] ?? 0),
+                'checked_in_tickets' => (int) ($r['checked_in_tickets'] ?? 0),
+                'check_in_rate'    => (int) ($r['check_in_rate'] ?? 0),
+                'start_date_label' => (string) ($r['start_date_label'] ?? '-'),
+            ], $events),
+        ]);
+    }
+
     public function checkIn(): RedirectResponse|string
     {
         if (! $this->isAdmin()) {

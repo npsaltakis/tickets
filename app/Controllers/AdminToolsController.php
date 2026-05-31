@@ -189,6 +189,100 @@ class AdminToolsController extends BaseController
         ]);
     }
 
+    public function sendReminders(): \CodeIgniter\HTTP\ResponseInterface
+    {
+        if (! $this->isAdmin()) {
+            return $this->response->setStatusCode(403)->setJSON(['error' => 'Unauthorized']);
+        }
+
+        $hoursAhead = max(1, (int) ($this->request->getPost('hours_ahead') ?? 48));
+        $db           = db_connect();
+        $eventsTable  = $db->prefixTable('events');
+        $ticketsTable = $db->prefixTable('tickets');
+        $usersTable   = $db->prefixTable('users');
+
+        $now  = date('Y-m-d H:i:s');
+        $cutoff = date('Y-m-d H:i:s', strtotime('+' . $hoursAhead . ' hours'));
+
+        $rows = $db->table($eventsTable . ' e')
+            ->select('e.id, e.title, e.slug, e.start_date, e.location, t.ticket_code, u.email, u.first_name')
+            ->join($ticketsTable . ' t', 't.event_id = e.id')
+            ->join($usersTable . ' u', 'u.id = t.user_id')
+            ->where('e.status', 'active')
+            ->where('e.deleted_at', null)
+            ->where('e.start_date >=', $now)
+            ->where('e.start_date <=', $cutoff)
+            ->where('t.status', 'valid')
+            ->get()
+            ->getResultArray();
+
+        if (empty($rows)) {
+            return $this->response->setJSON(['success' => true, 'sent' => 0, 'message' => 'No upcoming events with bookings in the next ' . $hoursAhead . ' hours.']);
+        }
+
+        $grouped = [];
+        foreach ($rows as $row) {
+            $key = $row['email'] . '|' . $row['id'];
+            if (! isset($grouped[$key])) {
+                $grouped[$key] = [
+                    'email'      => $row['email'],
+                    'first_name' => $row['first_name'] ?? '',
+                    'title'      => $row['title'] ?? '',
+                    'slug'       => $row['slug'] ?? '',
+                    'start_date' => $row['start_date'] ?? '',
+                    'location'   => $row['location'] ?? '',
+                    'codes'      => [],
+                ];
+            }
+            $grouped[$key]['codes'][] = $row['ticket_code'];
+        }
+
+        $sent = 0;
+        foreach ($grouped as $item) {
+            try {
+                $startLabel = ! empty($item['start_date']) ? date('d/m/Y H:i', strtotime((string) $item['start_date'])) : '-';
+                $eventUrl   = base_url('events/' . $item['slug']);
+                $codesText  = implode(', ', $item['codes']);
+                $name       = trim((string) $item['first_name']);
+                $greeting   = $name !== '' ? lang('App.reminderEmailGreeting') . ' ' . $name . ',' : lang('App.reminderEmailGreeting') . ',';
+
+                $emailService = service('email');
+                $emailService->setTo($item['email']);
+                $emailService->setSubject($this->bilingualSubject('App.reminderEmailSubject', [$item['title']]));
+                $emailService->setMailType('html');
+                $emailService->setMessage(
+                    $this->buildBilingualActionEmailHtml(
+                        [
+                            $greeting,
+                            $this->localizedLine('App.reminderEmailBody', [$item['title'], $startLabel, $item['location'], $codesText], 'el'),
+                        ],
+                        [
+                            $greeting,
+                            $this->localizedLine('App.reminderEmailBody', [$item['title'], $startLabel, $item['location'], $codesText], 'en'),
+                        ],
+                        $eventUrl,
+                        $this->localizedLine('App.reminderEmailButton', [], 'el'),
+                        $this->localizedLine('App.reminderEmailButton', [], 'en'),
+                        $this->bilingualSubject('App.reminderEmailSubject', [$item['title']])
+                    )
+                );
+
+                if ($emailService->send(false)) {
+                    $sent++;
+                }
+            } catch (\Throwable) {
+            }
+        }
+
+        $this->logAdminAction('send_reminders', 'system', [
+            'hours_ahead' => $hoursAhead,
+            'sent'        => $sent,
+            'total'       => count($grouped),
+        ]);
+
+        return $this->response->setJSON(['success' => true, 'sent' => $sent, 'total' => count($grouped)]);
+    }
+
     private function getDemoCleanupPlan(): array
     {
         $db = db_connect();

@@ -94,15 +94,44 @@ h1 {
 }
 
 .ticket-code-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .ticket-code-item {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 8px;
+    min-width: 0;
+}
+
+.ticket-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ticket-picker-select {
+    width: 100%;
+    font-family: monospace;
+    font-size: 0.88rem;
+    cursor: pointer;
+}
+
+.ticket-picker-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.ticket-resend-form {
+    margin: 0;
+}
+
+.ticket-resend-form .ticket-export-btn {
+    width: auto;
 }
 
 .ticket-code {
@@ -2979,3 +3008,224 @@ button:focus-visible,
         padding: 0 16px;
     }
 }
+
+/* =====================================================
+   ADMIN EVENTS — inline status select
+   ===================================================== */
+
+.admin-status-select {
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: var(--surface);
+    color: #f8fafc;
+    cursor: pointer;
+}
+
+.admin-status-select.status-active   { background: #16a34a; border-color: transparent; }
+.admin-status-select.status-inactive { background: #d97706; border-color: transparent; }
+.admin-status-select.status-cancelled{ background: #dc2626; border-color: transparent; }
+
+/* =====================================================
+   BULK ACTION BAR
+   ===================================================== */
+
+.bulk-bar {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    margin-bottom: 12px;
+    background: rgba(20, 184, 166, 0.08);
+    border: 1px solid rgba(20, 184, 166, 0.24);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 0.9rem;
+}
+
+.bulk-bar.is-visible { display: flex; }
+
+.bulk-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+/* =====================================================
+   ADMIN TICKETS PAGE
+   ===================================================== */
+
+.admin-tickets-page {
+    display: grid;
+    gap: 20px;
+    padding-top: 0;
+}
+
+.admin-tickets-table {
+    min-width: 700px;
+}
+
+.admin-ticket-code {
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    color: #93c5fd;
+}
+
+.admin-ticket-row--cancelled td {
+    opacity: 0.5;
+}
+
+/* =====================================================
+   VIEW TOGGLE (grid / calendar)
+   ===================================================== */
+
+.events-toolbar {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.events-search-box {
+    flex: 1;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+    padding-top: 2px;
+}
+
+.view-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(148, 163, 184, 0.08);
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.view-toggle-btn:hover {
+    color: #f8fafc;
+    border-color: rgba(148, 163, 184, 0.38);
+}
+
+.view-toggle-btn.is-active {
+    background: rgba(20, 184, 166, 0.16);
+    border-color: rgba(20, 184, 166, 0.36);
+    color: var(--accent);
+}
+
+/* =====================================================
+   CALENDAR
+   ===================================================== */
+
+.calendar-wrap {
+    margin-bottom: 32px;
+}
+
+.cal-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.cal-month-title {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #f8fafc;
+    flex: 1;
+    text-align: center;
+}
+
+.cal-nav-btn {
+    background: rgba(148, 163, 184, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background 0.15s ease;
+}
+
+.cal-nav-btn:hover { background: rgba(148, 163, 184, 0.2); }
+
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 2px;
+}
+
+.cal-header {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    padding: 6px 0 10px;
+}
+
+.cal-cell {
+    min-height: 90px;
+    padding: 6px;
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.35);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cal-cell--empty { background: transparent; border-color: transparent; }
+
+.cal-cell--today { border-color: rgba(20, 184, 166, 0.4); background: rgba(20, 184, 166, 0.06); }
+
+.cal-day-num {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-weight: 600;
+    align-self: flex-end;
+}
+
+.cal-cell--today .cal-day-num { color: var(--accent); }
+
+.cal-event {
+    display: block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: rgba(20, 184, 166, 0.18);
+    color: #5eead4;
+    border: 1px solid rgba(20, 184, 166, 0.25);
+    transition: background 0.12s ease;
+}
+
+.cal-event:hover { background: rgba(20, 184, 166, 0.28); }
+.cal-event--inactive { background: rgba(217, 119, 6, 0.15); color: #fbbf24; border-color: rgba(217, 119, 6, 0.25); }
+.cal-event--cancelled { background: rgba(220, 38, 38, 0.12); color: #fca5a5; border-color: rgba(220, 38, 38, 0.22); }
+
+@media (max-width: 640px) {
+    .cal-cell { min-height: 56px; padding: 4px; }
+    .cal-event { font-size: 0.65rem; }
+}
+

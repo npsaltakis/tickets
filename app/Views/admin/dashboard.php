@@ -70,6 +70,39 @@
         </div>
     </section>
 
+    <section class="card admin-dashboard-panel" style="padding:18px">
+        <h2><?= esc(lang('App.adminSendRemindersTitle')) ?></h2>
+        <p class="meta"><?= esc(lang('App.adminSendRemindersText')) ?></p>
+        <form method="post" action="<?= base_url('admin/send-reminders') ?>" class="admin-dashboard-cleanup-actions" id="reminders-form">
+            <?= csrf_field() ?>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <label class="auth-label" for="hours_ahead" style="margin:0"><?= esc(lang('App.adminSendRemindersHours')) ?></label>
+                <input id="hours_ahead" name="hours_ahead" type="number" min="1" max="168" value="48" class="auth-input seats-input" style="width:90px">
+                <button type="submit" class="book-btn" id="reminders-btn"><?= esc(lang('App.adminSendRemindersButton')) ?></button>
+                <span id="reminders-result" class="meta" style="display:none"></span>
+            </div>
+        </form>
+    </section>
+
+    <script>
+    document.getElementById('reminders-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('reminders-btn');
+        const res = document.getElementById('reminders-result');
+        btn.disabled = true;
+        res.style.display = 'none';
+        try {
+            const form = new FormData(e.target);
+            const body = new URLSearchParams(form);
+            const resp = await fetch(e.target.action, { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body.toString() });
+            const data = await resp.json();
+            res.textContent = data.sent + ' / ' + (data.total || 0) + ' emails sent';
+            res.style.display = 'inline';
+        } catch { res.textContent = 'Error'; res.style.display = 'inline'; }
+        finally { btn.disabled = false; }
+    });
+    </script>
+
     <section class="card admin-dashboard-panel admin-dashboard-danger">
         <h2><?= esc(lang('App.adminDashboardCleanupTitle')) ?></h2>
         <p class="meta"><?= esc(lang('App.adminDashboardCleanupText')) ?></p>

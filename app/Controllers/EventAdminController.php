@@ -2,8 +2,10 @@
 
 namespace App\Controllers;
 
+use App\Models\TicketModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 
 class EventAdminController extends EventBaseController
 {
@@ -37,6 +39,132 @@ class EventAdminController extends EventBaseController
             'issuedMap'  => $issuedMap,
             'pageTitle'  => lang('App.adminEventsPageTitle'),
         ]);
+    }
+
+    public function export(): ResponseInterface
+    {
+        if (! $this->isAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Unauthorized');
+        }
+
+        $events = $this->eventModel->orderBy('created_at', 'DESC')->findAll();
+
+        $issuedMap = [];
+        if (! empty($events)) {
+            $ticketModel = new TicketModel();
+            $rows = $ticketModel
+                ->select('event_id, COUNT(*) as cnt')
+                ->whereIn('event_id', array_column($events, 'id'))
+                ->where('status', 'valid')
+                ->where('payment_status !=', 'failed')
+                ->groupBy('event_id')
+                ->findAll();
+            foreach ($rows as $row) {
+                $issuedMap[(int) $row['event_id']] = (int) $row['cnt'];
+            }
+        }
+
+        $csvRows = [['Title', 'Status', 'Start Date', 'End Date', 'Type', 'Min Donation', 'Capacity', 'Issued', 'Location', 'Format']];
+
+        foreach ($events as $event) {
+            $csvRows[] = [
+                $event['title'] ?? '',
+                $event['status'] ?? '',
+                $event['start_date'] ?? '',
+                $event['end_date'] ?? '',
+                $event['event_type'] ?? 'free',
+                $event['min_donation'] ?? '',
+                $event['capacity'] ?? 0,
+                $issuedMap[(int) ($event['id'] ?? 0)] ?? 0,
+                $event['location'] ?? '',
+                $event['event_format'] ?? 'physical',
+            ];
+        }
+
+        $csv = '';
+        foreach ($csvRows as $row) {
+            $csv .= implode(',', array_map(
+                static fn ($cell) => '"' . str_replace('"', '""', (string) $cell) . '"',
+                $row
+            )) . "\r\n";
+        }
+
+        return $this->response
+            ->setHeader('Content-Type', 'text/csv; charset=utf-8')
+            ->setHeader('Content-Disposition', 'attachment; filename="events-' . date('Y-m-d') . '.csv"')
+            ->setBody("\xEF\xBB\xBF" . $csv);
+    }
+
+    public function updateStatus(string $slug): ResponseInterface
+    {
+        if (! $this->isAdmin()) {
+            return $this->response->setStatusCode(403)->setJSON(['error' => 'Unauthorized']);
+        }
+
+        $event = $this->eventModel->where('slug', $slug)->first();
+        if (empty($event)) {
+            return $this->response->setStatusCode(404)->setJSON(['error' => 'Not found']);
+        }
+
+        $newStatus = trim((string) $this->request->getPost('status'));
+        if (! in_array($newStatus, ['active', 'inactive', 'cancelled'], true)) {
+            return $this->response->setStatusCode(422)->setJSON(['error' => 'Invalid status']);
+        }
+
+        $this->eventModel->update((int) $event['id'], ['status' => $newStatus]);
+        $this->logAdminAction('event_status_update', 'event', [
+            'event_id'   => (int) $event['id'],
+            'slug'       => $slug,
+            'old_status' => (string) ($event['status'] ?? ''),
+            'new_status' => $newStatus,
+        ]);
+
+        return $this->response->setJSON(['success' => true, 'status' => $newStatus]);
+    }
+
+    public function bulk(): ResponseInterface
+    {
+        if (! $this->isAdmin()) {
+            return $this->response->setStatusCode(403)->setJSON(['error' => 'Unauthorized']);
+        }
+
+        $action = trim((string) $this->request->getPost('action'));
+        $slugs  = array_filter(array_map('trim', (array) $this->request->getPost('slugs')));
+
+        if ($slugs === [] || ! in_array($action, ['delete', 'activate', 'deactivate', 'cancel'], true)) {
+            return $this->response->setStatusCode(422)->setJSON(['error' => 'Invalid request']);
+        }
+
+        $events = $this->eventModel->whereIn('slug', array_values($slugs))->findAll();
+        if (empty($events)) {
+            return $this->response->setStatusCode(404)->setJSON(['error' => 'No events found']);
+        }
+
+        $eventIds = array_map(static fn ($e) => (int) $e['id'], $events);
+
+        switch ($action) {
+            case 'delete':
+                foreach ($eventIds as $id) {
+                    $this->eventModel->delete($id);
+                }
+                break;
+            case 'activate':
+                $this->eventModel->whereIn('id', $eventIds)->set(['status' => 'active'])->update();
+                break;
+            case 'deactivate':
+                $this->eventModel->whereIn('id', $eventIds)->set(['status' => 'inactive'])->update();
+                break;
+            case 'cancel':
+                $this->eventModel->whereIn('id', $eventIds)->set(['status' => 'cancelled'])->update();
+                break;
+        }
+
+        $this->logAdminAction('event_bulk_' . $action, 'event', [
+            'count' => count($eventIds),
+            'slugs' => implode(', ', $slugs),
+        ]);
+
+        return $this->response->setJSON(['success' => true, 'count' => count($eventIds)]);
     }
 
     public function create(): string|RedirectResponse

@@ -126,30 +126,37 @@ $assetVersion = static function (string $relativePath): string {
                                     </a>
                                 <?php endif; ?>
                             </div>
-                            <div class="ticket-code-list">
-                                <?php foreach ($tickets as $ticket): ?>
-                                    <div class="ticket-code-item">
-                                        <code class="ticket-code"><?= esc($ticket['code']) ?></code>
-                                        <button
-                                            type="button"
-                                            class="ticket-export-btn"
-                                            data-export-ticket-pdf
-                                            data-event='<?= esc(json_encode($eventPdfPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 'attr') ?>'
-                                            data-ticket-code="<?= esc((string) ($ticket['code'] ?? ''), 'attr') ?>"
-                                        >
-                                            <?= esc(lang('App.myEventsExportTicketPdf')) ?>
+                            <?php
+                            $firstCode = (string) ($tickets[0]['code'] ?? '');
+                            $calendarBase = base_url('my-events/tickets/');
+                            $resendBase   = base_url('my-events/tickets/');
+                            ?>
+                            <div class="ticket-picker" data-calendar-base="<?= esc($calendarBase, 'attr') ?>" data-resend-base="<?= esc($resendBase, 'attr') ?>">
+                                <select class="auth-input ticket-picker-select">
+                                    <?php foreach ($tickets as $i => $ticket): ?>
+                                        <option value="<?= esc($ticket['code']) ?>">
+                                            <?= esc(lang('App.myEventsTicketNumber', [$i + 1])) ?> — <?= esc($ticket['code']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <div class="ticket-picker-actions">
+                                    <button
+                                        type="button"
+                                        class="ticket-export-btn"
+                                        data-export-ticket-pdf
+                                        data-event='<?= esc(json_encode($eventPdfPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 'attr') ?>'
+                                        data-ticket-code="<?= esc($firstCode, 'attr') ?>"
+                                    ><?= esc(lang('App.myEventsExportTicketPdf')) ?></button>
+                                    <a class="ticket-export-btn ticket-export-link" href="<?= esc($calendarBase . urlencode($firstCode) . '/calendar.ics') ?>">
+                                        <?= esc(lang('App.myEventsAddToCalendar')) ?>
+                                    </a>
+                                    <form method="post" action="<?= esc($resendBase . urlencode($firstCode) . '/resend-email') ?>" class="ticket-resend-form ticket-picker-resend">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="ticket-export-btn ticket-export-btn--secondary">
+                                            <?= esc(lang('App.myEventsResendEmail')) ?>
                                         </button>
-                                        <a class="ticket-export-btn ticket-export-link" href="<?= base_url('my-events/tickets/' . urlencode((string) ($ticket['code'] ?? '')) . '/calendar.ics') ?>">
-                                            <?= esc(lang('App.myEventsAddToCalendar')) ?>
-                                        </a>
-                                        <form method="post" action="<?= base_url('my-events/tickets/' . urlencode((string) ($ticket['code'] ?? '')) . '/resend-email') ?>" class="ticket-resend-form">
-                                            <?= csrf_field() ?>
-                                            <button type="submit" class="ticket-export-btn ticket-export-btn--secondary">
-                                                <?= esc(lang('App.myEventsResendEmail')) ?>
-                                            </button>
-                                        </form>
-                                    </div>
-                                <?php endforeach; ?>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     <?php endif; ?>
@@ -161,4 +168,23 @@ $assetVersion = static function (string $relativePath): string {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 <script src="<?= base_url('assets/js/my-events.js') ?>?v=<?= esc($assetVersion('assets/js/my-events.js')) ?>"></script>
+<script>
+document.querySelectorAll('.ticket-picker').forEach(picker => {
+    const select   = picker.querySelector('.ticket-picker-select');
+    const pdfBtn   = picker.querySelector('[data-export-ticket-pdf]');
+    const calLink  = picker.querySelector('.ticket-export-link');
+    const resendForm = picker.querySelector('.ticket-picker-resend');
+    const calBase  = picker.dataset.calendarBase;
+    const resendBase = picker.dataset.resendBase;
+
+    if (!select) return;
+
+    select.addEventListener('change', () => {
+        const code = select.value;
+        if (pdfBtn)      pdfBtn.dataset.ticketCode = code;
+        if (calLink)     calLink.href = calBase + encodeURIComponent(code) + '/calendar.ics';
+        if (resendForm)  resendForm.action = resendBase + encodeURIComponent(code) + '/resend-email';
+    });
+});
+</script>
 <?= $this->endSection() ?>

@@ -1,7 +1,13 @@
-<?= $this->extend('layouts/admin') ?>
+<?php
+$assetVersion = static function (string $relativePath): string {
+    $fullPath = rtrim(FCPATH, '\\/') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+    return is_file($fullPath) ? (string) filemtime($fullPath) : (string) time();
+};
+?><?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('content') ?>
 <div class="wrapper admin-events-page">
+    <script>window.baseUrl = '<?= base_url('/') ?>';</script>
 
     <?php if (session()->getFlashdata('event_info')): ?>
         <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('event_info')) ?></p>
@@ -10,14 +16,27 @@
         <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('event_error')) ?></p>
     <?php endif; ?>
 
-    <div class="events-header" style="margin-bottom:20px">
+    <div class="events-header" style="margin-bottom:16px">
         <div>
             <p class="subtitle" style="margin:0"><?= esc(lang('App.adminEventsSubtitle')) ?></p>
         </div>
         <div class="admin-home-actions">
+            <a href="<?= base_url('admin/events/export') ?>" class="admin-event-btn admin-event-btn--secondary"><?= esc(lang('App.adminEventsExport')) ?></a>
             <a href="<?= base_url('events/create') ?>" class="admin-event-btn"><?= esc(lang('App.adminNewEventButton')) ?></a>
             <a href="<?= base_url('events/deleted') ?>" class="admin-event-btn admin-event-btn--secondary"><?= esc(lang('App.deletedEventsButton')) ?></a>
         </div>
+    </div>
+
+    <div id="bulk-bar" class="bulk-bar">
+        <span><?= esc(lang('App.adminBulkSelected')) ?> <strong id="bulk-count">0</strong></span>
+        <select id="bulk-action" class="auth-input" style="width:auto;padding:6px 10px">
+            <option value=""><?= esc(lang('App.adminBulkChoose')) ?></option>
+            <option value="activate"><?= esc(lang('App.adminBulkActivate')) ?></option>
+            <option value="deactivate"><?= esc(lang('App.adminBulkDeactivate')) ?></option>
+            <option value="cancel"><?= esc(lang('App.adminBulkCancel')) ?></option>
+            <option value="delete"><?= esc(lang('App.eventDeleteButton')) ?></option>
+        </select>
+        <button id="bulk-apply" class="book-btn"><?= esc(lang('App.adminBulkApply')) ?></button>
     </div>
 
     <div class="card" style="overflow:auto">
@@ -27,6 +46,7 @@
             <table class="admin-table admin-events-table">
                 <thead>
                     <tr>
+                        <th style="width:36px"><input type="checkbox" id="bulk-select-all" class="bulk-checkbox"></th>
                         <th><?= esc(lang('App.eventTitleLabel')) ?></th>
                         <th><?= esc(lang('App.eventStatusLabel')) ?></th>
                         <th><?= esc(lang('App.startDate')) ?></th>
@@ -39,36 +59,37 @@
                 <tbody>
                     <?php foreach ($events as $event): ?>
                         <?php
-                        $status    = strtolower((string) ($event['status'] ?? 'inactive'));
-                        $statusLabel = lang('App.eventStatus' . ucfirst($status));
-                        $capacity  = (int) ($event['capacity'] ?? 0);
-                        $issued    = (int) ($issuedMap[(int) ($event['id'] ?? 0)] ?? 0);
-                        $startDate = ! empty($event['start_date']) ? date('d/m/Y H:i', strtotime((string) $event['start_date'])) : '—';
-                        $endDate   = ! empty($event['end_date'])   ? date('d/m/Y H:i', strtotime((string) $event['end_date']))   : '—';
-                        $type      = ($event['event_type'] ?? 'free') === 'donation'
+                        $status      = strtolower((string) ($event['status'] ?? 'inactive'));
+                        $capacity    = (int) ($event['capacity'] ?? 0);
+                        $issued      = (int) ($issuedMap[(int) ($event['id'] ?? 0)] ?? 0);
+                        $startDate   = ! empty($event['start_date']) ? date('d/m/Y H:i', strtotime((string) $event['start_date'])) : '—';
+                        $endDate     = ! empty($event['end_date'])   ? date('d/m/Y H:i', strtotime((string) $event['end_date']))   : '—';
+                        $type        = ($event['event_type'] ?? 'free') === 'donation'
                             ? lang('App.eventCreateDonationType') . ' €' . number_format((float) ($event['min_donation'] ?? 0), 2)
                             : lang('App.freeEvent');
                         ?>
                         <tr>
+                            <td><input type="checkbox" class="bulk-check bulk-checkbox" data-slug="<?= esc($event['slug']) ?>"></td>
                             <td>
                                 <a class="admin-events-title-link" href="<?= esc(base_url('events/' . $event['slug'])) ?>">
                                     <?= esc($event['title']) ?>
                                 </a>
                             </td>
-                            <td><span class="status <?= esc($status) ?>"><?= esc($statusLabel) ?></span></td>
+                            <td>
+                                <select class="js-status-select admin-status-select status-<?= esc($status) ?>" data-slug="<?= esc($event['slug']) ?>">
+                                    <option value="active"    <?= $status === 'active'    ? 'selected' : '' ?>><?= esc(lang('App.eventStatusActive')) ?></option>
+                                    <option value="inactive"  <?= $status === 'inactive'  ? 'selected' : '' ?>><?= esc(lang('App.eventStatusInactive')) ?></option>
+                                    <option value="cancelled" <?= $status === 'cancelled' ? 'selected' : '' ?>><?= esc(lang('App.eventStatusCancelled')) ?></option>
+                                </select>
+                            </td>
                             <td class="admin-events-date"><?= esc($startDate) ?></td>
                             <td class="admin-events-date"><?= esc($endDate) ?></td>
                             <td><span class="table-pill"><?= esc($type) ?></span></td>
-                            <td class="admin-events-capacity">
-                                <?= esc((string) $issued) ?> / <?= esc((string) $capacity) ?>
-                            </td>
+                            <td class="admin-events-capacity"><?= esc((string) $issued) ?> / <?= esc((string) $capacity) ?></td>
                             <td>
                                 <div class="admin-actions">
+                                    <a class="admin-action-link" href="<?= esc(base_url('admin/events/' . $event['slug'] . '/tickets')) ?>"><?= esc(lang('App.adminEventsTickets')) ?></a>
                                     <a class="admin-action-link" href="<?= esc(base_url('events/' . $event['slug'] . '/edit')) ?>"><?= esc(lang('App.eventEditButton')) ?></a>
-                                    <form method="post" action="<?= esc(base_url('events/' . $event['slug'] . '/duplicate')) ?>" style="margin:0">
-                                        <?= csrf_field() ?>
-                                        <button type="submit" class="admin-action-btn"><?= esc(lang('App.eventDuplicateButton')) ?></button>
-                                    </form>
                                     <form method="post" action="<?= esc(base_url('events/' . $event['slug'] . '/delete')) ?>" style="margin:0" onsubmit="return confirm('<?= esc(lang('App.eventDeleteConfirm'), 'attr') ?>')">
                                         <?= csrf_field() ?>
                                         <button type="submit" class="admin-action-btn admin-action-btn--danger"><?= esc(lang('App.eventDeleteButton')) ?></button>
@@ -82,4 +103,5 @@
         <?php endif; ?>
     </div>
 </div>
+<script src="<?= base_url('assets/js/admin-events.js') ?>?v=<?= esc($assetVersion('assets/js/admin-events.js')) ?>"></script>
 <?= $this->endSection() ?>

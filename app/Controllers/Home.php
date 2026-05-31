@@ -40,6 +40,50 @@ class Home extends EventBaseController
         ]);
     }
 
+    public function calendarFeed()
+    {
+        $month = max(1, min(12, (int) ($this->request->getGet('month') ?? (int) date('n'))));
+        $year  = max(2020, min(2099, (int) ($this->request->getGet('year') ?? (int) date('Y'))));
+
+        $from = sprintf('%04d-%02d-01 00:00:00', $year, $month);
+        $to   = date('Y-m-t 23:59:59', mktime(0, 0, 0, $month, 1, $year));
+
+        $builder = $this->eventModel->builder();
+        $builder->where('deleted_at', null);
+
+        if (! $this->isAdmin()) {
+            $builder->where('status', 'active');
+        }
+
+        $builder
+            ->groupStart()
+                ->where('start_date <=', $to)
+                ->where('end_date >=', $from)
+                ->orGroupStart()
+                    ->where('start_date >=', $from)
+                    ->where('start_date <=', $to)
+                ->groupEnd()
+            ->groupEnd();
+
+        $events = $builder->orderBy('start_date', 'ASC')->get()->getResultArray();
+
+        $result = array_map(static fn ($e) => [
+            'id'         => (int) ($e['id'] ?? 0),
+            'title'      => (string) ($e['title'] ?? ''),
+            'slug'       => (string) ($e['slug'] ?? ''),
+            'status'     => (string) ($e['status'] ?? 'inactive'),
+            'start_date' => (string) ($e['start_date'] ?? ''),
+            'end_date'   => (string) ($e['end_date'] ?? ''),
+            'event_type' => (string) ($e['event_type'] ?? 'free'),
+        ], $events);
+
+        return $this->response->setJSON([
+            'events' => $result,
+            'month'  => $month,
+            'year'   => $year,
+        ]);
+    }
+
     public function show(string $slug): string
     {
         $event = $this->eventModel->where('slug', $slug)->first();
