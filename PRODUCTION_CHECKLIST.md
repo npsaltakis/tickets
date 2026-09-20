@@ -40,5 +40,12 @@ Run this checklist before or after deploying changes to production.
 - Run `php spark migrate` (adds refunds, waiting list and reminder tracking).
 - In the PayPal developer dashboard create a webhook to `https://<domain>/paypal/webhook` for `PAYMENT.CAPTURE.COMPLETED` and `PAYMENT.CAPTURE.REFUNDED`, then set `paypal.webhookId` in `.env`.
 - Schedule reminders with cron, e.g. hourly: `php spark reminders:send 48` (each ticket is reminded only once).
-- Optional `.env` tuning: `booking.maxSeatsPerUser` (default 10), `booking.cancelHoursBefore` (default 24), `ADMIN_NOTIFY_EMAIL` (contact form + admin alerts).
+- Optional `.env` tuning: `booking.maxSeatsPerUser` (default 10), `ADMIN_NOTIFY_EMAIL` (contact form + admin alerts).
 - Tests: `vendor/bin/phpunit`. Booking flow tests need a MySQL test DB via `database.tests.*` env vars, otherwise they are skipped.
+
+## Additional setup
+
+- Cron: `php spark emails:process 100` every few minutes (mass emails and event-change notices are queued).
+- Optional: `session.driver = database` in `.env` stores sessions in `ci_sessions` (created by migrations).
+- Optional receipt details: `ORG_NAME`, `ORG_TAX_ID`, `ORG_ADDRESS`.
+- Recommend administrators enable 2FA from their profile.

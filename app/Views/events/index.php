@@ -27,13 +27,12 @@ $assetVersion = static function (string $relativePath): string {
         <?php endif; ?>
     </div>
 
-    <script>window.baseUrl = '<?= base_url('/') ?>';
-    window.calendarMonthNames = <?= json_encode([
+    <div id="calendar-config" hidden data-months="<?= esc(json_encode([
         lang('App.calMonthJan'), lang('App.calMonthFeb'), lang('App.calMonthMar'),
         lang('App.calMonthApr'), lang('App.calMonthMay'), lang('App.calMonthJun'),
         lang('App.calMonthJul'), lang('App.calMonthAug'), lang('App.calMonthSep'),
         lang('App.calMonthOct'), lang('App.calMonthNov'), lang('App.calMonthDec'),
-    ], JSON_UNESCAPED_UNICODE) ?>;</script>
+    ], JSON_UNESCAPED_UNICODE), 'attr') ?>"></div>
 
     <div class="events-toolbar">
         <div class="events-search-box">
@@ -57,6 +56,37 @@ $assetVersion = static function (string $relativePath): string {
     </div>
 
     <div id="calendar-wrap" class="calendar-wrap" style="display:none"></div>
+
+    <?php
+    $filters       = (array) ($filters ?? []);
+    $activeFilters = array_filter([
+        'cat' => (int) ($filters['cat'] ?? 0) ?: null,
+        'type' => $filters['type'] ?? '',
+        'format' => $filters['format'] ?? '',
+        'from' => $filters['from'] ?? '',
+        'to' => $filters['to'] ?? '',
+    ], static fn ($v) => $v !== null && $v !== '');
+    ?>
+    <form method="get" action="<?= base_url('/') ?>" class="events-filters">
+        <?php if (!empty($filters['cat'])): ?><input type="hidden" name="cat" value="<?= (int) $filters['cat'] ?>"><?php endif; ?>
+        <select name="type" class="auth-input" aria-label="<?= esc(lang('App.filterType'), 'attr') ?>">
+            <option value=""><?= esc(lang('App.filterAnyType')) ?></option>
+            <option value="free" <?= ($filters['type'] ?? '') === 'free' ? 'selected' : '' ?>><?= esc(lang('App.filterFree')) ?></option>
+            <option value="donation" <?= ($filters['type'] ?? '') === 'donation' ? 'selected' : '' ?>><?= esc(lang('App.filterDonation')) ?></option>
+        </select>
+        <select name="format" class="auth-input" aria-label="<?= esc(lang('App.filterFormat'), 'attr') ?>">
+            <option value=""><?= esc(lang('App.filterAnyFormat')) ?></option>
+            <option value="physical" <?= ($filters['format'] ?? '') === 'physical' ? 'selected' : '' ?>><?= esc(lang('App.eventFormatPhysical')) ?></option>
+            <option value="online" <?= ($filters['format'] ?? '') === 'online' ? 'selected' : '' ?>><?= esc(lang('App.eventFormatOnline')) ?></option>
+            <option value="hybrid" <?= ($filters['format'] ?? '') === 'hybrid' ? 'selected' : '' ?>><?= esc(lang('App.eventFormatHybrid')) ?></option>
+        </select>
+        <label class="meta"><?= esc(lang('App.filterFrom')) ?> <input type="date" name="from" class="auth-input" value="<?= esc((string) ($filters['from'] ?? ''), 'attr') ?>"></label>
+        <label class="meta"><?= esc(lang('App.filterTo')) ?> <input type="date" name="to" class="auth-input" value="<?= esc((string) ($filters['to'] ?? ''), 'attr') ?>"></label>
+        <button type="submit" class="auth-link-btn"><?= esc(lang('App.filterApply')) ?></button>
+        <?php if (count($activeFilters) > (empty($filters['cat']) ? 0 : 1)): ?>
+            <a class="auth-link-btn" href="<?= base_url(!empty($filters['cat']) ? '/?cat=' . (int) $filters['cat'] : '/') ?>"><?= esc(lang('App.filterReset')) ?></a>
+        <?php endif; ?>
+    </form>
 
     <?php if (!empty($categories)): ?>
         <div class="category-filter">
@@ -93,6 +123,7 @@ $assetVersion = static function (string $relativePath): string {
             id="events-grid"
             data-batch-size="<?= esc((string) $batchSize) ?>"
             data-feed-url="<?= esc(base_url('events/feed'), 'attr') ?>"
+            data-filters="<?= esc(http_build_query($activeFilters), 'attr') ?>"
             data-search-empty-label="<?= esc(lang('App.eventsSearchEmpty'), 'attr') ?>"
             data-initial-count="<?= esc((string) count($events)) ?>"
             data-has-more="<?= $hasMore ? '1' : '0' ?>">

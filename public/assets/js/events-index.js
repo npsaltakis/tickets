@@ -103,6 +103,8 @@
             params.set('q', query);
         }
 
+        new URLSearchParams(grid.dataset.filters || '').forEach((value, key) => params.set(key, value));
+
         try {
             const response = await fetch(`${feedUrl}?${params.toString()}`, {
                 headers: {

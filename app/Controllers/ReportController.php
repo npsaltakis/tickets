@@ -267,7 +267,10 @@ class ReportController extends EventBaseController
         return redirect()->to(base_url('my-events'))->with('event_info', lang('App.ticketResendSuccess'));
     }
 
-    public function cancelTicket(string $ticketCode): RedirectResponse
+    /**
+     * Hands a valid, unused ticket over to another registered user.
+     */
+    public function transferTicket(string $ticketCode): RedirectResponse
     {
         if (session()->get('is_logged_in') !== true) {
             return redirect()->to(base_url('login'))->with('login_info', lang('App.bookingLoginRequired'));
@@ -278,31 +281,98 @@ class ReportController extends EventBaseController
             return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketResendNotFound'));
         }
 
-        $startDate = (string) ($ticket['event_start_date'] ?? '');
-        if ($startDate !== '' && strtotime($startDate) - (BookingService::cancelHoursBefore() * 3600) <= time()) {
-            return redirect()->to(base_url('my-events'))->with('event_error', strtr(lang('App.ticketCancelTooLate'), [
-                '{hours}' => (string) BookingService::cancelHoursBefore(),
-            ]));
+        $full = $this->ticketModel->find((int) $ticket['id']);
+        if (empty($full) || ! empty($full['checked_in_at'])) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketTransferFailed'));
         }
 
-        $result = (new BookingService())->cancelTicket((int) $ticket['id'], 'Ticket cancelled by customer');
-
-        if (! $result['ok']) {
-            $key = $result['error'] === 'refund_failed' ? 'App.ticketCancelRefundFailed' : 'App.ticketCancelFailed';
-
-            return redirect()->to(base_url('my-events'))->with('event_error', lang($key));
+        $endDate = (string) ($ticket['event_end_date'] ?? '');
+        if ($endDate !== '' && strtotime($endDate) < time()) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketTransferFailed'));
         }
 
-        $this->notifyWaitlist((int) $result['event_id']);
+        $email     = strtolower(trim((string) $this->request->getPost('transfer_email')));
+        $recipient = $email !== '' ? (new \App\Models\UserModel())->where('email', $email)->first() : null;
 
-        return redirect()->to(base_url('my-events'))->with('event_info', lang(
-            (string) ($ticket['payment_status'] ?? '') === 'paid' ? 'App.ticketCancelledRefunded' : 'App.ticketCancelled'
-        ));
+        if (empty($recipient) || (string) ($recipient['status'] ?? '') !== 'active') {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketTransferRecipientUnknown'));
+        }
+
+        if ((int) $recipient['id'] === (int) session()->get('user_id')) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketTransferSelf'));
+        }
+
+        if ((new BookingService())->userAllowance((int) $ticket['event_id'], (int) $recipient['id']) < 1) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketTransferRecipientLimit'));
+        }
+
+        $this->ticketModel->update((int) $ticket['id'], ['user_id' => (int) $recipient['id']]);
+
+        $event = [
+            'id' => (int) ($ticket['event_id'] ?? 0),
+            'title' => (string) ($ticket['event_title'] ?? ''),
+            'slug' => (string) ($ticket['event_slug'] ?? ''),
+            'location' => (string) ($ticket['event_location'] ?? ''),
+            'start_date' => $ticket['event_start_date'] ?? null,
+            'end_date' => $ticket['event_end_date'] ?? null,
+            'event_format' => (string) ($ticket['event_format'] ?? 'physical'),
+            'online_url' => $ticket['online_url'] ?? null,
+            'online_access_notes' => $ticket['online_access_notes'] ?? null,
+        ];
+
+        $this->sendBookingConfirmationEmail(
+            $event,
+            1,
+            [(string) $ticket['ticket_code']],
+            0.0,
+            'EUR',
+            (string) $recipient['email'],
+            trim(($recipient['first_name'] ?? '') . ' ' . ($recipient['last_name'] ?? ''))
+        );
+
+        return redirect()->to(base_url('my-events'))->with('event_info', lang('App.ticketTransferred'));
+    }
+
+    /**
+     * Printable donation receipt for a paid ticket (browser "print to PDF").
+     */
+    public function receipt(string $ticketCode): RedirectResponse|string
+    {
+        if (session()->get('is_logged_in') !== true) {
+            return redirect()->to(base_url('login'))->with('login_info', lang('App.bookingLoginRequired'));
+        }
+
+        $ticket = $this->findUserTicketWithEvent($ticketCode);
+        if ($ticket === null) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketResendNotFound'));
+        }
+
+        $db      = db_connect();
+        $payment = $db->table($db->prefixTable('payments'))
+            ->where('ticket_id', (int) $ticket['id'])
+            ->where('payment_status', 'completed')
+            ->get()
+            ->getRowArray();
+
+        if (empty($payment)) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.receiptNotAvailable'));
+        }
+
+        return view('events/receipt', [
+            'ticket'      => $ticket,
+            'payment'     => $payment,
+            'payerName'   => (string) session()->get('user_name'),
+            'payerEmail'  => (string) session()->get('user_email'),
+            'orgName'     => trim((string) env('ORG_NAME', lang('App.siteTitle'))),
+            'orgTaxId'    => trim((string) env('ORG_TAX_ID', '')),
+            'orgAddress'  => trim((string) env('ORG_ADDRESS', '')),
+            'pageTitle'   => lang('App.receiptTitle'),
+        ]);
     }
 
     public function checkInStats(): ResponseInterface
     {
-        if (! $this->isAdmin()) {
+        if (! $this->canCheckIn()) {
             return $this->response->setStatusCode(403)->setJSON(['error' => 'Unauthorized']);
         }
 
@@ -323,7 +393,7 @@ class ReportController extends EventBaseController
 
     public function checkIn(): RedirectResponse|string
     {
-        if (! $this->isAdmin()) {
+        if (! $this->canCheckIn()) {
             return redirect()->to(base_url('/'))->with('login_error', lang('App.checkInUnauthorized'));
         }
 
@@ -340,7 +410,7 @@ class ReportController extends EventBaseController
 
     public function processCheckIn(): RedirectResponse
     {
-        if (! $this->isAdmin()) {
+        if (! $this->canCheckIn()) {
             return redirect()->to(base_url('/'))->with('login_error', lang('App.checkInUnauthorized'));
         }
 

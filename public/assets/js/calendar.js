@@ -5,7 +5,10 @@
     const btnCal  = document.getElementById('view-cal');
     if (!grid || !calWrap || !btnGrid || !btnCal) return;
 
-    const MONTH_NAMES = window.calendarMonthNames || ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const configEl = document.getElementById('calendar-config');
+    let configuredMonths = null;
+    try { configuredMonths = configEl ? JSON.parse(configEl.dataset.months || 'null') : null; } catch (e) { configuredMonths = null; }
+    const MONTH_NAMES = configuredMonths || ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
     let currentYear  = new Date().getFullYear();
     let currentMonth = new Date().getMonth() + 1;

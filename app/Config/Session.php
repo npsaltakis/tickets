@@ -125,4 +125,18 @@ class Session extends BaseConfig
      * seconds.
      */
     public int $lockMaxRetries = 300;
+
+    /**
+     * Set `session.driver = database` in .env to keep sessions in the `ci_sessions` table
+     * (created by the migrations) instead of writable/session files.
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        if (strtolower((string) env('session.driver')) === 'database') {
+            $this->driver   = \CodeIgniter\Session\Handlers\DatabaseHandler::class;
+            $this->savePath = 'ci_sessions';
+        }
+    }
 }

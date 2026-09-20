@@ -61,6 +61,16 @@ $routes->get('events/(:segment)', 'Home::show/$1');
 $routes->get('profile', 'ProfileController::index');
 $routes->post('profile', 'ProfileController::update');
 $routes->get('profile/export', 'ProfileController::exportData');
+$routes->post('profile/email', 'ProfileController::requestEmailChange');
+$routes->get('profile/confirm-email', 'ProfileController::confirmEmailChange');
+$routes->post('profile/2fa/setup', 'ProfileController::twoFactorSetup');
+$routes->get('profile/2fa/qr', 'ProfileController::twoFactorQr');
+$routes->post('profile/2fa/enable', 'ProfileController::twoFactorEnable');
+$routes->post('profile/2fa/disable', 'ProfileController::twoFactorDisable');
+$routes->get('login/2fa', 'LoginController::twoFactorForm');
+$routes->post('login/2fa', 'LoginController::twoFactorVerify');
+$routes->post('my-events/tickets/(:segment)/transfer', 'ReportController::transferTicket/$1');
+$routes->get('my-events/tickets/(:segment)/receipt', 'ReportController::receipt/$1');
 $routes->post('profile/delete', 'ProfileController::deleteAccount');
 
 $routes->get('contact', 'PagesController::contact');
@@ -71,8 +81,6 @@ $routes->post('paypal/webhook', 'PayPalWebhookController::handle');
 $routes->post('events/(:segment)/discount/preview', 'BookingController::previewDiscount/$1');
 $routes->post('events/(:segment)/waitlist', 'BookingController::joinWaitlist/$1');
 $routes->post('events/(:segment)/waitlist/leave', 'BookingController::leaveWaitlist/$1');
-$routes->post('my-events/tickets/(:segment)/cancel', 'ReportController::cancelTicket/$1');
-$routes->post('admin/tickets/(:segment)/cancel', 'TicketAdminController::cancel/$1');
 $routes->post('users/bulk', 'UserAdminController::bulk');
 
 $routes->get('admin/categories', 'CategoryAdminController::index');

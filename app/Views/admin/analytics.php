@@ -6,7 +6,7 @@
 
         <div class="card analytics-card">
             <h2 class="analytics-title"><?= esc(lang('App.analyticsBookingsTitle')) ?></h2>
-            <canvas id="chart-bookings" height="80"></canvas>
+            <canvas id="chart-bookings" height="80" data-chart="<?= esc(json_encode(['labels' => $days, 'values' => $dayCounts]), 'attr') ?>"></canvas>
         </div>
 
         <div class="card analytics-card">
@@ -14,7 +14,7 @@
             <?php if (empty($revenueRows)): ?>
                 <p class="meta"><?= esc(lang('App.analyticsNoRevenue')) ?></p>
             <?php else: ?>
-                <canvas id="chart-revenue" height="80"></canvas>
+                <canvas id="chart-revenue" height="80" data-chart="<?= esc(json_encode(['labels' => array_column($revenueRows, 'title'), 'values' => array_map(static fn ($r) => (float) $r['total'], $revenueRows)]), 'attr') ?>"></canvas>
             <?php endif; ?>
         </div>
 
@@ -45,34 +45,6 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-<script>
-const chartDefaults = {
-    plugins: { legend: { display: false } },
-    scales: {
-        x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(148,163,184,0.1)' } },
-        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(148,163,184,0.1)' }, beginAtZero: true }
-    }
-};
-
-new Chart(document.getElementById('chart-bookings'), {
-    type: 'bar',
-    data: {
-        labels: <?= json_encode($days) ?>,
-        datasets: [{ data: <?= json_encode($dayCounts) ?>, backgroundColor: 'rgba(20,184,166,0.6)', borderColor: '#14b8a6', borderWidth: 1, borderRadius: 4 }]
-    },
-    options: { ...chartDefaults, responsive: true }
-});
-
-<?php if (!empty($revenueRows)): ?>
-new Chart(document.getElementById('chart-revenue'), {
-    type: 'bar',
-    data: {
-        labels: <?= json_encode(array_column($revenueRows, 'title')) ?>,
-        datasets: [{ data: <?= json_encode(array_map(fn($r) => (float)$r['total'], $revenueRows)) ?>, backgroundColor: 'rgba(245,158,11,0.6)', borderColor: '#f59e0b', borderWidth: 1, borderRadius: 4 }]
-    },
-    options: { ...chartDefaults, indexAxis: 'y', responsive: true }
-});
-<?php endif; ?>
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="<?= base_url('assets/js/analytics.js') ?>?v=<?= esc((string) (is_file(FCPATH . 'assets/js/analytics.js') ? filemtime(FCPATH . 'assets/js/analytics.js') : time())) ?>"></script>
 <?= $this->endSection() ?>

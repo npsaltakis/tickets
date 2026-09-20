@@ -10,8 +10,9 @@ class Home extends EventBaseController
     public function index(): string
     {
         $batchSize  = 12;
-        $categoryId = max(0, (int) ($this->request->getGet('cat') ?? 0));
-        [$events, $hasMore] = $this->fetchEventBatch('', 0, $batchSize, $categoryId);
+        $filters    = $this->readEventFilters();
+        $categoryId = $filters['cat'];
+        [$events, $hasMore] = $this->fetchEventBatch('', 0, $batchSize, $categoryId, $filters);
         $categories = (new CategoryModel())->orderBy('name', 'ASC')->findAll();
 
         return view('events/index', [
@@ -20,6 +21,7 @@ class Home extends EventBaseController
             'hasMore'      => $hasMore,
             'categories'   => $categories,
             'activeCatId'  => $categoryId,
+            'filters'      => $filters,
             'pageTitle'    => 'All Events | Ticketing System',
             'metaDescription' => lang('App.eventsPageSubtitle'),
             'canonicalUrl' => base_url('/'),
@@ -33,10 +35,11 @@ class Home extends EventBaseController
             $query = '';
         }
 
-        $categoryId = max(0, (int) ($this->request->getGet('cat') ?? 0));
+        $filters    = $this->readEventFilters();
+        $categoryId = $filters['cat'];
         $offset = max(0, (int) $this->request->getGet('offset'));
         $limit = max(1, min(24, (int) ($this->request->getGet('limit') ?? 12)));
-        [$events, $hasMore] = $this->fetchEventBatch($query, $offset, $limit, $categoryId);
+        [$events, $hasMore] = $this->fetchEventBatch($query, $offset, $limit, $categoryId, $filters);
 
         return $this->response->setJSON([
             'html' => view('events/_event_cards', ['events' => $events]),

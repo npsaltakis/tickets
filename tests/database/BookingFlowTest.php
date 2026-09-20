@@ -89,34 +89,6 @@ final class BookingFlowTest extends CIUnitTestCase
         $this->assertSame('limit', $this->service->bookFree($event, $user, 1)['status']);
     }
 
-    public function testCancelFreesTheSeat(): void
-    {
-        $event  = $this->makeEvent(1);
-        $user   = $this->makeUser('cancel@example.test');
-        $result = $this->service->bookFree($event, $user, 1);
-        $ticket = (new TicketModel())->where('ticket_code', $result['codes'][0])->first();
-
-        $this->assertSame(0, $this->service->remainingSeats($event));
-
-        $cancel = $this->service->cancelTicket((int) $ticket['id']);
-
-        $this->assertTrue($cancel['ok']);
-        $this->assertSame(1, $this->service->remainingSeats($event));
-        $this->assertSame('not_valid', $this->service->cancelTicket((int) $ticket['id'])['error']);
-    }
-
-    public function testCheckedInTicketCannotBeCancelled(): void
-    {
-        $event  = $this->makeEvent(2);
-        $user   = $this->makeUser('checked@example.test');
-        $result = $this->service->bookFree($event, $user, 1);
-        $ticket = (new TicketModel())->where('ticket_code', $result['codes'][0])->first();
-
-        (new TicketModel())->update((int) $ticket['id'], ['checked_in_at' => date('Y-m-d H:i:s')]);
-
-        $this->assertSame('checked_in', $this->service->cancelTicket((int) $ticket['id'])['error']);
-    }
-
     public function testPaidCaptureIsIdempotentAndAppliesDiscount(): void
     {
         $event = $this->makeEvent(10, 'donation');

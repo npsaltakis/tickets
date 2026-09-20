@@ -53,6 +53,8 @@ $structuredData = array_values(array_filter((array) ($structuredData ?? [])));
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="base-url" content="<?= esc(base_url('/'), 'attr') ?>">
+    <script src="<?= base_url('assets/js/app-config.js') ?>"></script>
     <title><?= esc($seoTitle) ?></title>
     <meta name="description" content="<?= esc($seoDescription, 'attr') ?>">
     <meta name="robots" content="<?= esc($metaRobots, 'attr') ?>">
@@ -89,6 +91,9 @@ $structuredData = array_values(array_filter((array) ($structuredData ?? [])));
                     <li><a class="menu-link <?= $currentPath === '' ? 'is-active' : '' ?>" href="<?= base_url('/') ?>"><?= esc(lang('App.navHome')) ?></a></li>
                     <?php if ($isAdmin): ?>
                         <li><a class="menu-link <?= $currentPath === 'admin/dashboard' ? 'is-active' : '' ?>" href="<?= base_url('admin/dashboard') ?>"><?= esc(lang('App.navAdminDashboard')) ?></a></li>
+                    <?php endif; ?>
+                    <?php if ($isLoggedIn && (string) $session->get('user_role') === 'staff'): ?>
+                        <li><a class="menu-link <?= $currentPath === 'check-in' ? 'is-active' : '' ?>" href="<?= base_url('check-in') ?>"><?= esc(lang('App.navCheckIn')) ?></a></li>
                     <?php endif; ?>
                     <?php if (! $isLoggedIn): ?>
                         <li><a class="menu-link <?= $currentPath === 'login' ? 'is-active' : '' ?>" href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a></li>

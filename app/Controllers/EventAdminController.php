@@ -225,51 +225,39 @@ class EventAdminController extends EventBaseController
             ->get()
             ->getResultArray();
 
-        @set_time_limit(0);
-        $sent   = 0;
-        $failed = 0;
+        $queue  = new \App\Libraries\EmailQueue();
+        $queued = 0;
+
         foreach ($holders as $holder) {
             $email = trim((string) ($holder['email'] ?? ''));
             if ($email === '') {
                 continue;
             }
 
-            try {
-                $mailer = service('email');
-                $mailer->clear();
-                $mailer->setTo($email);
-                $mailer->setSubject($subject);
-                $mailer->setMailType('html');
-                $mailer->setMessage(
-                    $this->buildBilingualActionEmailHtml(
-                        [trim((string) ($holder['first_name'] ?? '')), $message],
-                        [trim((string) ($holder['first_name'] ?? '')), $message],
-                        base_url('events/' . $slug),
-                        lang('App.adminEventFullButton'),
-                        lang('App.adminEventFullButton'),
-                        $subject
-                    )
-                );
-                if ($mailer->send(false)) {
-                    $sent++;
-                } else {
-                    $failed++;
-                }
-            } catch (\Throwable $exception) {
-                $failed++;
-                log_message('error', 'Attendee email to {email} failed: {message}', ['email' => $email, 'message' => $exception->getMessage()]);
-            }
+            $name = trim((string) ($holder['first_name'] ?? ''));
+            $queue->push($email, $subject, $this->buildBilingualActionEmailHtml(
+                [$name, $message],
+                [$name, $message],
+                base_url('events/' . $slug),
+                lang('App.adminEventFullButton'),
+                lang('App.adminEventFullButton'),
+                $subject
+            ));
+            $queued++;
         }
 
+        // Deliver the first batch now; anything left is picked up by `php spark emails:process`.
+        $sent   = $queue->flush(30);
+        $failed = 0;
         $this->logAdminAction('email_attendees', 'event', [
             'event_id' => (int) $event['id'],
             'subject'  => $subject,
             'sent'     => $sent,
-            'failed'   => $failed,
+            'queued'   => $queued,
         ]);
 
         $redirect = redirect()->to(base_url('admin/events/' . $slug . '/email-attendees'))
-            ->with('email_info', strtr(lang('App.emailAttendeesSent'), ['{n}' => $sent]));
+            ->with('email_info', strtr(lang('App.emailAttendeesQueued'), ['{queued}' => (string) $queued, '{sent}' => (string) $sent]));
 
         return $failed > 0
             ? $redirect->with('email_error', strtr(lang('App.emailAttendeesFailed'), ['{n}' => $failed]))

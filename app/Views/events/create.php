@@ -74,8 +74,8 @@ $assetVersion = static function (string $relativePath): string {
             </div>
 
             <div class="event-field">
-                <label for="category_id" class="auth-label"><?= esc(lang('App.categoriesPageTitle')) ?> *</label>
-                <select id="category_id" name="category_id" class="auth-input" required>
+                <label for="category_id" class="auth-label"><?= esc(lang('App.categoriesPageTitle')) ?><?= !empty($categories) ? ' *' : '' ?></label>
+                <select id="category_id" name="category_id" class="auth-input" <?= !empty($categories) ? 'required' : '' ?>>
                     <option value=""><?= esc(lang('App.categoryNone')) ?></option>
                     <?php foreach (($categories ?? []) as $cat): ?>
                         <option value="<?= esc($cat['id']) ?>" <?= (int)($event['category_id'] ?? 0) === (int)$cat['id'] ? 'selected' : '' ?>>

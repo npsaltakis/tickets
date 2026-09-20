@@ -76,8 +76,74 @@ class LoginController extends BaseController
 
         $this->clearLoginAttempts($email);
 
+        if ((int) ($user['totp_enabled'] ?? 0) === 1 && (string) ($user['totp_secret'] ?? '') !== '') {
+            $session = session();
+            $session->regenerate(true);
+            $session->set([
+                'pending_2fa_user' => (int) $user['id'],
+                'pending_2fa_until' => time() + 300,
+                'pending_2fa_attempts' => 0,
+            ]);
+
+            return redirect()->to(base_url('login/2fa'));
+        }
+
+        return $this->completeLogin($user);
+    }
+
+    public function twoFactorForm(): string|RedirectResponse
+    {
+        if ($this->pendingTwoFactorUser() === null) {
+            return redirect()->to(base_url('login'))->with('login_error', lang('App.twoFactorExpired'));
+        }
+
+        return view('auth/login_2fa', ['pageTitle' => lang('App.twoFactorTitle')]);
+    }
+
+    public function twoFactorVerify(): RedirectResponse
+    {
+        $user = $this->pendingTwoFactorUser();
+        if ($user === null) {
+            return redirect()->to(base_url('login'))->with('login_error', lang('App.twoFactorExpired'));
+        }
+
+        $session  = session();
+        $attempts = (int) $session->get('pending_2fa_attempts') + 1;
+
+        if ($attempts > 5) {
+            $session->remove(['pending_2fa_user', 'pending_2fa_until', 'pending_2fa_attempts']);
+
+            return redirect()->to(base_url('login'))->with('login_error', lang('App.twoFactorTooManyAttempts'));
+        }
+
+        $session->set('pending_2fa_attempts', $attempts);
+
+        if (! \App\Libraries\Totp::verify((string) $user['totp_secret'], (string) $this->request->getPost('code'))) {
+            return redirect()->back()->with('login_error', lang('App.twoFactorInvalid'));
+        }
+
+        return $this->completeLogin($user);
+    }
+
+    private function pendingTwoFactorUser(): ?array
+    {
+        $session = session();
+        $userId  = (int) $session->get('pending_2fa_user');
+
+        if ($userId < 1 || (int) $session->get('pending_2fa_until') < time()) {
+            return null;
+        }
+
+        $user = $this->userModel->find($userId);
+
+        return ! empty($user) && (string) ($user['status'] ?? '') === 'active' ? $user : null;
+    }
+
+    private function completeLogin(array $user): RedirectResponse
+    {
         $session = session();
         $session->regenerate(true);
+        $session->remove(['pending_2fa_user', 'pending_2fa_until', 'pending_2fa_attempts']);
         $session->set([
             'is_logged_in' => true,
             'user_id' => $user['id'],

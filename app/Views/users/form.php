@@ -42,6 +42,7 @@
                 <?php $selectedRole = (string) old('role', (string) ($user['role'] ?? 'client')); ?>
                 <select id="role" name="role" class="auth-input" required>
                     <option value="client" <?= $selectedRole === 'client' ? 'selected' : '' ?>><?= esc(lang('App.usersRoleClient')) ?></option>
+                    <option value="staff" <?= $selectedRole === 'staff' ? 'selected' : '' ?>><?= esc(lang('App.usersRoleStaff')) ?></option>
                     <option value="admin" <?= $selectedRole === 'admin' ? 'selected' : '' ?>><?= esc(lang('App.usersRoleAdmin')) ?></option>
                 </select>
             </div>

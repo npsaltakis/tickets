@@ -1,0 +1,50 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, develop, release]
+  pull_request:
+
+jobs:
+  phpunit:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: ticketsdb_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: intl, mbstring, mysqli, gd, curl
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Lint PHP
+        run: find app tests -name '*.php' -not -path '*/ThirdParty/*' -print0 | xargs -0 -n1 php -l > /dev/null
+
+      - name: PHPUnit (unit + MySQL booking flow)
+        env:
+          database.tests.hostname: 127.0.0.1
+          database.tests.database: ticketsdb_test
+          database.tests.username: root
+          database.tests.password: root
+          database.tests.DBDriver: MySQLi
+          database.tests.DBPrefix: tests_
+          database.tests.port: 3306
+        run: vendor/bin/phpunit --no-coverage

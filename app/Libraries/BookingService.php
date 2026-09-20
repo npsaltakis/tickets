@@ -16,7 +16,6 @@ use Throwable;
 class BookingService
 {
     public const DEFAULT_MAX_SEATS_PER_USER = 10;
-    public const DEFAULT_CANCEL_HOURS_BEFORE = 24;
 
     private TicketModel $tickets;
     private PaymentModel $payments;
@@ -38,13 +37,6 @@ class BookingService
     public static function maxSeatsPerUser(): int
     {
         return max(1, (int) (env('booking.maxSeatsPerUser') ?: self::DEFAULT_MAX_SEATS_PER_USER));
-    }
-
-    public static function cancelHoursBefore(): int
-    {
-        $value = env('booking.cancelHoursBefore');
-
-        return $value === null || $value === '' ? self::DEFAULT_CANCEL_HOURS_BEFORE : max(0, (int) $value);
     }
 
     /**
@@ -231,64 +223,6 @@ class BookingService
         }
 
         return $result;
-    }
-
-    /**
-     * Cancels a valid, not checked-in ticket. Paid tickets are refunded through PayPal first.
-     *
-     * @return array{ok: bool, error: string|null, event_id: int}
-     */
-    public function cancelTicket(int $ticketId, string $note = ''): array
-    {
-        $ticket = $this->tickets->find($ticketId);
-
-        if (empty($ticket)) {
-            return ['ok' => false, 'error' => 'not_found', 'event_id' => 0];
-        }
-
-        $eventId = (int) $ticket['event_id'];
-
-        if ((string) $ticket['status'] !== 'valid') {
-            return ['ok' => false, 'error' => 'not_valid', 'event_id' => $eventId];
-        }
-
-        if (! empty($ticket['checked_in_at'])) {
-            return ['ok' => false, 'error' => 'checked_in', 'event_id' => $eventId];
-        }
-
-        $payment = null;
-        if ((string) $ticket['payment_status'] === 'paid') {
-            $payment = $this->payments->where('ticket_id', $ticketId)->where('payment_status', 'completed')->first();
-
-            if (empty($payment)) {
-                return ['ok' => false, 'error' => 'no_payment', 'event_id' => $eventId];
-            }
-
-            [$ok, $refundId] = $this->paypal->refundCapture(
-                (string) $payment['paypal_transaction_id'],
-                (float) $payment['amount'],
-                (string) ($payment['currency'] ?: 'EUR'),
-                $note
-            );
-
-            if (! $ok) {
-                return ['ok' => false, 'error' => 'refund_failed', 'event_id' => $eventId];
-            }
-
-            $this->payments->update((int) $payment['id'], [
-                'payment_status'   => 'refunded',
-                'paypal_refund_id' => $refundId,
-                'refunded_at'      => date('Y-m-d H:i:s'),
-            ]);
-        }
-
-        $this->tickets->update($ticketId, [
-            'status'         => 'cancelled',
-            'cancelled_at'   => date('Y-m-d H:i:s'),
-            'payment_status' => $payment !== null ? 'refunded' : (string) $ticket['payment_status'],
-        ]);
-
-        return ['ok' => true, 'error' => null, 'event_id' => $eventId];
     }
 
     /**

@@ -65,6 +65,8 @@ abstract class EventBaseController extends BaseController
         $uploadedImage = $this->request->getFile('image_upload');
 
         $categoryId = (int) $this->request->getPost('category_id');
+        // A category is only mandatory once at least one exists; otherwise nobody could create events.
+        $categoryRequired = (new \App\Models\CategoryModel())->countAllResults() > 0;
 
         if (
             $title === ''
@@ -77,13 +79,28 @@ abstract class EventBaseController extends BaseController
             || $eventType === ''
             || $eventFormat === ''
             || $status === ''
-            || $categoryId < 1
+            || ($categoryRequired && $categoryId < 1)
         ) {
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateRequiredFields'));
         }
 
         if (! ctype_digit($capacity) || (int) $capacity < 1) {
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidCapacity'));
+        }
+
+        if ($existingEvent !== null) {
+            $validTickets = $this->ticketModel
+                ->where('event_id', (int) $existingEvent['id'])
+                ->where('status', 'valid')
+                ->countAllResults();
+
+            if ($validTickets > (int) $capacity) {
+                return redirect()->back()->withInput()->with('event_error', strtr(lang('App.eventCapacityBelowSold'), ['{n}' => (string) $validTickets]));
+            }
+
+            if ($validTickets > 0 && $eventType !== (string) ($existingEvent['event_type'] ?? '')) {
+                return redirect()->back()->withInput()->with('event_error', lang('App.eventTypeChangeBlocked'));
+            }
         }
 
         if ($infoPhone !== '' && ! preg_match('/^[0-9+()\s.-]{6,25}$/', $infoPhone)) {
@@ -179,7 +196,7 @@ abstract class EventBaseController extends BaseController
             'min_donation' => $normalizedMinDonation,
             'status' => $status,
             'bookings_enabled' => $bookingsEnabled,
-            'category_id'     => $categoryId,
+            'category_id'     => $categoryId > 0 ? $categoryId : null,
         ];
 
         if ($existingEvent === null) {
@@ -202,6 +219,8 @@ abstract class EventBaseController extends BaseController
         }
 
         $this->eventModel->update((int) $existingEvent['id'], $payload);
+        $this->notifyTicketHoldersEventChanged($existingEvent, $payload);
+        $this->notifyWaitlist((int) $existingEvent['id']);
         $this->logAdminAction('event_update', 'event', [
             'target_event_id' => (int) $existingEvent['id'],
             'slug' => $slug,
@@ -371,8 +390,32 @@ abstract class EventBaseController extends BaseController
 
         $fileName = $uploadedImage->getRandomName();
         $uploadedImage->move($targetDirectory, $fileName, true);
+        $this->downscaleImage($targetDirectory . DIRECTORY_SEPARATOR . $fileName);
 
         return base_url($relativeDirectory . '/' . $fileName);
+    }
+
+    /**
+     * Keeps uploaded event images web-sized (max 1600px wide) so listing pages stay fast.
+     */
+    protected function downscaleImage(string $path, int $maxWidth = 1600): void
+    {
+        try {
+            $info = @getimagesize($path);
+
+            if ($info === false || (int) $info[0] <= $maxWidth) {
+                return;
+            }
+
+            service('image')->withFile($path)->resize($maxWidth, $maxWidth, true, 'width')->save($path, 82);
+        } catch (\Throwable $exception) {
+            log_message('warning', 'Image downscale skipped: {message}', ['message' => $exception->getMessage()]);
+        }
+    }
+
+    protected function canCheckIn(): bool
+    {
+        return session()->get('is_logged_in') === true && in_array((string) session()->get('user_role'), ['admin', 'staff'], true);
     }
 
     protected function isAdmin(): bool
@@ -380,7 +423,32 @@ abstract class EventBaseController extends BaseController
         return session()->get('is_logged_in') === true && (string) session()->get('user_role') === 'admin';
     }
 
-    protected function fetchEventBatch(string $query, int $offset, int $limit, int $categoryId = 0): array
+    /**
+     * Reads the public listing filters from the query string (already sanitised).
+     *
+     * @return array{cat: int, type: string, format: string, from: string, to: string}
+     */
+    protected function readEventFilters(): array
+    {
+        $date = static function (?string $value): string {
+            $value = trim((string) $value);
+
+            return preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) === 1 && strtotime($value) !== false ? $value : '';
+        };
+
+        $type   = trim((string) $this->request->getGet('type'));
+        $format = trim((string) $this->request->getGet('format'));
+
+        return [
+            'cat'    => max(0, (int) ($this->request->getGet('cat') ?? 0)),
+            'type'   => in_array($type, ['free', 'donation'], true) ? $type : '',
+            'format' => in_array($format, ['physical', 'online', 'hybrid'], true) ? $format : '',
+            'from'   => $date($this->request->getGet('from')),
+            'to'     => $date($this->request->getGet('to')),
+        ];
+    }
+
+    protected function fetchEventBatch(string $query, int $offset, int $limit, int $categoryId = 0, array $filters = []): array
     {
         $builder = $this->eventModel->builder();
         $builder->where('deleted_at', null);
@@ -392,6 +460,22 @@ abstract class EventBaseController extends BaseController
 
         if ($categoryId > 0) {
             $builder->where('category_id', $categoryId);
+        }
+
+        if (! empty($filters['type'])) {
+            $builder->where('event_type', $filters['type']);
+        }
+
+        if (! empty($filters['format'])) {
+            $builder->where('event_format', $filters['format']);
+        }
+
+        if (! empty($filters['from'])) {
+            $builder->where('start_date >=', $filters['from'] . ' 00:00:00');
+        }
+
+        if (! empty($filters['to'])) {
+            $builder->where('start_date <=', $filters['to'] . ' 23:59:59');
         }
 
         if ($query !== '') {
@@ -526,6 +610,67 @@ abstract class EventBaseController extends BaseController
                 $emailService->send(false);
             }
         } catch (\Throwable) {
+        }
+    }
+
+    /**
+     * Emails ticket holders when the date, place or access details of their event change.
+     */
+    protected function notifyTicketHoldersEventChanged(array $old, array $new): void
+    {
+        $watched = ['start_date', 'end_date', 'location', 'address', 'event_format', 'online_url'];
+        $changed = false;
+
+        foreach ($watched as $field) {
+            if ((string) ($old[$field] ?? '') !== (string) ($new[$field] ?? '')) {
+                $changed = true;
+                break;
+            }
+        }
+
+        if (! $changed || (string) ($new['status'] ?? '') !== 'active') {
+            return;
+        }
+
+        try {
+            $db      = db_connect();
+            $holders = $db->table($db->prefixTable('tickets') . ' t')
+                ->select('u.email, u.first_name')
+                ->join($db->prefixTable('users') . ' u', 'u.id = t.user_id')
+                ->where('t.event_id', (int) $old['id'])
+                ->where('t.status', 'valid')
+                ->groupBy('u.id')
+                ->get()
+                ->getResultArray();
+
+            if ($holders === []) {
+                return;
+            }
+
+            $title   = (string) ($new['title'] ?? '');
+            $start   = ! empty($new['start_date']) ? date('d/m/Y H:i', strtotime((string) $new['start_date'])) : '-';
+            $place   = trim((string) ($new['location'] ?? '') . ' ' . (string) ($new['address'] ?? ''));
+            $url     = base_url('events/' . ($new['slug'] ?? ''));
+            $subject = $this->bilingualSubject('App.eventUpdatedEmailSubject', [$title]);
+            $queue   = new \App\Libraries\EmailQueue();
+
+            foreach ($holders as $holder) {
+                $name     = trim((string) ($holder['first_name'] ?? ''));
+                $greeting = $name !== '' ? lang('App.reminderEmailGreeting') . ' ' . $name . ',' : lang('App.reminderEmailGreeting') . ',';
+
+                $queue->push((string) $holder['email'], $subject, $this->buildBilingualActionEmailHtml(
+                    [$greeting, $this->localizedLine('App.eventUpdatedEmailBody', [$title, $start, $place !== '' ? $place : '-'], 'el')],
+                    [$greeting, $this->localizedLine('App.eventUpdatedEmailBody', [$title, $start, $place !== '' ? $place : '-'], 'en')],
+                    $url,
+                    $this->localizedLine('App.eventUpdatedEmailButton', [], 'el'),
+                    $this->localizedLine('App.eventUpdatedEmailButton', [], 'en'),
+                    $subject
+                ));
+            }
+
+            $queue->flush(30);
+        } catch (\Throwable $exception) {
+            log_message('error', 'Event change notification failed: {message}', ['message' => $exception->getMessage()]);
         }
     }
 

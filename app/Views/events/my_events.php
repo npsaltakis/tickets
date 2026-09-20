@@ -163,18 +163,6 @@ $assetVersion = static function (string $relativePath): string {
                                             <?= esc(lang('App.myEventsResendEmail')) ?>
                                         </button>
                                     </form>
-                                    <?php
-                                    $cancelDeadline = ! empty($event['start_date']) ? strtotime((string) $event['start_date']) - (\App\Libraries\BookingService::cancelHoursBefore() * 3600) : null;
-                                    $canCancel      = (string) ($event['status'] ?? '') === 'active' && ($cancelDeadline === null || $cancelDeadline > time());
-                                    ?>
-                                    <?php if ($canCancel): ?>
-                                        <form method="post" action="<?= esc($resendBase . urlencode($firstCode) . '/cancel') ?>" class="ticket-resend-form ticket-picker-cancel" data-confirm="<?= esc(lang($event['payment_summary'] === 'paid' ? 'App.myEventsCancelConfirmPaid' : 'App.myEventsCancelConfirm'), 'attr') ?>">
-                                            <?= csrf_field() ?>
-                                            <button type="submit" class="ticket-export-btn ticket-export-btn--secondary">
-                                                <?= esc(lang('App.myEventsCancelTicket')) ?>
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>

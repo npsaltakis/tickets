@@ -222,7 +222,8 @@ $assetVersion = static function (string $relativePath): string {
                 </section>
             <?php endif; ?>
 
-            <?php if (!$isDonationEvent): ?>
+            <?php if ($canJoinWaitlist): ?>
+            <?php elseif (!$isDonationEvent): ?>
                 <form method="post" action="<?= base_url('events/' . $event['slug'] . '/book') ?>" class="booking-box" id="free-booking-form">
                     <?= csrf_field() ?>
                     <label class="meta" for="seats"><strong><?= esc(lang('App.seats')) ?>:</strong></label>

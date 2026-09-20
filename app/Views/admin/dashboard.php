@@ -84,24 +84,7 @@
         </form>
     </section>
 
-    <script>
-    document.getElementById('reminders-form')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('reminders-btn');
-        const res = document.getElementById('reminders-result');
-        btn.disabled = true;
-        res.style.display = 'none';
-        try {
-            const form = new FormData(e.target);
-            const body = new URLSearchParams(form);
-            const resp = await fetch(e.target.action, { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body.toString() });
-            const data = await resp.json();
-            res.textContent = data.sent + ' / ' + (data.total || 0) + ' emails sent';
-            res.style.display = 'inline';
-        } catch { res.textContent = 'Error'; res.style.display = 'inline'; }
-        finally { btn.disabled = false; }
-    });
-    </script>
+    <script src="<?= base_url('assets/js/admin-dashboard.js') ?>?v=<?= esc((string) (is_file(FCPATH . 'assets/js/admin-dashboard.js') ? filemtime(FCPATH . 'assets/js/admin-dashboard.js') : time())) ?>"></script>
 
     <section class="card admin-dashboard-panel admin-dashboard-danger">
         <h2><?= esc(lang('App.adminDashboardCleanupTitle')) ?></h2>

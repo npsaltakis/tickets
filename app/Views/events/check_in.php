@@ -162,24 +162,5 @@
 </main>
 <script src="<?= base_url('assets/vendor/html5-qrcode/html5-qrcode.min.js') ?>?v=<?= esc((string) (is_file(FCPATH . 'assets/vendor/html5-qrcode/html5-qrcode.min.js') ? filemtime(FCPATH . 'assets/vendor/html5-qrcode/html5-qrcode.min.js') : time())) ?>"></script>
 <script src="<?= base_url('assets/js/check-in.js') ?>?v=<?= esc((string) (is_file(FCPATH . 'assets/js/check-in.js') ? filemtime(FCPATH . 'assets/js/check-in.js') : time())) ?>"></script>
-<script>
-window.baseUrl = '<?= base_url('/') ?>';
-(function () {
-    const statsUrl = window.baseUrl + 'check-in/stats';
-
-    const updateEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-
-    async function refresh() {
-        try {
-            const data = await (await fetch(statsUrl, { credentials: 'same-origin' })).json();
-            const t = data.totals || {};
-            updateEl('ci-stat-issued', t.issued ?? '');
-            updateEl('ci-stat-checkedin', t.checked_in ?? '');
-            updateEl('ci-stat-pending', t.pending ?? '');
-        } catch {}
-    }
-
-    setInterval(refresh, 15000);
-})();
-</script>
+<script src="<?= base_url('assets/js/check-in-stats.js') ?>?v=<?= esc((string) (is_file(FCPATH . 'assets/js/check-in-stats.js') ? filemtime(FCPATH . 'assets/js/check-in-stats.js') : time())) ?>"></script>
 <?= $this->endSection() ?>

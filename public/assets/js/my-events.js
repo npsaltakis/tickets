@@ -196,7 +196,8 @@ document.querySelectorAll('.ticket-picker').forEach(picker => {
     const pdfBtn   = picker.querySelector('[data-export-ticket-pdf]');
     const calLink  = picker.querySelector('.ticket-export-link');
     const resendForm = picker.querySelector('.ticket-picker-resend');
-    const cancelForm = picker.querySelector('.ticket-picker-cancel');
+    const transferForm = picker.querySelector('.ticket-picker-transfer');
+    const receiptLink = picker.querySelector('.ticket-picker-receipt');
     const calBase  = picker.dataset.calendarBase;
     const resendBase = picker.dataset.resendBase;
 
@@ -207,14 +208,19 @@ document.querySelectorAll('.ticket-picker').forEach(picker => {
         if (pdfBtn)      pdfBtn.dataset.ticketCode = code;
         if (calLink)     calLink.href = calBase + encodeURIComponent(code) + '/calendar.ics';
         if (resendForm)  resendForm.action = resendBase + encodeURIComponent(code) + '/resend-email';
-        if (cancelForm)  cancelForm.action = resendBase + encodeURIComponent(code) + '/cancel';
+        if (transferForm) transferForm.action = resendBase + encodeURIComponent(code) + '/transfer';
+        if (receiptLink) receiptLink.href = resendBase + encodeURIComponent(code) + '/receipt';
     });
 
-    if (cancelForm) {
-        cancelForm.addEventListener('submit', (e) => {
-            if (!window.confirm(cancelForm.dataset.confirm || 'Cancel this ticket?')) {
+    if (transferForm) {
+        transferForm.addEventListener('submit', (e) => {
+            const email = window.prompt(transferForm.dataset.prompt || 'Recipient email:');
+            if (!email || !email.trim()) {
                 e.preventDefault();
+                return;
             }
+            transferForm.querySelector('input[name="transfer_email"]').value = email.trim();
         });
     }
+
 });

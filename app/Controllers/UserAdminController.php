@@ -351,7 +351,7 @@ class UserAdminController extends BaseController
             return [null, lang('App.usersInvalidEmail')];
         }
 
-        if (! in_array($role, ['admin', 'client'], true)) {
+        if (! in_array($role, ['admin', 'staff', 'client'], true)) {
             return [null, lang('App.usersInvalidRole')];
         }
 

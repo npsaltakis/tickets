@@ -14,6 +14,7 @@ use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
 use App\Filters\AdminFilter;
 use App\Filters\AuthFilter;
+use App\Filters\StaffFilter;
 
 class Filters extends BaseFilters
 {
@@ -38,6 +39,7 @@ class Filters extends BaseFilters
         'performance'   => PerformanceMetrics::class,
         'admin'         => AdminFilter::class,
         'auth'          => AuthFilter::class,
+        'staff'         => StaffFilter::class,
     ];
 
     /**
@@ -111,8 +113,7 @@ class Filters extends BaseFilters
                 'admin/*',
                 'admin-logs',
                 'admin-logs/*',
-                'check-in',
-                'check-in/*',
+                'check-in/export',
                 'events/create',
                 'events/deleted',
                 'events/*/edit',
@@ -125,6 +126,12 @@ class Filters extends BaseFilters
                 'report/*',
                 'users',
                 'users/*',
+            ],
+        ],
+        'staff' => [
+            'before' => [
+                'check-in',
+                'check-in/stats',
             ],
         ],
         'auth' => [

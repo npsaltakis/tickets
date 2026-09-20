@@ -7,7 +7,6 @@ $assetVersion = static function (string $relativePath): string {
 
 <?= $this->section('content') ?>
 <div class="wrapper admin-events-page">
-    <script>window.baseUrl = '<?= base_url('/') ?>';</script>
 
     <?php if (session()->getFlashdata('event_info')): ?>
         <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('event_info')) ?></p>

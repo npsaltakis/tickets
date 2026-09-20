@@ -3450,3 +3450,14 @@ button:focus-visible,
 .waitlist-box form { margin-top: 10px; }
 .users-bulk-form { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
 .users-bulk-select { max-width: 240px; }
+
+/* Filters, cookie notice */
+.events-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin: 12px 0; }
+.events-filters .auth-input { width: auto; min-width: 140px; }
+.events-filters label.meta { display: flex; flex-direction: column; gap: 4px; }
+.cookie-notice { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 50; max-width: 720px; margin: 0 auto; display: flex; gap: 16px; align-items: center; padding: 14px 18px; border: 1px solid var(--border, #334155); border-radius: 14px; background: rgba(15, 23, 42, 0.96); color: #e2e8f0; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4); }
+.cookie-notice[hidden] { display: none; }
+.cookie-notice p { margin: 0; font-size: 0.9rem; line-height: 1.5; }
+.cookie-notice a { color: #5eead4; }
+.cookie-notice .auth-link-btn { flex-shrink: 0; width: auto; }
+@media print { .cookie-notice { display: none; } }
