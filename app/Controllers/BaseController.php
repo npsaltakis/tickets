@@ -356,6 +356,65 @@ abstract class BaseController extends Controller
         return false;
     }
 
+    /**
+     * Emails waiting-list users (oldest first) when seats free up.
+     */
+    protected function notifyWaitlist(int $eventId): void
+    {
+        try {
+            $event = (new \App\Models\EventModel())->find($eventId);
+            if (empty($event) || (string) ($event['status'] ?? '') !== 'active' || (int) ($event['bookings_enabled'] ?? 1) !== 1) {
+                return;
+            }
+
+            $free = (new \App\Libraries\BookingService())->remainingSeats($event);
+            if ($free < 1) {
+                return;
+            }
+
+            $db      = db_connect();
+            $waiting = $db->table($db->prefixTable('waitlist') . ' w')
+                ->select('w.id, u.email, u.first_name')
+                ->join($db->prefixTable('users') . ' u', 'u.id = w.user_id')
+                ->where('w.event_id', $eventId)
+                ->where('w.notified_at', null)
+                ->where('u.status', 'active')
+                ->orderBy('w.created_at', 'ASC')
+                ->limit($free)
+                ->get()
+                ->getResultArray();
+
+            $title   = (string) ($event['title'] ?? '');
+            $url     = base_url('events/' . ($event['slug'] ?? ''));
+            $subject = $this->bilingualSubject('App.waitlistEmailSubject', [$title]);
+
+            foreach ($waiting as $row) {
+                $name     = trim((string) ($row['first_name'] ?? ''));
+                $greeting = $name !== '' ? lang('App.reminderEmailGreeting') . ' ' . $name . ',' : lang('App.reminderEmailGreeting') . ',';
+
+                $mail = service('email');
+                $mail->clear();
+                $mail->setTo((string) $row['email']);
+                $mail->setSubject($subject);
+                $mail->setMailType('html');
+                $mail->setMessage($this->buildBilingualActionEmailHtml(
+                    [$greeting, $this->localizedLine('App.waitlistEmailBody', [$title], 'el')],
+                    [$greeting, $this->localizedLine('App.waitlistEmailBody', [$title], 'en')],
+                    $url,
+                    $this->localizedLine('App.waitlistEmailButton', [], 'el'),
+                    $this->localizedLine('App.waitlistEmailButton', [], 'en'),
+                    $subject
+                ));
+
+                if ($mail->send(false)) {
+                    $db->table($db->prefixTable('waitlist'))->where('id', (int) $row['id'])->update(['notified_at' => date('Y-m-d H:i:s')]);
+                }
+            }
+        } catch (Throwable $exception) {
+            log_message('error', 'Waitlist notification failed: {message}', ['message' => $exception->getMessage()]);
+        }
+    }
+
     protected function logAdminAction(string $action, string $targetType, array $context = []): void
     {
         $session = session();

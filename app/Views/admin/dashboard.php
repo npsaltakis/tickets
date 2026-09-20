@@ -110,7 +110,7 @@
             <a class="admin-event-btn admin-event-btn--secondary" href="<?= base_url('admin/cleanup-demo-data') ?>" target="_blank" rel="noopener noreferrer">
                 <?= esc(lang('App.adminDashboardCleanupPreview')) ?>
             </a>
-            <form method="post" action="<?= base_url('admin/cleanup-demo-data') ?>" onsubmit="return confirm('<?= esc(lang('App.adminDashboardCleanupConfirm'), 'attr') ?>');">
+            <form method="post" action="<?= base_url('admin/cleanup-demo-data') ?>" data-confirm="<?= esc(lang('App.adminDashboardCleanupConfirm'), 'attr') ?>">
                 <?= csrf_field() ?>
                 <input type="hidden" name="confirm" value="DELETE_DEMO_DATA">
                 <button type="submit" class="book-btn event-delete-btn">

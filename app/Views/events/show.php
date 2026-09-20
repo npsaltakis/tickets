@@ -12,7 +12,11 @@ $assetVersion = static function (string $relativePath): string {
     $remainingSeats = isset($event['remaining_seats']) ? (int) $event['remaining_seats'] : 0;
     $bookingsEnabled = (int) ($event['bookings_enabled'] ?? 1) === 1;
     $isExpired = !empty($event['end_date']) && strtotime((string) $event['end_date']) !== false && strtotime((string) $event['end_date']) < time();
-    $canBook = $bookingsEnabled && ! $isExpired && $remainingSeats > 0 && $status === 'active';
+    $seatAllowance = isset($seatAllowance) ? (int) $seatAllowance : \App\Libraries\BookingService::maxSeatsPerUser();
+    $onWaitlist = (bool) ($onWaitlist ?? false);
+    $bookableSeats = min($remainingSeats, $seatAllowance);
+    $canBook = $bookingsEnabled && ! $isExpired && $remainingSeats > 0 && $seatAllowance > 0 && $status === 'active';
+    $canJoinWaitlist = $bookingsEnabled && ! $isExpired && $remainingSeats < 1 && $status === 'active';
     $isDonationEvent = ($event['event_type'] ?? 'free') === 'donation';
     $isLoggedIn = session()->get('is_logged_in') === true;
     $isAdmin = $isLoggedIn && (string) session()->get('user_role') === 'admin';
@@ -66,7 +70,7 @@ $assetVersion = static function (string $relativePath): string {
             <a class="social-share-btn social-share-btn--x" href="https://x.com/intent/tweet?text=<?= $shareTitle ?>&url=<?= $shareUrl ?>" target="_blank" rel="noopener noreferrer" title="X / Twitter">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
             </a>
-            <button class="social-share-btn social-share-btn--copy" onclick="navigator.clipboard.writeText('<?= esc(base_url('events/' . $event['slug'])) ?>').then(()=>this.title='Copied!')" title="<?= esc(lang('App.shareCopyLink')) ?>">
+            <button class="social-share-btn social-share-btn--copy" data-copy-url="<?= esc(base_url('events/' . $event['slug'])) ?>" title="<?= esc(lang('App.shareCopyLink')) ?>">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
             </button>
         </div>
@@ -100,7 +104,7 @@ $assetVersion = static function (string $relativePath): string {
                         <?= csrf_field() ?>
                         <button type="submit" class="book-btn event-duplicate-btn"><?= esc(lang('App.eventDuplicateButton')) ?></button>
                     </form>
-                    <form method="post" action="<?= base_url('events/' . $event['slug'] . '/delete') ?>" class="event-inline-form" onsubmit="return confirm('<?= esc(lang('App.eventDeleteConfirm'), 'attr') ?>');">
+                    <form method="post" action="<?= base_url('events/' . $event['slug'] . '/delete') ?>" class="event-inline-form" data-confirm="<?= esc(lang('App.eventDeleteConfirm'), 'attr') ?>">
                         <?= csrf_field() ?>
                         <button type="submit" class="book-btn event-delete-btn"><?= esc(lang('App.eventDeleteButton')) ?></button>
                     </form>
@@ -198,6 +202,26 @@ $assetVersion = static function (string $relativePath): string {
                 </section>
             <?php endif; ?>
 
+            <?php if ($canJoinWaitlist): ?>
+                <section class="booking-box waitlist-box">
+                    <p class="meta"><strong><?= esc(lang('App.waitlistSoldOut')) ?></strong></p>
+                    <?php if (!$isLoggedIn): ?>
+                        <a class="auth-link-btn" href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a>
+                    <?php elseif ($onWaitlist): ?>
+                        <p class="auth-info alert-inline"><?= esc(lang('App.waitlistOnList')) ?></p>
+                        <form method="post" action="<?= base_url('events/' . $event['slug'] . '/waitlist/leave') ?>">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="book-btn"><?= esc(lang('App.waitlistLeave')) ?></button>
+                        </form>
+                    <?php else: ?>
+                        <form method="post" action="<?= base_url('events/' . $event['slug'] . '/waitlist') ?>">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="book-btn"><?= esc(lang('App.waitlistJoin')) ?></button>
+                        </form>
+                    <?php endif; ?>
+                </section>
+            <?php endif; ?>
+
             <?php if (!$isDonationEvent): ?>
                 <form method="post" action="<?= base_url('events/' . $event['slug'] . '/book') ?>" class="booking-box" id="free-booking-form">
                     <?= csrf_field() ?>
@@ -208,7 +232,7 @@ $assetVersion = static function (string $relativePath): string {
                         class="seats-input"
                         type="number"
                         min="1"
-                        max="<?= esc((string) max($remainingSeats, 1)) ?>"
+                        max="<?= esc((string) max($bookableSeats, 1)) ?>"
                         value="<?= esc((string) ($canBook ? 1 : 0)) ?>"
                         <?= $canBook ? '' : 'disabled' ?>
                         data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>">
@@ -226,6 +250,7 @@ $assetVersion = static function (string $relativePath): string {
                     class="booking-box donation-booking-box"
                     data-create-order-url="<?= esc(base_url('events/' . $event['slug'] . '/paypal/order'), 'attr') ?>"
                     data-capture-order-url="<?= esc(base_url('events/' . $event['slug'] . '/paypal/capture'), 'attr') ?>"
+                    data-discount-url="<?= esc(base_url('events/' . $event['slug'] . '/discount/preview'), 'attr') ?>"
                     data-min-donation="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', ''), 'attr') ?>"
                     data-min-message="<?= esc(lang('App.donationMinimumError'), 'attr') ?>"
                     data-paypal-error="<?= esc(lang('App.paypalGenericError'), 'attr') ?>"
@@ -244,7 +269,7 @@ $assetVersion = static function (string $relativePath): string {
                                 class="seats-input"
                                 type="number"
                                 min="1"
-                                max="<?= esc((string) max($remainingSeats, 1)) ?>"
+                                max="<?= esc((string) max($bookableSeats, 1)) ?>"
                                 value="<?= esc((string) ($canBook ? 1 : 0)) ?>"
                                 <?= $canBook ? '' : 'disabled' ?>
                                 data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>">
@@ -262,6 +287,13 @@ $assetVersion = static function (string $relativePath): string {
                                 value="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', '')) ?>"
                                 <?= $canBook && $isLoggedIn && $paypalClientId !== '' ? '' : 'disabled' ?>>
                         </div>
+                    </div>
+
+                    <div class="donation-booking-field donation-discount-field">
+                        <label class="meta" for="discount_code"><strong><?= esc(lang('App.discountCodeLabel')) ?>:</strong></label>
+                        <input id="discount_code" name="discount_code" class="seats-input discount-input" type="text" maxlength="32" autocomplete="off" <?= $canBook && $isLoggedIn && $paypalClientId !== '' ? '' : 'disabled' ?>>
+                        <button type="button" id="discount-apply" class="auth-link-btn" <?= $canBook && $isLoggedIn && $paypalClientId !== '' ? '' : 'disabled' ?>><?= esc(lang('App.discountApply')) ?></button>
+                        <p id="discount-message" class="meta" aria-live="polite"></p>
                     </div>
 
                     <p id="donation-total" class="meta"><strong><?= esc(lang('App.donationTotalLabel')) ?>:</strong> €<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2)) ?></p>

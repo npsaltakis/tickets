@@ -23,6 +23,8 @@ class TicketModel extends Model
         'status',
         'checked_in_at',
         'checked_in_by',
+        'reminder_sent_at',
+        'cancelled_at',
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -40,7 +42,7 @@ class TicketModel extends Model
         'event_id'       => ['label' => 'Event',          'rules' => 'if_exist|required|is_natural_no_zero'],
         'user_id'        => ['label' => 'User',           'rules' => 'if_exist|required|is_natural_no_zero'],
         'ticket_code'    => ['label' => 'Ticket code',    'rules' => 'if_exist|required|max_length[191]'],
-        'payment_status' => ['label' => 'Payment status', 'rules' => 'if_exist|required|in_list[pending,paid,free,failed]'],
+        'payment_status' => ['label' => 'Payment status', 'rules' => 'if_exist|required|in_list[pending,paid,free,failed,refunded]'],
         'status'         => ['label' => 'Status',         'rules' => 'if_exist|permit_empty|in_list[valid,cancelled]'],
         'checked_in_by'  => ['label' => 'Checked in by',  'rules' => 'if_exist|permit_empty|is_natural_no_zero'],
     ];

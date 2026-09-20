@@ -24,7 +24,7 @@
 </head>
 <body>
     <div class="no-print">
-        <button class="print-btn" onclick="window.print()"><?= esc(lang('App.printQrPrint')) ?></button>
+        <button class="print-btn" data-print><?= esc(lang('App.printQrPrint')) ?></button>
     </div>
     <div class="header">
         <h1><?= esc($event['title']) ?></h1>
@@ -38,5 +38,6 @@
             </div>
         <?php endforeach; ?>
     </div>
+    <script src="<?= base_url('assets/js/ui-actions.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/ui-actions.js') ?: time() ?>"></script>
 </body>
 </html>

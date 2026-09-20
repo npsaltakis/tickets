@@ -90,7 +90,7 @@ $assetVersion = static function (string $relativePath): string {
                                 <div class="admin-actions">
                                     <a class="admin-action-link" href="<?= esc(base_url('admin/events/' . $event['slug'] . '/tickets')) ?>"><?= esc(lang('App.adminEventsTickets')) ?></a>
                                     <a class="admin-action-link" href="<?= esc(base_url('events/' . $event['slug'] . '/edit')) ?>"><?= esc(lang('App.eventEditButton')) ?></a>
-                                    <form method="post" action="<?= esc(base_url('events/' . $event['slug'] . '/delete')) ?>" style="margin:0" onsubmit="return confirm('<?= esc(lang('App.eventDeleteConfirm'), 'attr') ?>')">
+                                    <form method="post" action="<?= esc(base_url('events/' . $event['slug'] . '/delete')) ?>" style="margin:0" data-confirm="<?= esc(lang('App.eventDeleteConfirm'), 'attr') ?>">
                                         <?= csrf_field() ?>
                                         <button type="submit" class="admin-action-btn admin-action-btn--danger"><?= esc(lang('App.eventDeleteButton')) ?></button>
                                     </form>

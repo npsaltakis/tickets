@@ -84,7 +84,7 @@ class EventAdminController extends EventBaseController
         $csv = '';
         foreach ($csvRows as $row) {
             $csv .= implode(',', array_map(
-                static fn ($cell) => '"' . str_replace('"', '""', (string) $cell) . '"',
+                static fn ($cell) => '"' . str_replace('"', '""', csv_safe($cell)) . '"',
                 $row
             )) . "\r\n";
         }
@@ -225,7 +225,9 @@ class EventAdminController extends EventBaseController
             ->get()
             ->getResultArray();
 
-        $sent = 0;
+        @set_time_limit(0);
+        $sent   = 0;
+        $failed = 0;
         foreach ($holders as $holder) {
             $email = trim((string) ($holder['email'] ?? ''));
             if ($email === '') {
@@ -234,6 +236,7 @@ class EventAdminController extends EventBaseController
 
             try {
                 $mailer = service('email');
+                $mailer->clear();
                 $mailer->setTo($email);
                 $mailer->setSubject($subject);
                 $mailer->setMailType('html');
@@ -249,8 +252,12 @@ class EventAdminController extends EventBaseController
                 );
                 if ($mailer->send(false)) {
                     $sent++;
+                } else {
+                    $failed++;
                 }
-            } catch (\Throwable) {
+            } catch (\Throwable $exception) {
+                $failed++;
+                log_message('error', 'Attendee email to {email} failed: {message}', ['email' => $email, 'message' => $exception->getMessage()]);
             }
         }
 
@@ -258,10 +265,15 @@ class EventAdminController extends EventBaseController
             'event_id' => (int) $event['id'],
             'subject'  => $subject,
             'sent'     => $sent,
+            'failed'   => $failed,
         ]);
 
-        return redirect()->to(base_url('admin/events/' . $slug . '/email-attendees'))
+        $redirect = redirect()->to(base_url('admin/events/' . $slug . '/email-attendees'))
             ->with('email_info', strtr(lang('App.emailAttendeesSent'), ['{n}' => $sent]));
+
+        return $failed > 0
+            ? $redirect->with('email_error', strtr(lang('App.emailAttendeesFailed'), ['{n}' => $failed]))
+            : $redirect;
     }
 
     public function create(): string|RedirectResponse

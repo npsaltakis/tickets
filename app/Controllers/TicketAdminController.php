@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\BookingService;
 use App\Models\EventModel;
 use App\Models\TicketModel;
 use App\Models\UserModel;
@@ -120,6 +121,41 @@ class TicketAdminController extends BaseController
             ->with('ticket_info', lang('App.adminTicketsCreated'));
     }
 
+    /**
+     * Cancels a ticket; paid tickets are refunded through PayPal first.
+     */
+    public function cancel(string $ticketCode): RedirectResponse
+    {
+        if (! $this->ensureAdmin()) {
+            return redirect()->to(base_url('/'))->with('login_error', lang('App.eventCreateUnauthorized'));
+        }
+
+        $ticket = $this->ticketModel->where('ticket_code', strtoupper(trim($ticketCode)))->first();
+        if (empty($ticket)) {
+            throw PageNotFoundException::forPageNotFound('Ticket not found');
+        }
+
+        $event  = $this->eventModel->find((int) $ticket['event_id']);
+        $result = (new BookingService())->cancelTicket((int) $ticket['id'], 'Ticket cancelled by organiser');
+        $back   = base_url('admin/events/' . ($event['slug'] ?? '') . '/tickets');
+
+        if (! $result['ok']) {
+            $key = $result['error'] === 'refund_failed' ? 'App.ticketCancelRefundFailed' : 'App.ticketCancelFailed';
+
+            return redirect()->to($back)->with('ticket_error', lang($key));
+        }
+
+        $this->logAdminAction('ticket_cancel', 'ticket', [
+            'ticket_code' => (string) $ticket['ticket_code'],
+            'refunded'    => (string) $ticket['payment_status'] === 'paid',
+        ]);
+        $this->notifyWaitlist((int) $result['event_id']);
+
+        return redirect()->to($back)->with('ticket_info', lang(
+            (string) $ticket['payment_status'] === 'paid' ? 'App.ticketCancelledRefunded' : 'App.ticketCancelled'
+        ));
+    }
+
     public function qrCode(string $ticketCode): ResponseInterface
     {
         if (session()->get('is_logged_in') !== true || (string) session()->get('user_role') !== 'admin') {
@@ -217,7 +253,7 @@ class TicketAdminController extends BaseController
         $csv = '';
         foreach ($csvRows as $row) {
             $csv .= implode(',', array_map(
-                static fn ($c) => '"' . str_replace('"', '""', (string) $c) . '"',
+                static fn ($c) => '"' . str_replace('"', '""', csv_safe($c)) . '"',
                 $row
             )) . "\r\n";
         }
@@ -242,21 +278,5 @@ class TicketAdminController extends BaseController
         } while ($this->ticketModel->where('ticket_code', $code)->first() !== null);
 
         return $code;
-    }
-
-    private function logAdminAction(string $action, string $targetType, array $context = []): void
-    {
-        try {
-            $adminLogModel = new \App\Models\AdminLogModel();
-            $adminLogModel->insert([
-                'admin_id'    => (int) session()->get('user_id'),
-                'admin_email' => (string) session()->get('user_email'),
-                'action'      => $action,
-                'target_type' => $targetType,
-                'context'     => json_encode($context),
-                'ip_address'  => service('request')->getIPAddress(),
-            ]);
-        } catch (\Throwable) {
-        }
     }
 }

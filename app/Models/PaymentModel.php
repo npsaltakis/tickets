@@ -20,6 +20,8 @@ class PaymentModel extends Model
         'amount',
         'currency',
         'payment_status',
+        'paypal_refund_id',
+        'refunded_at',
     ];
 
     protected bool $allowEmptyInserts = false;

@@ -39,6 +39,19 @@
 
             <button type="submit" class="book-btn auth-submit"><?= esc(lang('App.profileSave')) ?></button>
         </form>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin:24px 0 12px">
+        <h2 class="meta" style="margin:0 0 8px"><strong><?= esc(lang('App.profilePrivacySection')) ?></strong></h2>
+        <p class="meta"><?= esc(lang('App.profileExportHelp')) ?></p>
+        <a class="auth-link-btn" href="<?= base_url('profile/export') ?>"><?= esc(lang('App.profileExportButton')) ?></a>
+
+        <form method="post" action="<?= base_url('profile/delete') ?>" class="auth-form" style="margin-top:20px" data-confirm="<?= esc(lang('App.profileDeleteConfirm'), 'attr') ?>">
+            <?= csrf_field() ?>
+            <p class="meta"><?= esc(lang('App.profileDeleteHelp')) ?></p>
+            <label class="auth-label" for="delete_password"><?= esc(lang('App.profileCurrentPassword')) ?></label>
+            <input id="delete_password" name="delete_password" type="password" class="auth-input" autocomplete="current-password" required>
+            <button type="submit" class="auth-link-btn admin-action-btn admin-action-btn--danger"><?= esc(lang('App.profileDeleteButton')) ?></button>
+        </form>
     </section>
 </main>
 <?= $this->endSection() ?>

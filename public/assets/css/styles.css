@@ -3441,3 +3441,12 @@ button:focus-visible,
     .analytics-ci-row { grid-template-columns: 1fr auto; }
     .analytics-ci-bar-wrap { display: none; }
 }
+
+/* Discount code + waiting list */
+.donation-discount-field { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
+.donation-discount-field .discount-input { width: 180px; text-transform: uppercase; }
+.donation-discount-field .auth-link-btn { width: auto; }
+.donation-discount-field #discount-message { flex-basis: 100%; margin: 0; }
+.waitlist-box form { margin-top: 10px; }
+.users-bulk-form { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+.users-bulk-select { max-width: 240px; }

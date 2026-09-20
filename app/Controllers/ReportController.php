@@ -2,12 +2,15 @@
 
 namespace App\Controllers;
 
+use App\Libraries\BookingService;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\I18n\Time;
 
 class ReportController extends EventBaseController
 {
+    private const CHECK_IN_EARLY_HOURS = 24;
+
     public function report(): RedirectResponse|string
     {
         if (! $this->isAdmin()) {
@@ -264,6 +267,39 @@ class ReportController extends EventBaseController
         return redirect()->to(base_url('my-events'))->with('event_info', lang('App.ticketResendSuccess'));
     }
 
+    public function cancelTicket(string $ticketCode): RedirectResponse
+    {
+        if (session()->get('is_logged_in') !== true) {
+            return redirect()->to(base_url('login'))->with('login_info', lang('App.bookingLoginRequired'));
+        }
+
+        $ticket = $this->findUserTicketWithEvent($ticketCode);
+        if ($ticket === null) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketResendNotFound'));
+        }
+
+        $startDate = (string) ($ticket['event_start_date'] ?? '');
+        if ($startDate !== '' && strtotime($startDate) - (BookingService::cancelHoursBefore() * 3600) <= time()) {
+            return redirect()->to(base_url('my-events'))->with('event_error', strtr(lang('App.ticketCancelTooLate'), [
+                '{hours}' => (string) BookingService::cancelHoursBefore(),
+            ]));
+        }
+
+        $result = (new BookingService())->cancelTicket((int) $ticket['id'], 'Ticket cancelled by customer');
+
+        if (! $result['ok']) {
+            $key = $result['error'] === 'refund_failed' ? 'App.ticketCancelRefundFailed' : 'App.ticketCancelFailed';
+
+            return redirect()->to(base_url('my-events'))->with('event_error', lang($key));
+        }
+
+        $this->notifyWaitlist((int) $result['event_id']);
+
+        return redirect()->to(base_url('my-events'))->with('event_info', lang(
+            (string) ($ticket['payment_status'] ?? '') === 'paid' ? 'App.ticketCancelledRefunded' : 'App.ticketCancelled'
+        ));
+    }
+
     public function checkInStats(): ResponseInterface
     {
         if (! $this->isAdmin()) {
@@ -332,6 +368,7 @@ class ReportController extends EventBaseController
                 'events.title AS event_title',
                 'events.location AS event_location',
                 'events.start_date AS event_start_date',
+                'events.end_date AS event_end_date',
                 'users.first_name',
                 'users.last_name',
                 'users.email',
@@ -370,6 +407,26 @@ class ReportController extends EventBaseController
                 ->with('check_in_result', [
                     'type' => 'error',
                     'message' => lang('App.checkInInvalidStatus'),
+                    'details' => $details,
+                ]);
+        }
+
+        $eventEnd   = ! empty($ticket['event_end_date']) ? strtotime((string) $ticket['event_end_date']) : false;
+        $eventStart = ! empty($ticket['event_start_date']) ? strtotime((string) $ticket['event_start_date']) : false;
+        $timingError = null;
+
+        if ($eventEnd !== false && $eventEnd < time()) {
+            $timingError = 'App.checkInEventEnded';
+        } elseif ($eventStart !== false && $eventStart - (self::CHECK_IN_EARLY_HOURS * 3600) > time()) {
+            $timingError = 'App.checkInTooEarly';
+        }
+
+        if ($timingError !== null) {
+            return redirect()->to(base_url('check-in'))
+                ->with('check_in_code', $ticketCode)
+                ->with('check_in_result', [
+                    'type' => 'error',
+                    'message' => lang($timingError),
                     'details' => $details,
                 ]);
         }
@@ -457,7 +514,7 @@ class ReportController extends EventBaseController
             $customerName = trim(((string) ($row['first_name'] ?? '')) . ' ' . ((string) ($row['last_name'] ?? '')));
             $checkedInAt = (string) ($row['checked_in_at'] ?? '');
 
-            fputcsv($handle, [
+            fputcsv($handle, array_map('csv_safe', [
                 (string) ($row['event_title'] ?? ''),
                 ! empty($row['event_start_date']) ? date('d/m/Y H:i', strtotime((string) $row['event_start_date'])) : '',
                 (string) ($row['ticket_code'] ?? ''),
@@ -468,7 +525,7 @@ class ReportController extends EventBaseController
                 ! empty($row['booked_at']) ? date('d/m/Y H:i', strtotime((string) $row['booked_at'])) : '',
                 $checkedInAt !== '' ? lang('App.reportCheckedInYes') : lang('App.reportCheckedInNo'),
                 $checkedInAt !== '' ? date('d/m/Y H:i', strtotime($checkedInAt)) : '',
-            ]);
+            ]));
         }
 
         rewind($handle);

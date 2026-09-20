@@ -7,6 +7,30 @@ document.querySelectorAll('[data-confirm-action]').forEach((form) => {
     });
 });
 
+document.querySelectorAll('[data-bulk-form]').forEach((form) => {
+    form.addEventListener('submit', (event) => {
+        const checked = document.querySelectorAll('.users-select-row:checked').length;
+
+        if (checked === 0) {
+            event.preventDefault();
+            window.alert(form.dataset.noneMessage || 'Select at least one user.');
+            return;
+        }
+
+        if (!window.confirm((form.dataset.confirmMessage || 'Apply to {n} users?').replace('{n}', String(checked)))) {
+            event.preventDefault();
+        }
+    });
+});
+
+document.addEventListener('change', (event) => {
+    if (event.target && event.target.classList.contains('users-select-all')) {
+        document.querySelectorAll('.users-select-row:not(:disabled)').forEach((box) => {
+            box.checked = event.target.checked;
+        });
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     if (typeof window.jQuery === 'undefined' || typeof window.jQuery.fn.DataTable === 'undefined') {
         return;
@@ -30,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
             lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
             order: [[orderColumn, orderDirection]],
             columnDefs: [
-                { orderable: false, searchable: false, targets: lastColumn },
+                { orderable: false, searchable: false, targets: table.dataset.selectable ? [0, lastColumn] : lastColumn },
             ],
             language: {
                 search: table.dataset.searchLabel || 'Search:',

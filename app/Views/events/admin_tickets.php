@@ -72,6 +72,12 @@
                                 <td>
                                     <div class="admin-actions">
                                         <a class="admin-action-link" href="<?= base_url('admin/tickets/qr/' . urlencode($ticket['ticket_code'])) ?>" target="_blank" title="QR">QR</a>
+                                        <?php if ($isValid && !$checkedIn): ?>
+                                            <form method="post" action="<?= base_url('admin/tickets/' . urlencode($ticket['ticket_code']) . '/cancel') ?>" style="margin:0" data-confirm="<?= esc(lang((string)($ticket['payment_status'] ?? '') === 'paid' ? 'App.adminTicketCancelConfirmPaid' : 'App.adminTicketCancelConfirm'), 'attr') ?>">
+                                                <?= csrf_field() ?>
+                                                <button type="submit" class="admin-action-link"><?= esc((string)($ticket['payment_status'] ?? '') === 'paid' ? lang('App.adminTicketRefund') : lang('App.adminTicketCancel')) ?></button>
+                                            </form>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>

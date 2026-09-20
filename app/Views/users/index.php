@@ -31,6 +31,16 @@ $assetVersion = static function (string $relativePath): string {
         <?php if (empty($users)): ?>
             <p><?= esc(lang('App.usersEmpty')) ?></p>
         <?php else: ?>
+            <form id="users-bulk-form" method="post" action="<?= base_url('users/bulk') ?>" class="users-bulk-form" data-bulk-form data-confirm-message="<?= esc(lang('App.usersBulkConfirm'), 'attr') ?>" data-none-message="<?= esc(lang('App.usersBulkNone'), 'attr') ?>">
+                <?= csrf_field() ?>
+                <select name="action" class="auth-input users-bulk-select" required>
+                    <option value=""><?= esc(lang('App.usersBulkSelect')) ?></option>
+                    <option value="block"><?= esc(lang('App.usersBulkBlock')) ?></option>
+                    <option value="unblock"><?= esc(lang('App.usersBulkUnblock')) ?></option>
+                    <option value="delete"><?= esc(lang('App.usersBulkDelete')) ?></option>
+                </select>
+                <button type="submit" class="auth-link-btn admin-action-btn"><?= esc(lang('App.usersBulkApply')) ?></button>
+            </form>
             <div class="report-table-wrap">
                 <table
                     id="users-table"
@@ -41,11 +51,13 @@ $assetVersion = static function (string $relativePath): string {
                     data-info-empty-label="<?= esc(lang('App.reportInfoEmpty')) ?>"
                     data-zero-records-label="<?= esc(lang('App.reportZeroRecords')) ?>"
                     data-length-menu-label="<?= esc(lang('App.reportLengthMenu')) ?>"
-                    data-order-column="4"
+                    data-order-column="5"
+                    data-selectable="1"
                     data-order-direction="desc"
                 >
                     <thead>
                         <tr>
+                            <th><input type="checkbox" class="users-select-all" aria-label="<?= esc(lang('App.usersBulkSelectAll'), 'attr') ?>"></th>
                             <th><?= esc(lang('App.usersName')) ?></th>
                             <th><?= esc(lang('App.usersEmail')) ?></th>
                             <th><?= esc(lang('App.usersRole')) ?></th>
@@ -64,6 +76,7 @@ $assetVersion = static function (string $relativePath): string {
                             $loginLockedUntil = isset($user['login_locked_until']) ? (int) $user['login_locked_until'] : 0;
                             ?>
                             <tr>
+                                <td><input type="checkbox" name="user_ids[]" value="<?= (int) $user['id'] ?>" form="users-bulk-form" class="users-select-row" <?= (int) $user['id'] === (int) session()->get('user_id') ? 'disabled' : '' ?>></td>
                                 <td><strong><?= esc($fullName !== '' ? $fullName : '-') ?></strong></td>
                                 <td><?= esc((string) ($user['email'] ?? '-')) ?></td>
                                 <td><span class="table-pill table-pill--role"><?= esc(lang('App.usersRole' . ucfirst($role))) ?></span></td>

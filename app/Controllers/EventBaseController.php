@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\BookingService;
 use App\Models\EventModel;
 use App\Models\PayPalCaptureModel;
 use App\Models\PaymentModel;
@@ -466,13 +467,7 @@ abstract class EventBaseController extends BaseController
 
     protected function getRemainingSeats(array $event): int
     {
-        $capacity = isset($event['capacity']) ? (int) $event['capacity'] : 0;
-        $bookedSeats = $this->ticketModel
-            ->where('event_id', $event['id'])
-            ->where('status', 'valid')
-            ->countAllResults();
-
-        return max($capacity - $bookedSeats, 0);
+        return (new BookingService())->remainingSeats($event);
     }
 
     protected function notifyTicketHoldersCancellation(array $event): void
@@ -613,14 +608,14 @@ abstract class EventBaseController extends BaseController
         return $ticketCode;
     }
 
-    protected function sendBookingConfirmationEmail(array $event, int $requestedSeats, array $ticketCodes, float $donationAmount, string $currency): bool
+    protected function sendBookingConfirmationEmail(array $event, int $requestedSeats, array $ticketCodes, float $donationAmount, string $currency, ?string $toEmail = null, ?string $toName = null): bool
     {
-        $recipientEmail = trim((string) session()->get('user_email'));
+        $recipientEmail = trim($toEmail ?? (string) session()->get('user_email'));
         if ($recipientEmail === '') {
             return false;
         }
 
-        $userName = trim((string) session()->get('user_name'));
+        $userName = trim($toName ?? (string) session()->get('user_name'));
         $startDate = ! empty($event['start_date']) ? date('d/m/Y H:i', strtotime((string) $event['start_date'])) : '-';
         $endDate = ! empty($event['end_date']) ? date('d/m/Y H:i', strtotime((string) $event['end_date'])) : '-';
         $location = trim((string) ($event['location'] ?? ''));
@@ -784,6 +779,11 @@ abstract class EventBaseController extends BaseController
         $remainingSeats = $this->getRemainingSeats($event);
         if ($requestedSeats > $remainingSeats) {
             return [0, 0.0, strtr(lang('App.seatsLimitError'), ['{max}' => (string) $remainingSeats])];
+        }
+
+        $allowance = (new BookingService())->userAllowance((int) $event['id'], (int) session()->get('user_id'));
+        if ($requestedSeats > $allowance) {
+            return [0, 0.0, strtr(lang('App.seatsPerUserLimitError'), ['{max}' => (string) $allowance])];
         }
 
         $donationAmountRaw = trim($this->getRequestValue('donation_amount'));
@@ -957,6 +957,7 @@ abstract class EventBaseController extends BaseController
             'user_id' => isset($data['user']) ? (int) $data['user'] : 0,
             'seats' => isset($data['seats']) ? (int) $data['seats'] : 0,
             'donation' => isset($data['donation']) ? (float) $data['donation'] : 0.0,
+            'code' => isset($data['code']) ? strtoupper(trim((string) $data['code'])) : '',
         ];
     }
 

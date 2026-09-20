@@ -5,7 +5,6 @@ namespace App\Controllers;
 use App\Models\DiscountCodeModel;
 use App\Models\EventModel;
 use CodeIgniter\HTTP\RedirectResponse;
-use CodeIgniter\HTTP\ResponseInterface;
 
 class DiscountCodeAdminController extends BaseController
 {
@@ -80,29 +79,6 @@ class DiscountCodeAdminController extends BaseController
         $this->logAdminAction('discount_code_delete', 'system', ['id' => $id]);
 
         return redirect()->to(base_url('admin/discount-codes'))->with('dc_info', lang('App.discountCodesDeleted'));
-    }
-
-    public function validateCode(): ResponseInterface
-    {
-        $code    = strtoupper(trim((string) $this->request->getPost('code')));
-        $eventId = (int) $this->request->getPost('event_id');
-        $amount  = (float) $this->request->getPost('amount');
-
-        $discount = $this->discountModel->findValid($code, $eventId);
-        if ($discount === null) {
-            return $this->response->setStatusCode(404)->setJSON(['error' => lang('App.discountCodesNotFound')]);
-        }
-
-        $newAmount = $this->discountModel->applyDiscount($discount, $amount);
-
-        return $this->response->setJSON([
-            'valid'       => true,
-            'code'        => $discount['code'],
-            'type'        => $discount['type'],
-            'value'       => (float) $discount['value'],
-            'new_amount'  => $newAmount,
-            'description' => $discount['description'] ?? '',
-        ]);
     }
 
     private function isAdmin(): bool

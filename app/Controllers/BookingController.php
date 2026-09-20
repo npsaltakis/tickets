@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Libraries\BookingService;
+use App\Models\WaitlistModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RedirectResponse;
 use Throwable;
@@ -45,52 +47,25 @@ class BookingController extends EventBaseController
             return redirect()->back()->with('event_error', lang('App.bookingInvalidSeatCount'));
         }
 
-        $remainingSeats = $this->getRemainingSeats($event);
-        if ($requestedSeats > $remainingSeats) {
-            return redirect()->back()->with('event_error', strtr(lang('App.seatsLimitError'), [
-                '{max}' => (string) $remainingSeats,
-            ]));
-        }
-
         if (($event['event_type'] ?? 'free') !== 'free') {
             return redirect()->back()->with('event_error', lang('App.donationBookingPending'));
         }
 
-        $userId = (int) session()->get('user_id');
-        $ticketCodes = [];
+        $userId  = (int) session()->get('user_id');
+        $booking = (new BookingService())->bookFree($event, $userId, $requestedSeats);
 
-        for ($i = 0; $i < $requestedSeats; $i++) {
-            $ticketCode = $this->generateTicketCode();
-            $ticketCodes[] = $ticketCode;
-
-            $this->ticketModel->insert([
-                'event_id' => $event['id'],
-                'user_id' => $userId,
-                'ticket_code' => $ticketCode,
-                'donation_amount' => 0.00,
-                'payment_status' => 'free',
-                'status' => 'valid',
-            ]);
+        if ($booking['status'] !== 'created') {
+            return redirect()->back()->with('event_error', $this->bookingFailureMessage($event, $booking['status'], $userId));
         }
 
+        $ticketCodes = $booking['codes'];
         $bookingMessage = lang('App.bookingSuccess');
 
         if (! $this->sendBookingConfirmationEmail($event, $requestedSeats, $ticketCodes, 0.00, 'EUR')) {
             $bookingMessage .= ' ' . lang('App.bookingEmailFailed');
         }
 
-        $remaining = $this->getRemainingSeats($event);
-        $capacity  = max(1, (int) ($event['capacity'] ?? 1));
-
-        if ($remaining === 0) {
-            $this->notifyAdminEventFull($event);
-        } elseif ($remaining / $capacity <= 0.2) {
-            $cacheKey = 'event_80pct_notified_' . (int) $event['id'];
-            if (! cache()->get($cacheKey)) {
-                $this->notifyAdminCapacityAlert($event, $remaining, $capacity);
-                cache()->save($cacheKey, true, 86400);
-            }
-        }
+        $this->notifyCapacityAfterBooking($event);
 
         return redirect()->to(base_url('events/' . $slug . '/success'))
             ->with('booking_success_codes', $ticketCodes)
@@ -122,7 +97,17 @@ class BookingController extends EventBaseController
             return $this->response->setStatusCode(422)->setJSON(['message' => $error]);
         }
 
-        $totalDonationAmount = $this->getExpectedDonationTotal($requestedSeats, $donationAmountPerSeat);
+        $discountCode = strtoupper($this->getRequestValue('discount_code'));
+        [$totalDonationAmount, , $discountError] = (new BookingService())->resolveTotal(
+            (int) $event['id'],
+            $requestedSeats,
+            $donationAmountPerSeat,
+            $discountCode
+        );
+
+        if ($discountError !== null) {
+            return $this->response->setStatusCode(422)->setJSON(['message' => lang($discountError)]);
+        }
 
         [$accessToken, $tokenError] = $this->getPayPalAccessToken();
         if ($accessToken === null) {
@@ -135,6 +120,10 @@ class BookingController extends EventBaseController
             'seats:' . $requestedSeats,
             'donation:' . number_format($donationAmountPerSeat, 2, '.', ''),
         ]);
+
+        if ($discountCode !== '') {
+            $customId .= '|code:' . $discountCode;
+        }
 
         try {
             $paypalResponse = service('curlrequest')->post(rtrim($this->getPayPalBaseUrl(), '/') . '/v2/checkout/orders', [
@@ -245,169 +234,152 @@ class BookingController extends EventBaseController
             return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
         }
 
-        $captureId = (string) ($capture['id'] ?? '');
-        if ($captureId === '') {
-            log_message('error', 'PayPal capture missing capture id: {body}', [
-                'body' => $paypalResponse->getBody(),
-            ]);
-
-            return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
-        }
-
-        if (
-            $this->payPalCaptureModel->where('paypal_transaction_id', $captureId)->first() !== null
-            || $this->paymentModel->where('paypal_transaction_id', $captureId)->first() !== null
-        ) {
-            session()->setFlashdata('event_info', lang('App.bookingSuccess'));
-
-            return $this->response->setJSON([
-                'redirectUrl' => base_url('events/' . $slug),
-            ]);
-        }
-
         $customId = (string) ($purchaseUnit['custom_id'] ?? '');
         if ($customId === '') {
             $orderDetails = $this->getPayPalOrderDetails($orderId, $accessToken);
             $customId = (string) ($orderDetails['purchase_units'][0]['custom_id'] ?? '');
-
-            log_message('error', 'PayPal capture missing custom_id in capture response. order_details={details}', [
-                'details' => json_encode($orderDetails),
-            ]);
         }
 
-        $bookingData = $this->parsePayPalCustomId($customId);
+        $userId  = (int) session()->get('user_id');
+        $result  = (new BookingService())->fulfillCapture($capture, $this->parsePayPalCustomId($customId), $userId, (int) $event['id']);
+        $message = lang('App.bookingSuccess');
 
-        if (
-            empty($bookingData)
-            || (int) ($bookingData['event_id'] ?? 0) !== (int) $event['id']
-            || (int) ($bookingData['user_id'] ?? 0) !== (int) session()->get('user_id')
-        ) {
-            log_message('error', 'PayPal booking data mismatch. custom_id={customId} parsed={parsed} event={eventId} user={userId}', [
-                'customId' => $customId,
-                'parsed' => json_encode($bookingData),
-                'eventId' => (int) $event['id'],
-                'userId' => (int) session()->get('user_id'),
-            ]);
+        switch ($result['status']) {
+            case 'created':
+                if (! $this->sendBookingConfirmationEmail($event, $result['seats'], $result['codes'], $result['amount'], $result['currency'])) {
+                    $message .= ' ' . lang('App.bookingEmailFailed');
+                }
+                $this->notifyCapacityAfterBooking($event);
+                session()->setFlashdata('event_info', $message);
 
-            return $this->response->setStatusCode(422)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
+                return $this->response->setJSON(['redirectUrl' => base_url('events/' . $slug)]);
+
+            case 'duplicate':
+                session()->setFlashdata('event_info', $message);
+
+                return $this->response->setJSON(['redirectUrl' => base_url('events/' . $slug)]);
+
+            case 'refunded':
+                return $this->response->setStatusCode(409)->setJSON(['message' => lang('App.paypalAutoRefunded')]);
+
+            case 'refund_failed':
+                return $this->response->setStatusCode(409)->setJSON(['message' => lang('App.paypalRefundFailedContactAdmin')]);
+
+            case 'error':
+                // Payment is captured; the PayPal webhook will create the tickets when it retries.
+                return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalPaidPendingTickets')]);
+
+            default:
+                return $this->response->setStatusCode(422)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
+        }
+    }
+
+    public function previewDiscount(string $slug)
+    {
+        if (! $this->passesBookingThrottle('discount_preview')) {
+            return $this->response->setStatusCode(429)->setJSON(['message' => lang('App.bookingRateLimited')]);
         }
 
-        $requestedSeats = (int) ($bookingData['seats'] ?? 0);
-        $donationPerSeat = (float) ($bookingData['donation'] ?? 0);
-        $donationAmount = (float) ($capture['amount']['value'] ?? 0);
-        $currency = (string) ($capture['amount']['currency_code'] ?? 'EUR');
-
-        $expectedDonationAmount = $this->getExpectedDonationTotal($requestedSeats, $donationPerSeat);
-
-        if ($requestedSeats < 1 || $donationPerSeat <= 0 || $donationAmount <= 0) {
-            log_message('error', 'PayPal capture invalid values. seats={seats} perSeat={perSeat} amount={amount} currency={currency} body={body}', [
-                'seats' => $requestedSeats,
-                'perSeat' => $donationPerSeat,
-                'amount' => $donationAmount,
-                'currency' => $currency,
-                'body' => $paypalResponse->getBody(),
-            ]);
-
-            return $this->response->setStatusCode(422)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
+        $event = $this->eventModel->where('slug', $slug)->first();
+        if (empty($event) || ($event['event_type'] ?? 'free') !== 'donation') {
+            return $this->response->setStatusCode(404)->setJSON(['message' => 'Event not found']);
         }
 
-        if (! $this->amountsMatch($expectedDonationAmount, $donationAmount)) {
-            log_message('error', 'PayPal capture amount mismatch. expected={expected} actual={actual} seats={seats} perSeat={perSeat} captureId={captureId}', [
-                'expected' => $expectedDonationAmount,
-                'actual' => $donationAmount,
-                'seats' => $requestedSeats,
-                'perSeat' => $donationPerSeat,
-                'captureId' => $captureId,
-            ]);
+        $seats   = max(1, (int) $this->getRequestValue('seats'));
+        $perSeat = max((float) ($event['min_donation'] ?? 0), (float) $this->getRequestValue('donation_amount'));
+        [$total, $discount, $error] = (new BookingService())->resolveTotal(
+            (int) $event['id'],
+            $seats,
+            $perSeat,
+            $this->getRequestValue('discount_code')
+        );
 
-            return $this->response->setStatusCode(422)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
+        if ($error !== null) {
+            return $this->response->setStatusCode(422)->setJSON(['message' => lang($error)]);
         }
-
-        $remainingSeats = $this->getRemainingSeats($event);
-        if ($requestedSeats > $remainingSeats) {
-            return $this->response->setStatusCode(409)->setJSON(['message' => lang('App.bookingEventUnavailable')]);
-        }
-
-        $ticketCodes = [];
-        $splitAmounts = $this->splitAmountAcrossSeats($donationAmount, $requestedSeats);
-        $db = \Config\Database::connect();
-
-        try {
-            $db->transException(true)->transStart();
-
-            if (
-                $this->payPalCaptureModel->where('paypal_transaction_id', $captureId)->first() !== null
-                || $this->paymentModel->where('paypal_transaction_id', $captureId)->first() !== null
-            ) {
-                $db->transComplete();
-                session()->setFlashdata('event_info', lang('App.bookingSuccess'));
-
-                return $this->response->setJSON([
-                    'redirectUrl' => base_url('events/' . $slug),
-                ]);
-            }
-
-            $this->payPalCaptureModel->insert([
-                'paypal_transaction_id' => $captureId,
-            ]);
-
-            for ($i = 0; $i < $requestedSeats; $i++) {
-                $ticketCode = $this->generateTicketCode();
-                $ticketCodes[] = $ticketCode;
-
-                $ticketId = $this->ticketModel->insert([
-                    'event_id' => $event['id'],
-                    'user_id' => (int) session()->get('user_id'),
-                    'ticket_code' => $ticketCode,
-                    'donation_amount' => $splitAmounts[$i],
-                    'payment_status' => 'paid',
-                    'status' => 'valid',
-                ], true);
-
-                $this->paymentModel->insert([
-                    'ticket_id' => (int) $ticketId,
-                    'paypal_transaction_id' => $captureId,
-                    'amount' => $splitAmounts[$i],
-                    'currency' => $currency,
-                    'payment_status' => 'completed',
-                ]);
-            }
-
-            $db->transComplete();
-        } catch (Throwable $exception) {
-            $db->transRollback();
-
-            if (
-                $this->payPalCaptureModel->where('paypal_transaction_id', $captureId)->first() !== null
-                || $this->paymentModel->where('paypal_transaction_id', $captureId)->first() !== null
-            ) {
-                session()->setFlashdata('event_info', lang('App.bookingSuccess'));
-
-                return $this->response->setJSON([
-                    'redirectUrl' => base_url('events/' . $slug),
-                ]);
-            }
-
-            log_message('error', 'PayPal capture persistence failed. captureId={captureId} message={message}', [
-                'captureId' => $captureId,
-                'message' => $exception->getMessage(),
-            ]);
-
-            return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
-        }
-
-        $bookingMessage = lang('App.bookingSuccess');
-        if (! $this->sendBookingConfirmationEmail($event, $requestedSeats, $ticketCodes, $donationAmount, $currency)) {
-            $bookingMessage .= ' ' . lang('App.bookingEmailFailed');
-        }
-
-        session()->setFlashdata('event_info', $bookingMessage);
 
         return $this->response->setJSON([
-            'redirectUrl' => base_url('events/' . $slug),
+            'valid'       => true,
+            'total'       => $total,
+            'description' => (string) ($discount['description'] ?? ''),
         ]);
     }
 
+    public function joinWaitlist(string $slug): RedirectResponse
+    {
+        $event = $this->eventModel->where('slug', $slug)->first();
+        if (empty($event)) {
+            throw PageNotFoundException::forPageNotFound('Event not found');
+        }
+
+        if (session()->get('is_logged_in') !== true) {
+            return redirect()->to(base_url('login'))->with('login_info', lang('App.bookingLoginRequired'));
+        }
+
+        if ((string) ($event['status'] ?? '') !== 'active' || (int) ($event['bookings_enabled'] ?? 1) !== 1) {
+            return redirect()->back()->with('event_error', lang('App.bookingEventUnavailable'));
+        }
+
+        if ($this->getRemainingSeats($event) > 0) {
+            return redirect()->back()->with('event_error', lang('App.waitlistSeatsAvailable'));
+        }
+
+        $waitlist = new WaitlistModel();
+        $userId   = (int) session()->get('user_id');
+        $existing = $waitlist->where('event_id', (int) $event['id'])->where('user_id', $userId)->first();
+
+        if ($existing === null) {
+            $waitlist->insert(['event_id' => (int) $event['id'], 'user_id' => $userId]);
+        }
+
+        return redirect()->back()->with('event_info', lang('App.waitlistJoined'));
+    }
+
+    public function leaveWaitlist(string $slug): RedirectResponse
+    {
+        $event = $this->eventModel->where('slug', $slug)->first();
+        if (empty($event)) {
+            throw PageNotFoundException::forPageNotFound('Event not found');
+        }
+
+        (new WaitlistModel())
+            ->where('event_id', (int) $event['id'])
+            ->where('user_id', (int) session()->get('user_id'))
+            ->delete();
+
+        return redirect()->back()->with('event_info', lang('App.waitlistLeft'));
+    }
+
+    private function bookingFailureMessage(array $event, string $status, int $userId): string
+    {
+        return match ($status) {
+            'full'  => strtr(lang('App.seatsLimitError'), ['{max}' => (string) $this->getRemainingSeats($event)]),
+            'limit' => strtr(lang('App.seatsPerUserLimitError'), [
+                '{max}' => (string) (new BookingService())->userAllowance((int) $event['id'], $userId),
+            ]),
+            default => lang('App.bookingGenericError'),
+        };
+    }
+
+    private function notifyCapacityAfterBooking(array $event): void
+    {
+        $remaining = $this->getRemainingSeats($event);
+        $capacity  = max(1, (int) ($event['capacity'] ?? 1));
+
+        if ($remaining === 0) {
+            $this->notifyAdminEventFull($event);
+
+            return;
+        }
+
+        if ($remaining / $capacity <= 0.2) {
+            $cacheKey = 'event_80pct_notified_' . (int) $event['id'];
+            if (! cache()->get($cacheKey)) {
+                $this->notifyAdminCapacityAlert($event, $remaining, $capacity);
+                cache()->save($cacheKey, true, 86400);
+            }
+        }
+    }
     private function passesBookingThrottle(string $scope): bool
     {
         $identity = (string) (session()->get('user_id') ?? $this->request->getIPAddress());

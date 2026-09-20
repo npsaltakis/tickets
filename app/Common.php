@@ -13,3 +13,19 @@
  *
  * @see: https://codeigniter.com/user_guide/extending/common.html
  */
+
+if (! function_exists('csv_safe')) {
+    /**
+     * Neutralises spreadsheet formula injection (=, +, -, @, tab, CR at the start of a cell).
+     */
+    function csv_safe(mixed $value): string
+    {
+        $text = (string) $value;
+
+        if ($text !== '' && preg_match('/^[=+\-@	]/', $text) === 1 && ! is_numeric($text)) {
+            return "'" . $text;
+        }
+
+        return $text;
+    }
+}

@@ -190,3 +190,31 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+document.querySelectorAll('.ticket-picker').forEach(picker => {
+    const select   = picker.querySelector('.ticket-picker-select');
+    const pdfBtn   = picker.querySelector('[data-export-ticket-pdf]');
+    const calLink  = picker.querySelector('.ticket-export-link');
+    const resendForm = picker.querySelector('.ticket-picker-resend');
+    const cancelForm = picker.querySelector('.ticket-picker-cancel');
+    const calBase  = picker.dataset.calendarBase;
+    const resendBase = picker.dataset.resendBase;
+
+    if (!select) return;
+
+    select.addEventListener('change', () => {
+        const code = select.value;
+        if (pdfBtn)      pdfBtn.dataset.ticketCode = code;
+        if (calLink)     calLink.href = calBase + encodeURIComponent(code) + '/calendar.ics';
+        if (resendForm)  resendForm.action = resendBase + encodeURIComponent(code) + '/resend-email';
+        if (cancelForm)  cancelForm.action = resendBase + encodeURIComponent(code) + '/cancel';
+    });
+
+    if (cancelForm) {
+        cancelForm.addEventListener('submit', (e) => {
+            if (!window.confirm(cancelForm.dataset.confirm || 'Cancel this ticket?')) {
+                e.preventDefault();
+            }
+        });
+    }
+});

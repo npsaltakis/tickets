@@ -126,6 +126,16 @@ class Home extends EventBaseController
         $event['remaining_seats'] = $this->getRemainingSeats($event);
         $hasOnlineAccess = false;
         $userTicketCodes = [];
+        $seatAllowance = \App\Libraries\BookingService::maxSeatsPerUser();
+        $onWaitlist = false;
+
+        if ($isLoggedIn) {
+            $seatAllowance = (new \App\Libraries\BookingService())->userAllowance((int) $event['id'], (int) session()->get('user_id'));
+            $onWaitlist = (new \App\Models\WaitlistModel())
+                ->where('event_id', (int) $event['id'])
+                ->where('user_id', (int) session()->get('user_id'))
+                ->first() !== null;
+        }
 
         if ($isAdmin) {
             $hasOnlineAccess = true;
@@ -151,6 +161,8 @@ class Home extends EventBaseController
         $metaImage = $this->normalizeEventImageUrl((string) ($event['image'] ?? ''));
 
         return view('events/show', [
+            'seatAllowance' => $seatAllowance,
+            'onWaitlist' => $onWaitlist,
             'event' => $event,
             'pageTitle' => $this->buildEventSeoTitle($event),
             'metaDescription' => $metaDescription,

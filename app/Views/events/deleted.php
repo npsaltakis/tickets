@@ -27,7 +27,7 @@
                         <p><?= esc(lang('App.deletedEventsDeletedAt')) ?>: <?= esc(! empty($event['deleted_at']) ? date('d/m/Y H:i', strtotime((string) $event['deleted_at'])) : '-') ?></p>
                         <p><?= esc(lang('App.location')) ?>: <?= esc((string) ($event['location'] ?? '-')) ?></p>
                     </div>
-                    <form method="post" action="<?= base_url('events/' . $event['slug'] . '/restore') ?>" onsubmit="return confirm('<?= esc(lang('App.eventRestoreConfirm'), 'attr') ?>');">
+                    <form method="post" action="<?= base_url('events/' . $event['slug'] . '/restore') ?>" data-confirm="<?= esc(lang('App.eventRestoreConfirm'), 'attr') ?>">
                         <?= csrf_field() ?>
                         <button type="submit" class="book-btn"><?= esc(lang('App.eventRestoreButton')) ?></button>
                     </form>

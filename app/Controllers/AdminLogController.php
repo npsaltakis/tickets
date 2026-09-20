@@ -201,14 +201,14 @@ class AdminLogController extends BaseController
         ]);
 
         foreach ($rows as $row) {
-            fputcsv($handle, [
+            fputcsv($handle, array_map('csv_safe', [
                 (string) ($row['created_at'] ?? ''),
                 (string) ($row['admin_email'] ?? ''),
                 $this->formatActionLabel((string) ($row['action'] ?? '')),
                 (string) ($row['target_type'] ?? ''),
                 (string) ($row['ip_address'] ?? ''),
                 (string) ($row['context'] ?? ''),
-            ]);
+            ]));
         }
 
         rewind($handle);

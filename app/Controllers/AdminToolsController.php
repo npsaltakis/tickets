@@ -196,6 +196,18 @@ class AdminToolsController extends BaseController
         }
 
         $hoursAhead = max(1, (int) ($this->request->getPost('hours_ahead') ?? 48));
+
+        return $this->response->setJSON($this->runReminders($hoursAhead));
+    }
+
+    /**
+     * Sends reminders for events starting within $hoursAhead hours. Each ticket is reminded once.
+     * Shared by the admin button and the `php spark reminders:send` command.
+     *
+     * @return array<string, mixed>
+     */
+    public function runReminders(int $hoursAhead): array
+    {
         $db           = db_connect();
         $eventsTable  = $db->prefixTable('events');
         $ticketsTable = $db->prefixTable('tickets');
@@ -205,7 +217,7 @@ class AdminToolsController extends BaseController
         $cutoff = date('Y-m-d H:i:s', strtotime('+' . $hoursAhead . ' hours'));
 
         $rows = $db->table($eventsTable . ' e')
-            ->select('e.id, e.title, e.slug, e.start_date, e.location, t.ticket_code, u.email, u.first_name')
+            ->select('e.id, e.title, e.slug, e.start_date, e.location, t.id AS ticket_id, t.ticket_code, u.email, u.first_name')
             ->join($ticketsTable . ' t', 't.event_id = e.id')
             ->join($usersTable . ' u', 'u.id = t.user_id')
             ->where('e.status', 'active')
@@ -213,11 +225,12 @@ class AdminToolsController extends BaseController
             ->where('e.start_date >=', $now)
             ->where('e.start_date <=', $cutoff)
             ->where('t.status', 'valid')
+            ->where('t.reminder_sent_at', null)
             ->get()
             ->getResultArray();
 
         if (empty($rows)) {
-            return $this->response->setJSON(['success' => true, 'sent' => 0, 'message' => 'No upcoming events with bookings in the next ' . $hoursAhead . ' hours.']);
+            return ['success' => true, 'sent' => 0, 'total' => 0, 'message' => 'No pending reminders in the next ' . $hoursAhead . ' hours.'];
         }
 
         $grouped = [];
@@ -232,9 +245,11 @@ class AdminToolsController extends BaseController
                     'start_date' => $row['start_date'] ?? '',
                     'location'   => $row['location'] ?? '',
                     'codes'      => [],
+                    'ticket_ids' => [],
                 ];
             }
             $grouped[$key]['codes'][] = $row['ticket_code'];
+            $grouped[$key]['ticket_ids'][] = (int) $row['ticket_id'];
         }
 
         $sent = 0;
@@ -269,6 +284,9 @@ class AdminToolsController extends BaseController
 
                 if ($emailService->send(false)) {
                     $sent++;
+                    $db->table($ticketsTable)
+                        ->whereIn('id', $item['ticket_ids'])
+                        ->update(['reminder_sent_at' => date('Y-m-d H:i:s')]);
                 }
             } catch (\Throwable) {
             }
@@ -280,7 +298,7 @@ class AdminToolsController extends BaseController
             'total'       => count($grouped),
         ]);
 
-        return $this->response->setJSON(['success' => true, 'sent' => $sent, 'total' => count($grouped)]);
+        return ['success' => true, 'sent' => $sent, 'total' => count($grouped)];
     }
 
     private function getDemoCleanupPlan(): array

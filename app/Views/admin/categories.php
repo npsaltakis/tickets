@@ -35,7 +35,7 @@
                                 <td class="meta"><?= esc($cat['slug']) ?></td>
                                 <td><code style="font-size:0.82rem;color:var(--muted)"><?= esc($cat['color'] ?? '') ?></code></td>
                                 <td>
-                                    <form method="post" action="<?= base_url('admin/categories/' . (int)$cat['id'] . '/delete') ?>" style="margin:0" onsubmit="return confirm('<?= esc(lang('App.categoriesDeleteConfirm'), 'attr') ?>')">
+                                    <form method="post" action="<?= base_url('admin/categories/' . (int)$cat['id'] . '/delete') ?>" style="margin:0" data-confirm="<?= esc(lang('App.categoriesDeleteConfirm'), 'attr') ?>">
                                         <?= csrf_field() ?>
                                         <button type="submit" class="admin-action-btn admin-action-btn--danger"><?= esc(lang('App.eventDeleteButton')) ?></button>
                                     </form>

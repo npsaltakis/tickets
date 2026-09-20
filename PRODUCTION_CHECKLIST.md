@@ -34,3 +34,11 @@ Run this checklist before or after deploying changes to production.
 - Open `Report`, select an event, and confirm check-in status/checked-in-at values appear.
 - Open `Audit Logs` as admin and confirm new admin actions are recorded after the migration runs.
 - Edit an event, disable bookings, and confirm the event remains visible but free/PayPal booking is blocked.
+
+## PayPal Webhook & Scheduled Jobs
+
+- Run `php spark migrate` (adds refunds, waiting list and reminder tracking).
+- In the PayPal developer dashboard create a webhook to `https://<domain>/paypal/webhook` for `PAYMENT.CAPTURE.COMPLETED` and `PAYMENT.CAPTURE.REFUNDED`, then set `paypal.webhookId` in `.env`.
+- Schedule reminders with cron, e.g. hourly: `php spark reminders:send 48` (each ticket is reminded only once).
+- Optional `.env` tuning: `booking.maxSeatsPerUser` (default 10), `booking.cancelHoursBefore` (default 24), `ADMIN_NOTIFY_EMAIL` (contact form + admin alerts).
+- Tests: `vendor/bin/phpunit`. Booking flow tests need a MySQL test DB via `database.tests.*` env vars, otherwise they are skipped.

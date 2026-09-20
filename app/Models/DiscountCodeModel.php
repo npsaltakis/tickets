@@ -56,8 +56,36 @@ class DiscountCodeModel extends Model
         return round($discounted, 2);
     }
 
-    public function incrementUsed(int $id): void
+    /**
+     * Looks a code up regardless of usage/expiry (used when an already-paid order is fulfilled).
+     */
+    public function findByCode(string $code, int $eventId = 0): ?array
     {
-        $this->set('used_count', 'used_count + 1', false)->where('id', $id)->update();
+        $code = strtoupper(trim($code));
+        if ($code === '') {
+            return null;
+        }
+
+        $row = $this->where('code', $code)
+            ->groupStart()
+                ->where('event_id', null)
+                ->orWhere('event_id', $eventId)
+            ->groupEnd()
+            ->first();
+
+        return $row ?: null;
+    }
+
+    /**
+     * Atomically consumes one use; false when the usage limit was reached in the meantime.
+     */
+    public function reserveUse(int $id): bool
+    {
+        $this->db->query(
+            'UPDATE ' . $this->db->prefixTable('discount_codes') . ' SET used_count = used_count + 1 WHERE id = ? AND (max_uses IS NULL OR used_count < max_uses)',
+            [$id]
+        );
+
+        return $this->db->affectedRows() > 0;
     }
 }

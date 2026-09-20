@@ -30,5 +30,6 @@ $seoTitle = (string) ($pageTitle ?? $siteTitle);
     </div>
     <script src="<?= base_url('assets/js/admin.js') ?>?v=<?= esc($assetVersion('assets/js/admin.js')) ?>"></script>
     <?= $this->renderSection('scripts') ?>
+    <script src="<?= base_url('assets/js/ui-actions.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/ui-actions.js') ?: time() ?>"></script>
 </body>
 </html>

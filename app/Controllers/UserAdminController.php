@@ -176,6 +176,52 @@ class UserAdminController extends BaseController
         return redirect()->to(base_url('users'))->with('users_info', lang('App.usersUnblockSuccess'));
     }
 
+    public function bulk(): RedirectResponse
+    {
+        if ($redirect = $this->ensureAdmin()) {
+            return $redirect;
+        }
+
+        $action = trim((string) $this->request->getPost('action'));
+        $ids    = array_values(array_unique(array_filter(
+            array_map('intval', (array) $this->request->getPost('user_ids')),
+            static fn (int $id): bool => $id > 0
+        )));
+
+        if (! in_array($action, ['block', 'unblock', 'delete'], true) || $ids === []) {
+            return redirect()->to(base_url('users'))->with('users_error', lang('App.usersBulkNone'));
+        }
+
+        // Never let an admin act on their own account through a bulk action.
+        $ids   = array_values(array_diff($ids, [(int) session()->get('user_id')]));
+        $users = $ids === [] ? [] : $this->userModel->whereIn('id', $ids)->findAll();
+
+        if ($users === []) {
+            return redirect()->to(base_url('users'))->with('users_error', lang('App.usersBulkNone'));
+        }
+
+        $applied = $this->withAtomicAdminGuard(function () use ($action, $users): void {
+            foreach ($users as $user) {
+                match ($action) {
+                    'block'   => $this->userModel->update((int) $user['id'], ['status' => 'banned']),
+                    'unblock' => $this->userModel->update((int) $user['id'], ['status' => 'active']),
+                    'delete'  => $this->userModel->delete((int) $user['id']),
+                };
+            }
+        });
+
+        if (! $applied) {
+            return redirect()->to(base_url('users'))->with('users_error', lang('App.usersLastAdminError'));
+        }
+
+        $this->logAdminAction('user_bulk_' . $action, 'user', [
+            'count' => count($users),
+            'ids'   => implode(', ', array_map(static fn (array $u): int => (int) $u['id'], $users)),
+        ]);
+
+        return redirect()->to(base_url('users'))->with('users_info', strtr(lang('App.usersBulkDone'), ['{n}' => (string) count($users)]));
+    }
+
     public function delete(int $userId): RedirectResponse
     {
         if ($redirect = $this->ensureAdmin()) {

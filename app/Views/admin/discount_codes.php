@@ -43,7 +43,7 @@
                                     <?= !empty($code['expires_at']) ? esc(date('d/m/Y H:i', strtotime((string)$code['expires_at']))) : '—' ?>
                                 </td>
                                 <td>
-                                    <form method="post" action="<?= base_url('admin/discount-codes/' . (int)$code['id'] . '/delete') ?>" style="margin:0" onsubmit="return confirm('Delete code <?= esc($code['code'], 'attr') ?>?')">
+                                    <form method="post" action="<?= base_url('admin/discount-codes/' . (int)$code['id'] . '/delete') ?>" style="margin:0" data-confirm="Delete code <?= esc($code['code'], 'attr') ?>?">
                                         <?= csrf_field() ?>
                                         <button type="submit" class="admin-action-btn admin-action-btn--danger"><?= esc(lang('App.eventDeleteButton')) ?></button>
                                     </form>

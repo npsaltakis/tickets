@@ -85,7 +85,7 @@
                 </div>
             </form>
 
-            <form method="post" action="<?= base_url('admin-logs/clear') ?>" class="admin-log-clear-form" onsubmit="return confirm('<?= esc(lang('App.adminLogsClearConfirm'), 'attr') ?>');">
+            <form method="post" action="<?= base_url('admin-logs/clear') ?>" class="admin-log-clear-form" data-confirm="<?= esc(lang('App.adminLogsClearConfirm'), 'attr') ?>">
                 <?= csrf_field() ?>
                 <div>
                     <strong><?= esc(lang('App.adminLogsDangerTitle')) ?></strong>

@@ -104,6 +104,12 @@
     const captureOrderUrl = donationBooking.dataset.captureOrderUrl;
     const csrfHeaderName = donationBooking.dataset.csrfHeader || 'X-CSRF-TOKEN';
     const csrfToken = donationBooking.dataset.csrfToken || '';
+    const discountUrl = donationBooking.dataset.discountUrl || '';
+    const discountInput = document.getElementById('discount_code');
+    const discountButton = document.getElementById('discount-apply');
+    const discountMessage = document.getElementById('discount-message');
+    let discountApplied = false;
+    let discountRequestId = 0;
 
     const getMinimumDonation = () => {
         return minDonation;
@@ -115,11 +121,104 @@
         }
 
         const totalValue = seats * donationPerSeat;
+
+        if (discountApplied) {
+            refreshDiscountedTotal(seats, donationPerSeat);
+        }
+
         donationTotal.innerHTML = `<strong>${totalLabel}:</strong> €${totalValue.toFixed(2)} <span class="meta">(${totalTemplate
             .replace('{seats}', String(seats))
             .replace('{donation}', `€${donationPerSeat.toFixed(2)}`)
             .replace('{total}', `€${totalValue.toFixed(2)}`)})</span>`;
     };
+
+    const requestDiscount = async (seats, donationPerSeat) => {
+        const body = new URLSearchParams();
+        body.set('seats', String(seats));
+        body.set('donation_amount', donationPerSeat.toFixed(2));
+        body.set('discount_code', discountInput ? discountInput.value.trim() : '');
+
+        const response = await fetch(discountUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest',
+                [csrfHeaderName]: csrfToken,
+            },
+            credentials: 'same-origin',
+            body: body.toString(),
+        });
+
+        return { ok: response.ok, data: await readJsonResponse(response) };
+    };
+
+    const refreshDiscountedTotal = async (seats, donationPerSeat) => {
+        const requestId = ++discountRequestId;
+
+        try {
+            const { ok, data } = await requestDiscount(seats, donationPerSeat);
+
+            if (requestId !== discountRequestId || !donationTotal) {
+                return;
+            }
+
+            if (ok && data.valid) {
+                donationTotal.innerHTML = `<strong>${totalLabel}:</strong> <s>€${(seats * donationPerSeat).toFixed(2)}</s> €${Number(data.total).toFixed(2)}`;
+            }
+        } catch (error) {
+            console.error('Discount refresh failed.', error);
+        }
+    };
+
+    const applyDiscountCode = async () => {
+        if (!discountInput || !discountMessage || !discountUrl) {
+            return;
+        }
+
+        const seats = validateSeats();
+        const perSeat = Number(donationInput.value) || minDonation;
+
+        if (discountInput.value.trim() === '') {
+            discountApplied = false;
+            discountMessage.textContent = '';
+            renderDonationTotal(seats, perSeat);
+            return;
+        }
+
+        discountMessage.textContent = '…';
+
+        try {
+            const { ok, data } = await requestDiscount(seats, perSeat);
+
+            if (!ok || !data.valid) {
+                discountApplied = false;
+                discountMessage.textContent = data.message || paypalErrorMessage;
+                renderDonationTotal(seats, perSeat);
+                return;
+            }
+
+            discountApplied = true;
+            discountMessage.textContent = data.description || '✓';
+            renderDonationTotal(seats, perSeat);
+        } catch (error) {
+            console.error('Discount request failed.', error);
+            discountMessage.textContent = paypalErrorMessage;
+        }
+    };
+
+    if (discountButton) {
+        discountButton.addEventListener('click', applyDiscountCode);
+    }
+
+    if (discountInput) {
+        discountInput.addEventListener('input', () => {
+            discountApplied = false;
+            if (discountMessage) {
+                discountMessage.textContent = '';
+            }
+            renderDonationTotal(validateSeats(), Number(donationInput.value) || minDonation);
+        });
+    }
 
     const syncDonationAmount = (seats, force = false) => {
         const minimumDonation = getMinimumDonation();
@@ -225,6 +324,7 @@
             body.set('seats', String(seats));
             body.set('donation_amount', donationAmount.toFixed(2));
             body.set('accept_terms', '1');
+            body.set('discount_code', discountInput ? discountInput.value.trim() : '');
 
             const response = await fetch(createOrderUrl, {
                 method: 'POST',

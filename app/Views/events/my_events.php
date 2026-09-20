@@ -29,6 +29,13 @@ $assetVersion = static function (string $relativePath): string {
         </div>
     </div>
 
+    <?php if (session()->getFlashdata('event_info')): ?>
+        <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('event_info')) ?></p>
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('event_error')): ?>
+        <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('event_error')) ?></p>
+    <?php endif; ?>
+
     <?php if (empty($events)): ?>
         <div class="empty">
             <?= esc(lang('App.myEventsEmpty')) ?>
@@ -156,6 +163,18 @@ $assetVersion = static function (string $relativePath): string {
                                             <?= esc(lang('App.myEventsResendEmail')) ?>
                                         </button>
                                     </form>
+                                    <?php
+                                    $cancelDeadline = ! empty($event['start_date']) ? strtotime((string) $event['start_date']) - (\App\Libraries\BookingService::cancelHoursBefore() * 3600) : null;
+                                    $canCancel      = (string) ($event['status'] ?? '') === 'active' && ($cancelDeadline === null || $cancelDeadline > time());
+                                    ?>
+                                    <?php if ($canCancel): ?>
+                                        <form method="post" action="<?= esc($resendBase . urlencode($firstCode) . '/cancel') ?>" class="ticket-resend-form ticket-picker-cancel" data-confirm="<?= esc(lang($event['payment_summary'] === 'paid' ? 'App.myEventsCancelConfirmPaid' : 'App.myEventsCancelConfirm'), 'attr') ?>">
+                                            <?= csrf_field() ?>
+                                            <button type="submit" class="ticket-export-btn ticket-export-btn--secondary">
+                                                <?= esc(lang('App.myEventsCancelTicket')) ?>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -168,23 +187,4 @@ $assetVersion = static function (string $relativePath): string {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 <script src="<?= base_url('assets/js/my-events.js') ?>?v=<?= esc($assetVersion('assets/js/my-events.js')) ?>"></script>
-<script>
-document.querySelectorAll('.ticket-picker').forEach(picker => {
-    const select   = picker.querySelector('.ticket-picker-select');
-    const pdfBtn   = picker.querySelector('[data-export-ticket-pdf]');
-    const calLink  = picker.querySelector('.ticket-export-link');
-    const resendForm = picker.querySelector('.ticket-picker-resend');
-    const calBase  = picker.dataset.calendarBase;
-    const resendBase = picker.dataset.resendBase;
-
-    if (!select) return;
-
-    select.addEventListener('change', () => {
-        const code = select.value;
-        if (pdfBtn)      pdfBtn.dataset.ticketCode = code;
-        if (calLink)     calLink.href = calBase + encodeURIComponent(code) + '/calendar.ics';
-        if (resendForm)  resendForm.action = resendBase + encodeURIComponent(code) + '/resend-email';
-    });
-});
-</script>
 <?= $this->endSection() ?>
