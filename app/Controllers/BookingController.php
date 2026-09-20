@@ -38,6 +38,10 @@ class BookingController extends EventBaseController
             return redirect()->back()->with('event_error', lang('App.bookingClosedMessage'));
         }
 
+        if (! $this->hasPrivateAccess($event)) {
+            return redirect()->to(base_url('events/' . $slug));
+        }
+
         if (! $this->hasAcceptedBookingTerms()) {
             return redirect()->back()->withInput()->with('event_error', lang('App.eventBookingConsentError'));
         }
@@ -53,6 +57,10 @@ class BookingController extends EventBaseController
 
         $userId  = (int) session()->get('user_id');
         $booking = (new BookingService())->bookFree($event, $userId, $requestedSeats);
+
+        if ($booking['status'] === 'created') {
+            $this->recordConsent((int) $event['id']);
+        }
 
         if ($booking['status'] !== 'created') {
             return redirect()->back()->with('event_error', $this->bookingFailureMessage($event, $booking['status'], $userId));
@@ -88,9 +96,15 @@ class BookingController extends EventBaseController
             return $this->response->setStatusCode(401)->setJSON(['message' => lang('App.bookingLoginRequired')]);
         }
 
+        if (! $this->hasPrivateAccess($event)) {
+            return $this->response->setStatusCode(403)->setJSON(['message' => lang('App.privateEventTitle')]);
+        }
+
         if (! $this->hasAcceptedBookingTerms()) {
             return $this->response->setStatusCode(422)->setJSON(['message' => lang('App.eventBookingConsentError')]);
         }
+
+        $this->recordConsent((int) $event['id']);
 
         [$requestedSeats, $donationAmountPerSeat, $error] = $this->validateDonationBookingRequest($event);
         if ($error !== null) {
@@ -102,7 +116,9 @@ class BookingController extends EventBaseController
             (int) $event['id'],
             $requestedSeats,
             $donationAmountPerSeat,
-            $discountCode
+            $discountCode,
+            true,
+            (int) session()->get('user_id')
         );
 
         if ($discountError !== null) {
@@ -291,7 +307,9 @@ class BookingController extends EventBaseController
             (int) $event['id'],
             $seats,
             $perSeat,
-            $this->getRequestValue('discount_code')
+            $this->getRequestValue('discount_code'),
+            true,
+            (int) session()->get('user_id')
         );
 
         if ($error !== null) {

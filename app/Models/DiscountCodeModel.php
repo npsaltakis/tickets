@@ -14,6 +14,7 @@ class DiscountCodeModel extends Model
         'code', 'description', 'type', 'value',
         'max_uses', 'used_count', 'event_id',
         'expires_at', 'is_active',
+        'max_uses_per_user', 'starts_at',
     ];
 
     public function findValid(string $code, int $eventId = 0): ?array
@@ -32,6 +33,10 @@ class DiscountCodeModel extends Model
             ->groupStart()
                 ->where('expires_at', null)
                 ->orWhere('expires_at >=', date('Y-m-d H:i:s'))
+            ->groupEnd()
+            ->groupStart()
+                ->where('starts_at', null)
+                ->orWhere('starts_at <=', date('Y-m-d H:i:s'))
             ->groupEnd()
             ->groupStart()
                 ->where('event_id', null)
@@ -54,6 +59,14 @@ class DiscountCodeModel extends Model
         }
 
         return round($discounted, 2);
+    }
+
+    public function userRedemptions(int $codeId, int $userId): int
+    {
+        return $this->db->table($this->db->prefixTable('discount_redemptions'))
+            ->where('code_id', $codeId)
+            ->where('user_id', $userId)
+            ->countAllResults();
     }
 
     /**

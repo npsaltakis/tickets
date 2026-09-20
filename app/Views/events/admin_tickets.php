@@ -82,6 +82,20 @@
         </div>
 
         <div class="card">
+            <h2 style="margin:0 0 12px;font-size:1rem;color:#f8fafc"><?= esc(lang('App.waitlistAdminTitle')) ?> (<?= count($waitlist ?? []) ?>)</h2>
+            <?php if (empty($waitlist)): ?>
+                <p class="meta"><?= esc(lang('App.waitlistAdminEmpty')) ?></p>
+            <?php else: ?>
+                <ol style="margin:0 0 20px;padding-left:18px">
+                    <?php foreach ($waitlist as $w): ?>
+                        <li class="meta" style="margin-bottom:6px">
+                            <?= esc(trim((string) $w['first_name'] . ' ' . (string) $w['last_name'])) ?> · <?= esc((string) $w['email']) ?><br>
+                            <span style="font-size:0.78rem"><?= esc(date('d/m H:i', strtotime((string) $w['created_at']))) ?><?= !empty($w['notified_at']) ? ' · ' . esc(lang('App.waitlistAdminNotified')) : '' ?></span>
+                        </li>
+                    <?php endforeach; ?>
+                </ol>
+            <?php endif; ?>
+
             <h2 style="margin:0 0 16px;font-size:1rem;color:#f8fafc"><?= esc(lang('App.adminTicketsCreateTitle')) ?></h2>
             <form method="post" action="<?= base_url('admin/events/' . $event['slug'] . '/tickets') ?>" class="auth-form">
                 <?= csrf_field() ?>

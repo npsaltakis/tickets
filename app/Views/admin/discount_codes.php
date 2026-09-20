@@ -10,6 +10,14 @@
         <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('dc_error')) ?></p>
     <?php endif; ?>
 
+    <?php $newCodes = (array) session()->getFlashdata('dc_new_codes'); ?>
+    <?php if (count($newCodes) > 1): ?>
+        <div class="card" style="margin-bottom:16px">
+            <p class="meta"><?= esc(lang('App.discountCodesGenerated')) ?></p>
+            <textarea class="auth-input" rows="6" readonly><?= esc(implode("\n", $newCodes)) ?></textarea>
+        </div>
+    <?php endif; ?>
+
     <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
 
         <div class="card" style="overflow:auto">
@@ -61,7 +69,11 @@
                 <?= csrf_field() ?>
 
                 <label class="auth-label"><?= esc(lang('App.discountCodesCode')) ?></label>
-                <input name="code" type="text" class="auth-input" placeholder="SUMMER20" required style="text-transform:uppercase">
+                <input name="code" type="text" class="auth-input" placeholder="SUMMER20" style="text-transform:uppercase">
+
+                <label class="auth-label"><?= esc(lang('App.discountCodesBulkCount')) ?></label>
+                <input name="bulk_count" type="number" min="1" max="200" value="1" class="auth-input">
+                <p class="meta" style="font-size:0.8rem;margin:0"><?= esc(lang('App.discountCodesBulkHint')) ?></p>
 
                 <label class="auth-label"><?= esc(lang('App.discountCodesDescription')) ?></label>
                 <input name="description" type="text" class="auth-input" placeholder="<?= esc(lang('App.discountCodesDescPlaceholder')) ?>">
@@ -78,6 +90,9 @@
                 <label class="auth-label"><?= esc(lang('App.discountCodesMaxUses')) ?></label>
                 <input name="max_uses" type="number" min="1" class="auth-input" placeholder="<?= esc(lang('App.discountCodesUnlimited')) ?>">
 
+                <label class="auth-label"><?= esc(lang('App.discountCodesPerUser')) ?></label>
+                <input name="max_uses_per_user" type="number" min="1" class="auth-input" placeholder="<?= esc(lang('App.discountCodesUnlimited')) ?>">
+
                 <label class="auth-label"><?= esc(lang('App.discountCodesEvent')) ?></label>
                 <select name="event_id" class="auth-input">
                     <option value=""><?= esc(lang('App.discountCodesAllEvents')) ?></option>
@@ -85,6 +100,9 @@
                         <option value="<?= esc($ev['id']) ?>"><?= esc($ev['title']) ?></option>
                     <?php endforeach; ?>
                 </select>
+
+                <label class="auth-label"><?= esc(lang('App.discountCodesStarts')) ?></label>
+                <input name="starts_at" type="datetime-local" class="auth-input">
 
                 <label class="auth-label"><?= esc(lang('App.discountCodesExpires')) ?></label>
                 <input name="expires_at" type="datetime-local" class="auth-input">

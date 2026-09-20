@@ -370,6 +370,49 @@ class ReportController extends EventBaseController
         ]);
     }
 
+    /**
+     * Finds attendees by name, email or ticket code when a QR code cannot be scanned.
+     */
+    public function checkInSearch(): ResponseInterface
+    {
+        if (! $this->canCheckIn()) {
+            return $this->response->setStatusCode(403)->setJSON(['results' => []]);
+        }
+
+        $term = trim((string) $this->request->getGet('q'));
+        if (mb_strlen($term) < 3) {
+            return $this->response->setJSON(['results' => []]);
+        }
+
+        $rows = $this->ticketModel
+            ->select('tickets.ticket_code, tickets.checked_in_at, events.title AS event_title, users.first_name, users.last_name, users.email')
+            ->join('events', 'events.id = tickets.event_id')
+            ->join('users', 'users.id = tickets.user_id', 'left')
+            ->where('tickets.status', 'valid')
+            ->where('events.deleted_at', null)
+            ->groupStart()
+                ->where('events.end_date >=', date('Y-m-d H:i:s'))
+                ->orWhere('events.end_date', null)
+            ->groupEnd()
+            ->groupStart()
+                ->like('users.first_name', $term)
+                ->orLike('users.last_name', $term)
+                ->orLike('users.email', $term)
+                ->orLike('tickets.ticket_code', $term)
+            ->groupEnd()
+            ->orderBy('events.start_date', 'ASC')
+            ->orderBy('users.last_name', 'ASC')
+            ->findAll(15);
+
+        return $this->response->setJSON(['results' => array_map(static fn (array $r): array => [
+            'ticket_code' => (string) $r['ticket_code'],
+            'name'        => trim((string) ($r['first_name'] ?? '') . ' ' . (string) ($r['last_name'] ?? '')),
+            'email'       => (string) ($r['email'] ?? ''),
+            'event'       => (string) $r['event_title'],
+            'checked_in'  => ! empty($r['checked_in_at']),
+        ], $rows)]);
+    }
+
     public function checkInStats(): ResponseInterface
     {
         if (! $this->canCheckIn()) {

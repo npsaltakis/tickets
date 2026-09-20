@@ -57,7 +57,7 @@ $assetVersion = static function (string $relativePath): string {
         <a class="back-link" href="<?= base_url('/') ?>">&larr; <?= esc(lang('App.backToEvents')) ?></a>
         <?php
         $shareUrl   = urlencode(base_url('events/' . $event['slug']));
-        $shareTitle = urlencode($event['title']);
+        $shareTitle = urlencode(event_text($event, 'title'));
         ?>
         <div class="social-share">
             <span class="meta"><?= esc(lang('App.shareLabel')) ?>:</span>
@@ -86,14 +86,14 @@ $assetVersion = static function (string $relativePath): string {
 
     <section class="event-details-card">
         <?php if ($imageUrl !== ''): ?>
-            <img class="event-hero" src="<?= esc($imageUrl) ?>" alt="<?= esc($event['title']) ?>" width="1200" height="675" fetchpriority="high">
+            <img class="event-hero" src="<?= esc($imageUrl) ?>" alt="<?= esc(event_text($event, 'title')) ?>" width="1200" height="675" fetchpriority="high">
         <?php else: ?>
             <div class="event-hero event-image-placeholder"><?= esc(lang('App.noImage')) ?></div>
         <?php endif; ?>
 
         <div class="event-details-body">
             <div class="row">
-                <h1 class="event-page-title"><?= esc($event['title']) ?></h1>
+                <h1 class="event-page-title"><?= esc(event_text($event, 'title')) ?></h1>
                 <span class="status <?= esc($status) ?>"><?= esc($status) ?></span>
             </div>
 
@@ -148,8 +148,17 @@ $assetVersion = static function (string $relativePath): string {
                 <p class="meta"><strong><?= esc(lang('App.minimumDonation')) ?>:</strong> €<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2)) ?></p>
             <?php endif; ?>
 
-            <?php if (!empty($event['description'])): ?>
-                <p class="event-description"><?= esc($event['description']) ?></p>
+            <?php $goal = (float) ($event['donation_goal'] ?? 0); ?>
+            <?php if ($isDonationEvent && $goal > 0): ?>
+                <?php $raised = (float) ($donationRaised ?? 0); $pct = (int) min(100, round($raised / $goal * 100)); ?>
+                <div class="donation-goal">
+                    <div class="donation-goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?= $pct ?>"><span style="width:<?= $pct ?>%"></span></div>
+                    <p class="meta"><strong>€<?= esc(number_format($raised, 2)) ?></strong> <?= esc(lang('App.donationGoalOf')) ?> €<?= esc(number_format($goal, 2)) ?> (<?= $pct ?>%)</p>
+                </div>
+            <?php endif; ?>
+
+            <?php if (event_text($event, 'description') !== ''): ?>
+                <p class="event-description"><?= esc(event_text($event, 'description')) ?></p>
             <?php endif; ?>
 
             <?php if (!empty($userTicketCodes)): ?>

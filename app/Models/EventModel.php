@@ -34,6 +34,11 @@ class EventModel extends Model
         'status',
         'bookings_enabled',
         'category_id',
+        'is_private',
+        'access_code',
+        'title_en',
+        'description_en',
+        'donation_goal',
     ];
 
     protected bool $allowEmptyInserts = false;

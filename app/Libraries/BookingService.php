@@ -94,7 +94,7 @@ class BookingService
      *
      * @return array{0: float, 1: array|null, 2: string|null} [total, discountRow, errorKey]
      */
-    public function resolveTotal(int $eventId, int $seats, float $perSeat, string $code, bool $strict = true): array
+    public function resolveTotal(int $eventId, int $seats, float $perSeat, string $code, bool $strict = true, int $userId = 0): array
     {
         $total    = round($seats * $perSeat, 2);
         $code     = strtoupper(trim($code));
@@ -107,6 +107,11 @@ class BookingService
 
             if ($discount === null) {
                 return [$total, null, 'App.discountCodesNotFound'];
+            }
+
+            $perUserLimit = $discount['max_uses_per_user'] ?? null;
+            if ($strict && $perUserLimit !== null && $userId > 0 && $this->discounts->userRedemptions((int) $discount['id'], $userId) >= (int) $perUserLimit) {
+                return [$total, $discount, 'App.discountUserLimit'];
             }
 
             $total = $this->discounts->applyDiscount($discount, $total);
@@ -188,7 +193,8 @@ class BookingService
             $seats,
             (float) $booking['donation'],
             (string) ($booking['code'] ?? ''),
-            false
+            false,
+            $userId
         );
 
         if ($discountError !== null || ! self::amountsMatch($expectedTotal, $amount)) {
@@ -332,6 +338,15 @@ class BookingService
                     $db->transRollback();
 
                     return ['status' => 'discount', 'codes' => []];
+                }
+
+                if ($payment['discountId'] !== null) {
+                    $db->table($db->prefixTable('discount_redemptions'))->insert([
+                        'code_id'    => (int) $payment['discountId'],
+                        'user_id'    => $userId,
+                        'capture_id' => $payment['captureId'],
+                        'created_at' => date('Y-m-d H:i:s'),
+                    ]);
                 }
 
                 if ($this->captures->insert(['paypal_transaction_id' => $payment['captureId']]) === false) {

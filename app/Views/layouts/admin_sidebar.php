@@ -78,6 +78,16 @@ $isStaffOnly = (string) ($session->get('user_role') ?? '') === 'staff';
             <span class="admin-sidebar-label"><?= esc(lang('App.analyticsPageTitle')) ?></span>
         </a>
 
+        <a href="<?= base_url('admin/payments') ?>" class="<?= $linkClass($isActive('admin/payments')) ?>" title="<?= esc(lang('App.paymentsTitle')) ?>">
+            <svg class="admin-nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/></svg>
+            <span class="admin-sidebar-label"><?= esc(lang('App.paymentsTitle')) ?></span>
+        </a>
+
+        <a href="<?= base_url('admin/email-queue') ?>" class="<?= $linkClass($isActive('admin/email-queue')) ?>" title="<?= esc(lang('App.emailQueueTitle')) ?>">
+            <svg class="admin-nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
+            <span class="admin-sidebar-label"><?= esc(lang('App.emailQueueTitle')) ?></span>
+        </a>
+
         <a href="<?= base_url('check-in') ?>" class="<?= $linkClass($isActive('check-in')) ?>" title="<?= esc(lang('App.navCheckIn')) ?>">
             <svg class="admin-nav-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>

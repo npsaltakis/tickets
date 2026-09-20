@@ -67,6 +67,92 @@ class AdminDashboardController extends EventBaseController
         ]);
     }
 
+    /**
+     * @return array{rows: list<array<string, mixed>>, totals: array<string, float>, filters: array<string, mixed>}
+     */
+    private function paymentsData(int $limit): array
+    {
+        $date = static fn (?string $v): string => preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $v) === 1 ? (string) $v : '';
+        $from = $date($this->request->getGet('from'));
+        $to   = $date($this->request->getGet('to'));
+        $eventId = max(0, (int) $this->request->getGet('event_id'));
+
+        $db      = db_connect();
+        $builder = $db->table($db->prefixTable('payments') . ' p')
+            ->select('p.id, p.created_at, p.amount, p.currency, p.payment_status, p.paypal_transaction_id, t.ticket_code, e.title AS event_title, u.first_name, u.last_name, u.email')
+            ->join($db->prefixTable('tickets') . ' t', 't.id = p.ticket_id')
+            ->join($db->prefixTable('events') . ' e', 'e.id = t.event_id')
+            ->join($db->prefixTable('users') . ' u', 'u.id = t.user_id', 'left');
+
+        if ($from !== '') {
+            $builder->where('p.created_at >=', $from . ' 00:00:00');
+        }
+        if ($to !== '') {
+            $builder->where('p.created_at <=', $to . ' 23:59:59');
+        }
+        if ($eventId > 0) {
+            $builder->where('e.id', $eventId);
+        }
+
+        $rows   = $builder->orderBy('p.created_at', 'DESC')->limit($limit)->get()->getResultArray();
+        $totals = ['completed' => 0.0, 'refunded' => 0.0];
+
+        foreach ($rows as $row) {
+            $key = (string) $row['payment_status'] === 'refunded' ? 'refunded' : 'completed';
+            $totals[$key] += (float) $row['amount'];
+        }
+
+        return ['rows' => $rows, 'totals' => $totals, 'filters' => ['from' => $from, 'to' => $to, 'event_id' => $eventId]];
+    }
+
+    public function payments(): string|\CodeIgniter\HTTP\RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'));
+        }
+
+        return view('admin/payments', $this->paymentsData(500) + [
+            'events'    => $this->eventModel->orderBy('start_date', 'DESC')->findAll(200),
+            'pageTitle' => lang('App.paymentsTitle'),
+        ]);
+    }
+
+    public function paymentsExport(): \CodeIgniter\HTTP\ResponseInterface|\CodeIgniter\HTTP\RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'));
+        }
+
+        $data = $this->paymentsData(50000);
+        $csv  = [['Date', 'Event', 'Ticket', 'Customer', 'Email', 'Amount', 'Currency', 'Status', 'PayPal transaction']];
+
+        foreach ($data['rows'] as $r) {
+            $csv[] = [
+                (string) $r['created_at'],
+                (string) $r['event_title'],
+                (string) $r['ticket_code'],
+                trim((string) $r['first_name'] . ' ' . (string) $r['last_name']),
+                (string) $r['email'],
+                number_format((float) $r['amount'], 2, '.', ''),
+                (string) $r['currency'],
+                (string) $r['payment_status'],
+                (string) $r['paypal_transaction_id'],
+            ];
+        }
+
+        $out = '';
+        foreach ($csv as $line) {
+            $out .= implode(',', array_map(static fn ($c) => '"' . str_replace('"', '""', csv_safe($c)) . '"', $line)) . "\r\n";
+        }
+
+        $this->logAdminAction('payments_export', 'system', ['rows' => count($data['rows'])]);
+
+        return $this->response
+            ->setHeader('Content-Type', 'text/csv; charset=utf-8')
+            ->setHeader('Content-Disposition', 'attachment; filename="payments-' . date('Ymd') . '.csv"')
+            ->setBody("\xEF\xBB\xBF" . $out);
+    }
+
     public function analytics(): string
     {
         if (! $this->isAdmin()) {

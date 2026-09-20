@@ -62,6 +62,11 @@ abstract class EventBaseController extends BaseController
         $minDonation = trim((string) $this->request->getPost('min_donation'));
         $status = trim((string) $this->request->getPost('status'));
         $bookingsEnabled = $this->request->getPost('bookings_enabled') === '1' ? 1 : 0;
+        $isPrivate = $this->request->getPost('is_private') === '1' ? 1 : 0;
+        $accessCode = strtoupper(preg_replace('/[^A-Za-z0-9_-]/', '', trim((string) $this->request->getPost('access_code'))) ?? '');
+        $titleEn = trim((string) $this->request->getPost('title_en'));
+        $descriptionEn = trim((string) $this->request->getPost('description_en'));
+        $goalRaw = trim((string) $this->request->getPost('donation_goal'));
         $uploadedImage = $this->request->getFile('image_upload');
 
         $categoryId = (int) $this->request->getPost('category_id');
@@ -86,6 +91,14 @@ abstract class EventBaseController extends BaseController
 
         if (! ctype_digit($capacity) || (int) $capacity < 1) {
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidCapacity'));
+        }
+
+        if ($goalRaw !== '' && (! is_numeric($goalRaw) || (float) $goalRaw < 0)) {
+            return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidGoal'));
+        }
+
+        if ($isPrivate === 1 && $accessCode === '') {
+            $accessCode = strtoupper(bin2hex(random_bytes(4)));
         }
 
         if ($existingEvent !== null) {
@@ -197,6 +210,11 @@ abstract class EventBaseController extends BaseController
             'status' => $status,
             'bookings_enabled' => $bookingsEnabled,
             'category_id'     => $categoryId > 0 ? $categoryId : null,
+            'is_private'      => $isPrivate,
+            'access_code'     => $isPrivate === 1 ? $accessCode : null,
+            'title_en'        => $titleEn !== '' ? $titleEn : null,
+            'description_en'  => $descriptionEn !== '' ? $descriptionEn : null,
+            'donation_goal'   => $goalRaw !== '' && (float) $goalRaw > 0 ? number_format((float) $goalRaw, 2, '.', '') : null,
         ];
 
         if ($existingEvent === null) {
@@ -413,6 +431,50 @@ abstract class EventBaseController extends BaseController
         }
     }
 
+    /**
+     * Private events are reachable by link + access code only; admins always have access.
+     */
+    protected function hasPrivateAccess(array $event): bool
+    {
+        if ((int) ($event['is_private'] ?? 0) !== 1 || $this->isAdmin()) {
+            return true;
+        }
+
+        return session()->get('private_access_' . (int) $event['id']) === true;
+    }
+
+    protected function grantPrivateAccess(array $event, string $code): bool
+    {
+        $expected = (string) ($event['access_code'] ?? '');
+
+        if ($expected !== '' && hash_equals(strtoupper($expected), strtoupper(trim($code)))) {
+            session()->set('private_access_' . (int) $event['id'], true);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Keeps proof of who accepted which version of the terms/privacy policy for a booking.
+     */
+    protected function recordConsent(int $eventId): void
+    {
+        try {
+            $db = db_connect();
+            $db->table($db->prefixTable('consents'))->insert([
+                'user_id'       => (int) session()->get('user_id'),
+                'event_id'      => $eventId,
+                'terms_version' => (string) (env('TERMS_VERSION') ?: lang('App.gdprUpdatedDate')),
+                'ip_address'    => $this->request->getIPAddress(),
+                'created_at'    => date('Y-m-d H:i:s'),
+            ]);
+        } catch (\Throwable $exception) {
+            log_message('error', 'Consent logging failed: {message}', ['message' => $exception->getMessage()]);
+        }
+    }
+
     protected function canCheckIn(): bool
     {
         return session()->get('is_logged_in') === true && in_array((string) session()->get('user_role'), ['admin', 'staff'], true);
@@ -456,6 +518,10 @@ abstract class EventBaseController extends BaseController
 
         if (! $this->isAdmin()) {
             $builder->where('status', 'active');
+        }
+
+        if (! $this->isAdmin()) {
+            $builder->where('is_private', 0);
         }
 
         if ($categoryId > 0) {

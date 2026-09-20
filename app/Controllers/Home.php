@@ -79,7 +79,7 @@ class Home extends EventBaseController
         $builder->where('deleted_at', null);
 
         if (! $this->isAdmin()) {
-            $builder->where('status', 'active');
+            $builder->where('status', 'active')->where('is_private', 0);
         }
 
         $builder
@@ -111,7 +111,30 @@ class Home extends EventBaseController
         ]);
     }
 
-    public function show(string $slug): string
+    public function grantAccess(string $slug): \CodeIgniter\HTTP\RedirectResponse
+    {
+        $event = $this->eventModel->where('slug', $slug)->first();
+        if (empty($event)) {
+            throw PageNotFoundException::forPageNotFound('Event not found');
+        }
+
+        $cache = cache();
+        $key   = 'private_access_rate_' . sha1((string) $this->request->getIPAddress());
+        $tries = (int) ($cache->get($key) ?? 0);
+
+        if ($tries >= 10) {
+            return redirect()->to(base_url('events/' . $slug))->with('event_error', lang('App.bookingRateLimited'));
+        }
+        $cache->save($key, $tries + 1, 600);
+
+        if (! $this->grantPrivateAccess($event, (string) $this->request->getPost('access_code'))) {
+            return redirect()->to(base_url('events/' . $slug))->with('event_error', lang('App.privateEventWrongCode'));
+        }
+
+        return redirect()->to(base_url('events/' . $slug));
+    }
+
+    public function show(string $slug): string|\CodeIgniter\HTTP\RedirectResponse
     {
         $event = $this->eventModel->where('slug', $slug)->first();
 
@@ -124,6 +147,33 @@ class Home extends EventBaseController
 
         if ((string) ($event['status'] ?? '') !== 'active' && ! $isAdmin) {
             throw PageNotFoundException::forPageNotFound('Event not found');
+        }
+
+        if ((int) ($event['is_private'] ?? 0) === 1 && ! $this->hasPrivateAccess($event)) {
+            // A shared link may carry the code (?code=...); otherwise ask for it.
+            $linkCode = (string) $this->request->getGet('code');
+            if ($linkCode !== '' && $this->grantPrivateAccess($event, $linkCode)) {
+                return redirect()->to(base_url('events/' . $slug));
+            }
+
+            return view('events/private_gate', [
+                'event'      => $event,
+                'pageTitle'  => lang('App.privateEventTitle'),
+                'metaRobots' => 'noindex, nofollow',
+            ]);
+        }
+
+        $donationRaised = 0.0;
+        if ((float) ($event['donation_goal'] ?? 0) > 0) {
+            $db  = db_connect();
+            $sum = $db->table($db->prefixTable('payments') . ' p')
+                ->selectSum('p.amount', 'total')
+                ->join($db->prefixTable('tickets') . ' t', 't.id = p.ticket_id')
+                ->where('t.event_id', (int) $event['id'])
+                ->where('p.payment_status', 'completed')
+                ->get()
+                ->getRowArray();
+            $donationRaised = (float) ($sum['total'] ?? 0);
         }
 
         $event['remaining_seats'] = $this->getRemainingSeats($event);
@@ -164,6 +214,8 @@ class Home extends EventBaseController
         $metaImage = $this->normalizeEventImageUrl((string) ($event['image'] ?? ''));
 
         return view('events/show', [
+            'donationRaised' => $donationRaised,
+            'metaRobots' => (int) ($event['is_private'] ?? 0) === 1 ? 'noindex, nofollow' : null,
             'seatAllowance' => $seatAllowance,
             'onWaitlist' => $onWaitlist,
             'event' => $event,
@@ -190,7 +242,7 @@ class Home extends EventBaseController
         }
 
         $parts = array_filter([
-            (string) ($event['title'] ?? ''),
+            event_text($event, 'title'),
             ! empty($event['start_date']) ? date('d/m/Y H:i', strtotime((string) $event['start_date'])) : '',
             (string) ($event['location'] ?? ''),
         ]);
@@ -201,7 +253,7 @@ class Home extends EventBaseController
     private function buildEventSeoTitle(array $event): string
     {
         $parts = array_filter([
-            (string) ($event['title'] ?? ''),
+            event_text($event, 'title'),
             (string) ($event['location'] ?? ''),
             ! empty($event['start_date']) ? date('d/m/Y', strtotime((string) $event['start_date'])) : '',
         ]);
@@ -237,7 +289,7 @@ class Home extends EventBaseController
         $data = [
             '@context' => 'https://schema.org',
             '@type' => 'Event',
-            'name' => (string) ($event['title'] ?? ''),
+            'name' => event_text($event, 'title'),
             'description' => $this->buildEventMetaDescription($event),
             'url' => $canonicalUrl,
             'eventStatus' => $eventStatus,
@@ -301,7 +353,7 @@ class Home extends EventBaseController
                 [
                     '@type' => 'ListItem',
                     'position' => 2,
-                    'name' => (string) ($event['title'] ?? ''),
+                    'name' => event_text($event, 'title'),
                     'item' => $canonicalUrl,
                 ],
             ],

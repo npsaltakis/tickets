@@ -132,6 +132,7 @@ class Filters extends BaseFilters
             'before' => [
                 'check-in',
                 'check-in/stats',
+                'check-in/search',
             ],
         ],
         'auth' => [

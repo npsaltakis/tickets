@@ -7,7 +7,7 @@
         <p class="subtitle"><?= esc($message ?: lang('App.bookingSuccess')) ?></p>
 
         <div class="booking-success-event">
-            <strong><?= esc($event['title']) ?></strong>
+            <strong><?= esc(event_text($event, 'title')) ?></strong>
             <?php if (!empty($event['start_date'])): ?>
                 <span class="meta"><?= esc(date('d/m/Y H:i', strtotime((string)$event['start_date']))) ?></span>
             <?php endif; ?>

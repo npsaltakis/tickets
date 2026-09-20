@@ -44,6 +44,7 @@ class SeoController extends BaseController
             $events = $eventModel
                 ->select('slug, updated_at, start_date')
                 ->where('status', 'active')
+                ->where('is_private', 0)
                 ->groupStart()
                     ->where('end_date >=', $now)
                     ->orGroupStart()

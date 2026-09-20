@@ -29,3 +29,21 @@ if (! function_exists('csv_safe')) {
         return $text;
     }
 }
+
+if (! function_exists('event_text')) {
+    /**
+     * Returns an event's title/description in the visitor's language, falling back to the default text.
+     */
+    function event_text(array $event, string $field): string
+    {
+        $default = (string) ($event[$field] ?? '');
+
+        if (service('request')->getLocale() === 'en') {
+            $translated = trim((string) ($event[$field . '_en'] ?? ''));
+
+            return $translated !== '' ? $translated : $default;
+        }
+
+        return $default;
+    }
+}

@@ -52,10 +52,19 @@ class TicketAdminController extends BaseController
 
         $users = $this->userModel->where('status', 'active')->orderBy('first_name', 'ASC')->findAll();
 
+        $waitlist = $db->table($db->prefixTable('waitlist') . ' w')
+            ->select('w.created_at, w.notified_at, u.first_name, u.last_name, u.email')
+            ->join($usersTable . ' u', 'u.id = w.user_id')
+            ->where('w.event_id', (int) $event['id'])
+            ->orderBy('w.created_at', 'ASC')
+            ->get()
+            ->getResultArray();
+
         return view('events/admin_tickets', [
             'event'     => $event,
             'tickets'   => $tickets,
             'users'     => $users,
+            'waitlist'  => $waitlist,
             'pageTitle' => lang('App.adminTicketsPageTitle') . ' — ' . ($event['title'] ?? ''),
         ]);
     }

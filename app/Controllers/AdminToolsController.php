@@ -10,6 +10,73 @@ class AdminToolsController extends BaseController
 {
     private const DEMO_CLEANUP_CONFIRMATION = 'DELETE_DEMO_DATA';
 
+    public function emailQueue(): \CodeIgniter\HTTP\RedirectResponse|string
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'));
+        }
+
+        $db    = db_connect();
+        $table = $db->prefixTable('email_queue');
+        $max   = \App\Libraries\EmailQueue::MAX_ATTEMPTS;
+
+        $stats = [
+            'pending' => $db->table($table)->where('sent_at', null)->where('attempts <', $max)->countAllResults(),
+            'failed'  => $db->table($table)->where('sent_at', null)->where('attempts >=', $max)->countAllResults(),
+            'sent24h' => $db->table($table)->where('sent_at >=', date('Y-m-d H:i:s', strtotime('-24 hours')))->countAllResults(),
+        ];
+
+        $rows = $db->table($table)
+            ->select('id, to_email, subject, attempts, last_error, created_at')
+            ->where('sent_at', null)
+            ->orderBy('id', 'DESC')
+            ->limit(100)
+            ->get()
+            ->getResultArray();
+
+        return view('admin/email_queue', [
+            'stats'     => $stats,
+            'rows'      => $rows,
+            'maxTries'  => $max,
+            'pageTitle' => lang('App.emailQueueTitle'),
+        ]);
+    }
+
+    public function emailQueueAction(string $action): \CodeIgniter\HTTP\RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'));
+        }
+
+        $db    = db_connect();
+        $table = $db->prefixTable('email_queue');
+        $queue = new \App\Libraries\EmailQueue();
+        $back  = redirect()->to(base_url('admin/email-queue'));
+
+        switch ($action) {
+            case 'flush':
+                $sent = $queue->flush(50);
+                $this->logAdminAction('email_queue_flush', 'system', ['sent' => $sent]);
+
+                return $back->with('queue_info', strtr(lang('App.emailQueueFlushed'), ['{n}' => (string) $sent]));
+
+            case 'retry':
+                $db->table($table)->where('sent_at', null)->where('attempts >=', \App\Libraries\EmailQueue::MAX_ATTEMPTS)->update(['attempts' => 0, 'last_error' => null]);
+                $this->logAdminAction('email_queue_retry', 'system');
+
+                return $back->with('queue_info', lang('App.emailQueueRetried'));
+
+            case 'purge':
+                $db->table($table)->where('sent_at', null)->where('attempts >=', \App\Libraries\EmailQueue::MAX_ATTEMPTS)->delete();
+                $db->table($table)->where('sent_at <', date('Y-m-d H:i:s', strtotime('-7 days')))->delete();
+                $this->logAdminAction('email_queue_purge', 'system');
+
+                return $back->with('queue_info', lang('App.emailQueuePurged'));
+        }
+
+        return $back;
+    }
+
     public function sendTestEmail(): RedirectResponse
     {
         if (! $this->isAdmin()) {

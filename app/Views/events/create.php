@@ -201,6 +201,38 @@ $assetVersion = static function (string $relativePath): string {
                 </label>
             </div>
 
+            <div class="event-field">
+                <span class="auth-label"><?= esc(lang('App.eventPrivateLabel')) ?></span>
+                <input type="hidden" name="is_private" value="0">
+                <label class="booking-consent event-toggle-row" for="is_private">
+                    <input id="is_private" name="is_private" type="checkbox" value="1" <?= (string) old('is_private', (string) ($event['is_private'] ?? '0')) === '1' ? 'checked' : '' ?>>
+                    <span><?= esc(lang('App.eventPrivateHint')) ?></span>
+                </label>
+            </div>
+
+            <div class="event-field">
+                <label for="access_code" class="auth-label"><?= esc(lang('App.eventAccessCodeLabel')) ?></label>
+                <input id="access_code" name="access_code" type="text" maxlength="32" class="auth-input" value="<?= esc((string) old('access_code', (string) ($event['access_code'] ?? '')), 'attr') ?>" placeholder="<?= esc(lang('App.eventAccessCodeAuto'), 'attr') ?>">
+                <?php if (!empty($event['is_private']) && !empty($event['access_code'])): ?>
+                    <p class="meta" style="font-size:0.8rem"><?= esc(lang('App.eventPrivateLink')) ?>: <code><?= esc(base_url('events/' . $event['slug']) . '?code=' . $event['access_code']) ?></code></p>
+                <?php endif; ?>
+            </div>
+
+            <div class="event-field">
+                <label for="donation_goal" class="auth-label"><?= esc(lang('App.eventDonationGoalLabel')) ?></label>
+                <input id="donation_goal" name="donation_goal" type="number" min="0" step="0.01" class="auth-input" value="<?= esc((string) old('donation_goal', (string) ($event['donation_goal'] ?? '')), 'attr') ?>">
+            </div>
+
+            <div class="event-field event-field-full">
+                <label for="title_en" class="auth-label"><?= esc(lang('App.eventTitleEnLabel')) ?></label>
+                <input id="title_en" name="title_en" type="text" maxlength="255" class="auth-input" value="<?= esc((string) old('title_en', (string) ($event['title_en'] ?? '')), 'attr') ?>">
+            </div>
+
+            <div class="event-field event-field-full">
+                <label for="description_en" class="auth-label"><?= esc(lang('App.eventDescriptionEnLabel')) ?></label>
+                <textarea id="description_en" name="description_en" class="auth-input event-textarea" rows="4"><?= esc((string) old('description_en', (string) ($event['description_en'] ?? ''))) ?></textarea>
+            </div>
+
             <div class="event-field event-field-full">
                 <label for="description" class="auth-label"><?= esc(lang('App.eventCreateDescriptionLabel')) ?></label>
                 <textarea id="description" name="description" class="auth-input event-textarea" rows="7"><?= esc((string) old('description', (string) ($event['description'] ?? ''))) ?></textarea>

@@ -29,6 +29,12 @@
             <div id="check-in-camera-reader" class="check-in-camera-reader" hidden></div>
         </div>
 
+        <div class="check-in-search" data-search-url="<?= esc(base_url('check-in/search'), 'attr') ?>" data-checked-label="<?= esc(lang('App.checkInSearchDone'), 'attr') ?>" data-action-label="<?= esc(lang('App.checkInButton'), 'attr') ?>">
+            <label for="check-in-search-input" class="auth-label"><?= esc(lang('App.checkInSearchLabel')) ?></label>
+            <input id="check-in-search-input" type="search" class="auth-input" placeholder="<?= esc(lang('App.checkInSearchPlaceholder'), 'attr') ?>" autocomplete="off">
+            <ul id="check-in-search-results" class="check-in-search-results"></ul>
+        </div>
+
         <form method="post" action="<?= base_url('check-in') ?>" class="auth-form" id="check-in-form">
             <?= csrf_field() ?>
 
@@ -162,5 +168,6 @@
 </main>
 <script src="<?= base_url('assets/vendor/html5-qrcode/html5-qrcode.min.js') ?>?v=<?= esc((string) (is_file(FCPATH . 'assets/vendor/html5-qrcode/html5-qrcode.min.js') ? filemtime(FCPATH . 'assets/vendor/html5-qrcode/html5-qrcode.min.js') : time())) ?>"></script>
 <script src="<?= base_url('assets/js/check-in.js') ?>?v=<?= esc((string) (is_file(FCPATH . 'assets/js/check-in.js') ? filemtime(FCPATH . 'assets/js/check-in.js') : time())) ?>"></script>
+<script src="<?= base_url('assets/js/check-in-search.js') ?>"></script>
 <script src="<?= base_url('assets/js/check-in-stats.js') ?>?v=<?= esc((string) (is_file(FCPATH . 'assets/js/check-in-stats.js') ? filemtime(FCPATH . 'assets/js/check-in-stats.js') : time())) ?>"></script>
 <?= $this->endSection() ?>

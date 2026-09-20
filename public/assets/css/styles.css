@@ -3461,3 +3461,12 @@ button:focus-visible,
 .cookie-notice a { color: #5eead4; }
 .cookie-notice .auth-link-btn { flex-shrink: 0; width: auto; }
 @media print { .cookie-notice { display: none; } }
+
+/* Donation goal, check-in search */
+.donation-goal { margin: 12px 0; }
+.donation-goal-bar { height: 10px; border-radius: 999px; background: rgba(148, 163, 184, 0.25); overflow: hidden; }
+.donation-goal-bar span { display: block; height: 100%; background: linear-gradient(90deg, #14b8a6, #22c55e); }
+.check-in-search { margin: 16px 0; }
+.check-in-search-results { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.check-in-search-results li { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 8px 12px; border: 1px solid var(--border, #334155); border-radius: 10px; font-size: 0.88rem; }
+.check-in-search-results .auth-link-btn { width: auto; }

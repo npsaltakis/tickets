@@ -111,6 +111,29 @@ final class BookingFlowTest extends CIUnitTestCase
         $this->assertSame(1, (int) $discounts->where('code', 'HALF')->first()['used_count']);
     }
 
+    public function testDiscountPerUserLimitAndStartDate(): void
+    {
+        $event = $this->makeEvent(10, 'donation');
+        $user  = $this->makeUser('perusercode@example.test');
+
+        $discounts = new DiscountCodeModel();
+        $discounts->insert(['code' => 'ONCE', 'type' => 'percent', 'value' => 50, 'is_active' => 1, 'max_uses_per_user' => 1]);
+        $discounts->insert(['code' => 'LATER', 'type' => 'percent', 'value' => 50, 'is_active' => 1, 'starts_at' => date('Y-m-d H:i:s', strtotime('+2 days'))]);
+
+        [, , $error] = $this->service->resolveTotal((int) $event['id'], 1, 20.0, 'ONCE', true, $user);
+        $this->assertNull($error);
+
+        $capture = ['id' => 'CAPTURE-ONCE', 'amount' => ['value' => '10.00', 'currency_code' => 'EUR']];
+        $booking = ['event_id' => (int) $event['id'], 'user_id' => $user, 'seats' => 1, 'donation' => 20.0, 'code' => 'ONCE'];
+        $this->assertSame('created', $this->service->fulfillCapture($capture, $booking, $user)['status']);
+
+        [, , $error] = $this->service->resolveTotal((int) $event['id'], 1, 20.0, 'ONCE', true, $user);
+        $this->assertSame('App.discountUserLimit', $error);
+
+        [, , $notStarted] = $this->service->resolveTotal((int) $event['id'], 1, 20.0, 'LATER', true, $user);
+        $this->assertSame('App.discountCodesNotFound', $notStarted);
+    }
+
     public function testCaptureWithWrongAmountIsRejected(): void
     {
         $event = $this->makeEvent(10, 'donation');

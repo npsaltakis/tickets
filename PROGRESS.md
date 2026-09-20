@@ -23,8 +23,17 @@ CodeIgniter 4 event ticketing platform (free + PayPal donation events, Greek/Eng
 - Guards: capacity cannot drop below issued tickets; event type locked while tickets exist; holders are emailed when date/place/access change.
 - Check-in with QR scanner (date window checks), staff role.
 
+**Operations & reports**
+- Admin: email queue screen (pending/failed, send now, retry, clean up), payments report with filters + CSV export, waiting list per event, attendee search at check-in (name/email/code).
+- Commands: `db:backup` (verified restorable), `health:check` (emails the admin on problems), `data:purge` (retention), `reminders:send`, `emails:process`.
+- Terms/privacy acceptance is logged per booking (`consents`).
+
 **Email**
 - Bilingual transactional emails, reminders (once per ticket), DB-backed email queue (mass email, event change notices).
+
+**Events**
+- Private events (access code or invitation link, hidden from listings/search/sitemap, noindex), English title/description with fallback, donation goal progress bar.
+- Discount codes: bulk generation, per-customer limit, start date.
 
 **Front-end**
 - Search, category + type/format/date filters, calendar view, cookie notice, contact & about pages, SEO/sitemap.
@@ -32,10 +41,11 @@ CodeIgniter 4 event ticketing platform (free + PayPal donation events, Greek/Eng
 ## Scheduled jobs (cron)
 - `php spark reminders:send 48` — hourly.
 - `php spark emails:process 100` — every few minutes.
+- `php spark db:backup` — daily. `php spark health:check` — every 15 minutes. `php spark data:purge` — weekly.
 
 ## Tests
 `vendor/bin/phpunit` — unit tests always run; MySQL-based booking-flow and access-control tests run when `database.tests.*` env vars point to a throw-away MySQL database (CI does this, see `.github/workflows/tests.yml`).
 
 ## Not implemented
 - Real PayPal sandbox end-to-end run (refund, webhook) — only covered by unit/DB tests.
-- Tax invoices (receipt is a plain donation receipt), Apple/Google Wallet passes, multiple ticket types per event, recurring events, error monitoring service, homepage caching.
+- Tax invoices (receipt is a plain donation receipt), Apple/Google Wallet passes, multiple ticket types per event, recurring events, Google sign-in, newsletter, error monitoring service, homepage caching.
