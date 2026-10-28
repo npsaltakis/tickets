@@ -1,13 +1,27 @@
-<?= $this->extend('layouts/main') ?>
-
-<?= $this->section('content') ?>
+<?php
+/**
+ * Standalone page: before .env exists base_url() points to the default localhost URL,
+ * so assets and the form use root-relative paths instead of the layout.
+ */
+$field = static fn (string $key): string => esc((string) ($values[$key] ?? ''), 'attr');
+?>
+<!doctype html>
+<html lang="<?= esc(service('request')->getLocale(), 'attr') ?>">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title><?= esc(lang('App.installTitle')) ?></title>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
 <main class="wrapper">
     <section class="auth-card install-card">
         <h1 class="auth-title"><?= esc(lang('App.installTitle')) ?></h1>
         <p class="subtitle"><?= esc(lang('App.installSubtitle')) ?></p>
 
-        <?php if (session()->getFlashdata('install_error')): ?>
-            <p class="auth-error"><?= esc((string) session()->getFlashdata('install_error')) ?></p>
+        <?php if ($error !== ''): ?>
+            <p class="auth-error"><?= esc($error) ?></p>
         <?php endif; ?>
 
         <h2><?= esc(lang('App.installChecksTitle')) ?></h2>
@@ -24,21 +38,42 @@
         <?php if (! $canSubmit): ?>
             <p class="auth-error"><?= esc(lang('App.installChecksFailed')) ?></p>
         <?php else: ?>
-            <h2><?= esc(lang('App.installAdminTitle')) ?></h2>
-            <form method="post" action="<?= base_url('install') ?>" class="auth-form">
+            <form method="post" action="/install" class="auth-form" autocomplete="off">
                 <?= csrf_field() ?>
 
-                <label for="install_token" class="auth-label"><?= esc(lang('App.installTokenLabel')) ?></label>
-                <input id="install_token" name="install_token" type="password" class="auth-input" required autocomplete="off">
+                <h2><?= esc(lang('App.installSiteTitle')) ?></h2>
+                <label for="base_url" class="auth-label"><?= esc(lang('App.installBaseUrlLabel')) ?></label>
+                <input id="base_url" name="base_url" type="url" value="<?= $field('base_url') ?>" class="auth-input" required>
 
+                <h2><?= esc(lang('App.installDatabaseTitle')) ?></h2>
+                <p class="meta"><?= esc(lang('App.installDatabaseHint')) ?></p>
+                <label for="db_host" class="auth-label"><?= esc(lang('App.installDbHostLabel')) ?></label>
+                <input id="db_host" name="db_host" type="text" value="<?= $field('db_host') ?>" class="auth-input" required>
+
+                <label for="db_port" class="auth-label"><?= esc(lang('App.installDbPortLabel')) ?></label>
+                <input id="db_port" name="db_port" type="number" min="1" max="65535" value="<?= $field('db_port') ?>" class="auth-input" required>
+
+                <label for="db_name" class="auth-label"><?= esc(lang('App.installDbNameLabel')) ?></label>
+                <input id="db_name" name="db_name" type="text" value="<?= $field('db_name') ?>" class="auth-input" required>
+
+                <label for="db_user" class="auth-label"><?= esc(lang('App.installDbUserLabel')) ?></label>
+                <input id="db_user" name="db_user" type="text" value="<?= $field('db_user') ?>" class="auth-input" required>
+
+                <label for="db_pass" class="auth-label"><?= esc(lang('App.installDbPassLabel')) ?></label>
+                <input id="db_pass" name="db_pass" type="password" class="auth-input" autocomplete="new-password">
+
+                <label for="db_prefix" class="auth-label"><?= esc(lang('App.installDbPrefixLabel')) ?></label>
+                <input id="db_prefix" name="db_prefix" type="text" value="<?= $field('db_prefix') ?>" class="auth-input" pattern="\w*">
+
+                <h2><?= esc(lang('App.installAdminTitle')) ?></h2>
                 <label for="first_name" class="auth-label"><?= esc(lang('App.firstNameLabel')) ?></label>
-                <input id="first_name" name="first_name" type="text" value="<?= esc((string) old('first_name')) ?>" class="auth-input" required>
+                <input id="first_name" name="first_name" type="text" value="<?= $field('first_name') ?>" class="auth-input" required>
 
                 <label for="last_name" class="auth-label"><?= esc(lang('App.lastNameLabel')) ?></label>
-                <input id="last_name" name="last_name" type="text" value="<?= esc((string) old('last_name')) ?>" class="auth-input" required>
+                <input id="last_name" name="last_name" type="text" value="<?= $field('last_name') ?>" class="auth-input" required>
 
                 <label for="email" class="auth-label"><?= esc(lang('App.emailLabel')) ?></label>
-                <input id="email" name="email" type="email" value="<?= esc((string) old('email')) ?>" class="auth-input" required autocomplete="email">
+                <input id="email" name="email" type="email" value="<?= $field('email') ?>" class="auth-input" required autocomplete="email">
 
                 <label for="password" class="auth-label"><?= esc(lang('App.passwordLabel')) ?></label>
                 <input id="password" name="password" type="password" class="auth-input" required minlength="8" autocomplete="new-password">
@@ -51,4 +86,5 @@
         <?php endif; ?>
     </section>
 </main>
-<?= $this->endSection() ?>
+</body>
+</html>
