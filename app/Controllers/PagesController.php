@@ -8,22 +8,37 @@ class PagesController extends BaseController
 {
     public function gdpr(): string
     {
-        return view('pages/gdpr', [
-            'pageTitle' => lang('App.gdprPageTitle'),
-        ]);
+        return $this->page('gdpr');
     }
 
     public function privacy(): string
     {
-        return view('pages/privacy', [
-            'pageTitle' => lang('App.privacyPageTitle'),
-        ]);
+        return $this->page('privacy');
     }
 
     public function about(): string
     {
-        return view('pages/about', [
-            'pageTitle' => lang('App.aboutPageTitle'),
+        return $this->page('about');
+    }
+
+    /**
+     * Shows the page edited in Admin → Pages, or the built-in view when it was never edited.
+     */
+    private function page(string $slug): string
+    {
+        $content = new \App\Libraries\PageContent();
+        [$view, , $titleKey] = \App\Libraries\PageContent::PAGES[$slug];
+        $page = $content->forDisplay($slug, (string) $this->request->getLocale());
+
+        if ($page === null) {
+            return view($view, ['pageTitle' => lang($titleKey)]);
+        }
+
+        return view('pages/custom', [
+            'page'      => $page,
+            'cards'     => $content->render((string) ($page['body'] ?? '')),
+            'kicker'    => $content->kicker($slug),
+            'pageTitle' => $page['title'] . ' | ' . lang('App.siteTitle'),
         ]);
     }
 
@@ -86,8 +101,6 @@ class PagesController extends BaseController
 
     public function terms(): string
     {
-        return view('pages/terms', [
-            'pageTitle' => lang('App.termsPageTitle'),
-        ]);
+        return $this->page('terms');
     }
 }

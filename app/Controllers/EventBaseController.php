@@ -470,7 +470,8 @@ abstract class EventBaseController extends BaseController
             $db->table($db->prefixTable('consents'))->insert([
                 'user_id'       => (int) session()->get('user_id'),
                 'event_id'      => $eventId,
-                'terms_version' => (string) (env('TERMS_VERSION') ?: lang('App.gdprUpdatedDate')),
+                // Version = TERMS_VERSION if set, else the last edit of Terms/Privacy, else the built-in pages' date.
+                'terms_version' => (string) (env('TERMS_VERSION') ?: ((new \App\Libraries\PageContent())->lastUpdated(['terms', 'privacy']) ?? lang('App.gdprUpdatedDate'))),
                 'ip_address'    => $this->request->getIPAddress(),
                 'created_at'    => date('Y-m-d H:i:s'),
             ]);
