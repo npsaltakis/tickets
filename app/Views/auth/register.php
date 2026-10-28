@@ -42,6 +42,8 @@
             <button type="submit" class="book-btn auth-submit"><?= esc(lang('App.registerButton')) ?></button>
         </form>
 
+        <?= $this->include('auth/_google_button') ?>
+
         <div class="auth-links">
             <a class="auth-link-btn" href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a>
         </div>

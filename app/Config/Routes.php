@@ -71,6 +71,8 @@ $routes->get('profile/2fa/qr', 'ProfileController::twoFactorQr');
 $routes->post('profile/2fa/enable', 'ProfileController::twoFactorEnable');
 $routes->post('profile/2fa/disable', 'ProfileController::twoFactorDisable');
 $routes->get('login/2fa', 'LoginController::twoFactorForm');
+$routes->get('auth/google', 'LoginController::googleRedirect');
+$routes->get('auth/google/callback', 'LoginController::googleCallback');
 $routes->post('login/2fa', 'LoginController::twoFactorVerify');
 $routes->post('my-events/tickets/(:segment)/transfer', 'ReportController::transferTicket/$1');
 $routes->get('my-events/tickets/(:segment)/receipt', 'ReportController::receipt/$1');

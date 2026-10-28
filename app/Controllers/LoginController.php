@@ -91,6 +91,80 @@ class LoginController extends BaseController
         return $this->completeLogin($user);
     }
 
+    public function googleRedirect(): RedirectResponse
+    {
+        $google = new \App\Libraries\GoogleAuth();
+        if (! $google->isConfigured()) {
+            return redirect()->to(base_url('login'))->with('login_error', lang('App.googleNotConfigured'));
+        }
+
+        // The state ties Google's answer to this browser session (CSRF protection for the callback).
+        $state = bin2hex(random_bytes(16));
+        session()->set('google_oauth_state', $state);
+
+        return redirect()->to($google->authorizationUrl($state));
+    }
+
+    public function googleCallback(): RedirectResponse
+    {
+        $session       = session();
+        $expectedState = (string) $session->get('google_oauth_state');
+        $session->remove('google_oauth_state');
+
+        $state = (string) $this->request->getGet('state');
+        $code  = (string) $this->request->getGet('code');
+
+        if ($expectedState === '' || ! hash_equals($expectedState, $state) || $code === '') {
+            return redirect()->to(base_url('login'))->with('login_error', lang('App.googleFailed'));
+        }
+
+        $profile = (new \App\Libraries\GoogleAuth())->fetchProfile($code);
+        if ($profile === null || ! $profile['email_verified']) {
+            return redirect()->to(base_url('login'))->with('login_error', lang('App.googleFailed'));
+        }
+
+        $user = $this->userModel->where('email', $profile['email'])->first();
+
+        if (empty($user)) {
+            $userId = $this->userModel->insert([
+                'first_name' => $profile['given_name'] !== '' ? $profile['given_name'] : strstr($profile['email'], '@', true),
+                'last_name'  => $profile['family_name'] !== '' ? $profile['family_name'] : '-',
+                'email'      => $profile['email'],
+                // Never used: these accounts sign in through Google, or set a password via "forgot password".
+                'password'   => password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT),
+                'role'       => 'client',
+                'status'     => 'active',
+            ], true);
+
+            if (! is_int($userId) && ! ctype_digit((string) $userId)) {
+                return redirect()->to(base_url('login'))->with('login_error', lang('App.googleFailed'));
+            }
+
+            $user = $this->userModel->find((int) $userId);
+        } elseif ((string) ($user['status'] ?? '') === 'inactive') {
+            // Google has verified the address, which is what the confirmation email was for.
+            $this->userModel->update((int) $user['id'], ['status' => 'active']);
+            $user['status'] = 'active';
+        }
+
+        if ((string) ($user['status'] ?? '') !== 'active') {
+            return redirect()->to(base_url('login'))->with('login_error', lang('App.loginUnavailable'));
+        }
+
+        if ((int) ($user['totp_enabled'] ?? 0) === 1 && (string) ($user['totp_secret'] ?? '') !== '') {
+            $session->regenerate(true);
+            $session->set([
+                'pending_2fa_user'     => (int) $user['id'],
+                'pending_2fa_until'    => time() + 300,
+                'pending_2fa_attempts' => 0,
+            ]);
+
+            return redirect()->to(base_url('login/2fa'));
+        }
+
+        return $this->completeLogin($user);
+    }
+
     public function twoFactorForm(): string|RedirectResponse
     {
         if ($this->pendingTwoFactorUser() === null) {
