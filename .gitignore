@@ -130,3 +130,7 @@ docs/project-state.md
 docs/decisions.md
 docs/next-session.md
 .claude/settings.local.json
+
+# Deploy bundle / installer lock
+/deploy/build/
+writable/install.lock

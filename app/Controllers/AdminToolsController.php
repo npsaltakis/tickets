@@ -132,6 +132,28 @@ class AdminToolsController extends BaseController
         return redirect()->back()->with('event_info', lang('App.adminTestEmailSuccess'));
     }
 
+    public function runMigrations(): RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'))->with('login_error', lang('App.eventCreateUnauthorized'));
+        }
+
+        $pending = $this->pendingMigrations();
+        $back    = redirect()->to(base_url('admin/dashboard'));
+
+        try {
+            service('migrations')->latest();
+        } catch (Throwable $exception) {
+            log_message('error', 'Admin migrations failed: {message}', ['message' => $exception->getMessage()]);
+
+            return $back->with('dashboard_error', lang('App.adminMigrationsFailed') . ' ' . $exception->getMessage());
+        }
+
+        $this->logAdminAction('admin_run_migrations', 'system', ['applied' => $pending]);
+
+        return $back->with('dashboard_info', strtr(lang('App.adminMigrationsDone'), ['{n}' => (string) count($pending)]));
+    }
+
     public function cleanupDemoDataPreview(): ResponseInterface
     {
         if (! $this->isAdmin()) {

@@ -3470,3 +3470,15 @@ button:focus-visible,
 .check-in-search-results { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
 .check-in-search-results li { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 8px 12px; border: 1px solid var(--border, #334155); border-radius: 10px; font-size: 0.88rem; }
 .check-in-search-results .auth-link-btn { width: auto; }
+
+/* Installer */
+.install-card { max-width: 640px; }
+.install-card h2 { font-size: 1.05rem; margin: 18px 0 8px; }
+.install-checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.install-check { display: grid; grid-template-columns: 22px 1fr; gap: 2px 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; }
+.install-check .meta { grid-column: 2; word-break: break-word; }
+.install-check-mark { font-weight: 700; }
+.install-check.is-ok .install-check-mark { color: var(--accent); }
+.install-check.is-warning .install-check-mark { color: #f59e0b; }
+.install-check.is-error { border-color: #ef4444; }
+.install-check.is-error .install-check-mark { color: #ef4444; }

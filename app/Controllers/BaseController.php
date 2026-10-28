@@ -415,6 +415,26 @@ abstract class BaseController extends Controller
         }
     }
 
+    /**
+     * Migrations found in the code that are not yet recorded in the database.
+     *
+     * @return list<string>
+     */
+    protected function pendingMigrations(): array
+    {
+        $runner  = service('migrations');
+        $applied = array_column($runner->getHistory(), 'version');
+        $pending = [];
+
+        foreach ($runner->findMigrations() as $migration) {
+            if (! in_array($migration->version, $applied, true)) {
+                $pending[] = $migration->version . '_' . $migration->name;
+            }
+        }
+
+        return $pending;
+    }
+
     protected function logAdminAction(string $action, string $targetType, array $context = []): void
     {
         $session = session();

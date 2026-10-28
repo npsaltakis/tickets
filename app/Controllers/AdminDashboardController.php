@@ -64,6 +64,7 @@ class AdminDashboardController extends EventBaseController
             ],
             'upcomingEvents' => $upcomingEvents,
             'attentionEvents' => $attentionEvents,
+            'pendingMigrations' => $this->pendingMigrations(),
         ]);
     }
 

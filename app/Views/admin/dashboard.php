@@ -10,6 +10,13 @@
         </div>
     </div>
 
+    <?php if (session()->getFlashdata('dashboard_info')): ?>
+        <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('dashboard_info')) ?></p>
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('dashboard_error')): ?>
+        <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('dashboard_error')) ?></p>
+    <?php endif; ?>
+
     <section class="admin-dashboard-stats">
         <article>
             <span><?= esc(lang('App.adminDashboardActiveEvents')) ?></span>
@@ -85,6 +92,23 @@
     </section>
 
     <script src="<?= base_url('assets/js/admin-dashboard.js') ?>?v=<?= esc((string) (is_file(FCPATH . 'assets/js/admin-dashboard.js') ? filemtime(FCPATH . 'assets/js/admin-dashboard.js') : time())) ?>"></script>
+
+    <section class="card admin-dashboard-panel">
+        <h2><?= esc(lang('App.adminMigrationsTitle')) ?></h2>
+        <p class="meta"><?= esc(lang('App.adminMigrationsText')) ?></p>
+        <p><strong><?= esc(strtr(lang('App.adminMigrationsPending'), ['{n}' => (string) count($pendingMigrations ?? [])])) ?></strong></p>
+        <?php if (! empty($pendingMigrations)): ?>
+            <ul class="meta">
+                <?php foreach ($pendingMigrations as $migration): ?>
+                    <li><?= esc($migration) ?></li>
+                <?php endforeach; ?>
+            </ul>
+            <form method="post" action="<?= base_url('admin/migrate') ?>" class="admin-dashboard-cleanup-actions" data-confirm="<?= esc(lang('App.adminMigrationsConfirm'), 'attr') ?>">
+                <?= csrf_field() ?>
+                <button type="submit" class="book-btn"><?= esc(lang('App.adminMigrationsButton')) ?></button>
+            </form>
+        <?php endif; ?>
+    </section>
 
     <section class="card admin-dashboard-panel admin-dashboard-danger">
         <h2><?= esc(lang('App.adminDashboardCleanupTitle')) ?></h2>
