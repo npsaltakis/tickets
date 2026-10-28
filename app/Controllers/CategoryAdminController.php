@@ -20,10 +20,42 @@ class CategoryAdminController extends BaseController
             return redirect()->to(base_url('/'));
         }
 
+        $editId = (int) $this->request->getGet('edit');
+
         return view('admin/categories', [
             'categories' => $this->categoryModel->orderBy('name', 'ASC')->findAll(),
+            'editing'    => $editId > 0 ? $this->categoryModel->find($editId) : null,
             'pageTitle'  => lang('App.categoriesPageTitle'),
         ]);
+    }
+
+    public function update(int $id): RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'));
+        }
+
+        $category = $this->categoryModel->find($id);
+        if ($category === null) {
+            return redirect()->to(base_url('admin/categories'));
+        }
+
+        $name  = trim((string) $this->request->getPost('name'));
+        $color = trim((string) $this->request->getPost('color'));
+
+        if ($name === '') {
+            return redirect()->to(base_url('admin/categories?edit=' . $id))->with('cat_error', lang('App.categoriesNameRequired'));
+        }
+
+        // The slug stays as created so existing links and filters keep working.
+        $this->categoryModel->update($id, [
+            'name'  => $name,
+            'color' => preg_match('/^#[0-9a-fA-F]{6}$/', $color) === 1 ? $color : ($category['color'] ?? '#14b8a6'),
+        ]);
+
+        $this->logAdminAction('category_update', 'system', ['id' => $id, 'from' => $category['name'], 'to' => $name]);
+
+        return redirect()->to(base_url('admin/categories'))->with('cat_info', lang('App.categoriesUpdated'));
     }
 
     public function store(): RedirectResponse

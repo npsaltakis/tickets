@@ -34,10 +34,11 @@
                                 </td>
                                 <td class="meta"><?= esc($cat['slug']) ?></td>
                                 <td><code style="font-size:0.82rem;color:var(--muted)"><?= esc($cat['color'] ?? '') ?></code></td>
-                                <td>
+                                <td style="display:flex;gap:8px;flex-wrap:wrap">
+                                    <a class="admin-action-btn" href="<?= base_url('admin/categories?edit=' . (int) $cat['id']) ?>"><?= esc(lang('App.categoriesEdit')) ?></a>
                                     <form method="post" action="<?= base_url('admin/categories/' . (int)$cat['id'] . '/delete') ?>" style="margin:0" data-confirm="<?= esc(lang('App.categoriesDeleteConfirm'), 'attr') ?>">
                                         <?= csrf_field() ?>
-                                        <button type="submit" class="admin-action-btn admin-action-btn--danger"><?= esc(lang('App.eventDeleteButton')) ?></button>
+                                        <button type="submit" class="admin-action-btn admin-action-btn--danger"><?= esc(lang('App.categoriesDelete')) ?></button>
                                     </form>
                                 </td>
                             </tr>
@@ -48,16 +49,19 @@
         </div>
 
         <div class="card">
-            <h2 style="margin:0 0 16px;font-size:1rem;color:#f8fafc"><?= esc(lang('App.categoriesCreateTitle')) ?></h2>
-            <form method="post" action="<?= base_url('admin/categories') ?>" class="auth-form">
+            <h2 style="margin:0 0 16px;font-size:1rem;color:#f8fafc"><?= esc(lang($editing ? 'App.categoriesEditTitle' : 'App.categoriesCreateTitle')) ?></h2>
+            <form method="post" action="<?= base_url($editing ? 'admin/categories/' . (int) $editing['id'] . '/update' : 'admin/categories') ?>" class="auth-form">
                 <?= csrf_field() ?>
                 <label class="auth-label" for="cat_name"><?= esc(lang('App.categoriesName')) ?></label>
-                <input id="cat_name" name="name" type="text" class="auth-input" required>
+                <input id="cat_name" name="name" type="text" class="auth-input" value="<?= esc((string) ($editing['name'] ?? ''), 'attr') ?>" required>
 
                 <label class="auth-label" for="cat_color"><?= esc(lang('App.categoriesColor')) ?></label>
-                <input id="cat_color" name="color" type="color" value="#14b8a6" style="width:100%;height:40px;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:pointer;padding:2px">
+                <input id="cat_color" name="color" type="color" value="<?= esc((string) ($editing['color'] ?? '#14b8a6'), 'attr') ?>" style="width:100%;height:40px;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:pointer;padding:2px">
 
-                <button type="submit" class="book-btn auth-submit"><?= esc(lang('App.categoriesCreate')) ?></button>
+                <button type="submit" class="book-btn auth-submit"><?= esc(lang($editing ? 'App.categoriesSave' : 'App.categoriesCreate')) ?></button>
+                <?php if ($editing): ?>
+                    <a class="auth-link-btn" href="<?= base_url('admin/categories') ?>"><?= esc(lang('App.categoriesCancel')) ?></a>
+                <?php endif; ?>
             </form>
         </div>
 

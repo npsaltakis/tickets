@@ -89,6 +89,7 @@ $routes->post('users/bulk', 'UserAdminController::bulk');
 $routes->get('admin/categories', 'CategoryAdminController::index');
 $routes->post('admin/categories', 'CategoryAdminController::store');
 $routes->post('admin/categories/(:num)/delete', 'CategoryAdminController::delete/$1');
+$routes->post('admin/categories/(:num)/update', 'CategoryAdminController::update/$1');
 
 $routes->get('admin/discount-codes', 'DiscountCodeAdminController::index');
 $routes->post('admin/discount-codes', 'DiscountCodeAdminController::store');
