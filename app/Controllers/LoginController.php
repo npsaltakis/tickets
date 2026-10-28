@@ -237,6 +237,11 @@ class LoginController extends BaseController
         }
 
         $userId = (int) $userId;
+
+        if ($this->request->getPost('newsletter_opt_in') === '1') {
+            $this->userModel->setNewsletter($userId, true);
+        }
+
         $selector = bin2hex(random_bytes(8));
         $token = bin2hex(random_bytes(32));
         $tokenHash = hash('sha256', $token);

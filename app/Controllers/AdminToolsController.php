@@ -55,7 +55,7 @@ class AdminToolsController extends BaseController
 
         switch ($action) {
             case 'flush':
-                $sent = $queue->flush(50);
+                $sent = $queue->flush(\App\Libraries\EmailQueue::batchSize());
                 $this->logAdminAction('email_queue_flush', 'system', ['sent' => $sent]);
 
                 return $back->with('queue_info', strtr(lang('App.emailQueueFlushed'), ['{n}' => (string) $sent]));

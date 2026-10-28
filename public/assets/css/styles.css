@@ -3600,7 +3600,9 @@ main li a:not([class]) {
     min-height: 44px;
 }
 
-input[name="accept_terms"] {
+input[name="accept_terms"],
+input[name="newsletter_opt_in"],
+input[name="test_only"] {
     width: 20px;
     height: 20px;
 }

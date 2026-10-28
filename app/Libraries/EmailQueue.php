@@ -19,6 +19,15 @@ class EmailQueue
         $this->table = db_connect()->prefixTable('email_queue');
     }
 
+    /**
+     * Emails sent per run (and per immediate flush), kept low so the host's outgoing-mail limit is not hit.
+     * Tune with `emailQueue.batchSize` in .env.
+     */
+    public static function batchSize(): int
+    {
+        return max(1, (int) env('emailQueue.batchSize', 20));
+    }
+
     public function push(string $to, string $subject, string $htmlBody): void
     {
         $to = trim($to);

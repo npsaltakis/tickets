@@ -37,6 +37,11 @@
             <label class="auth-label" for="confirm_password"><?= esc(lang('App.profileConfirmPassword')) ?></label>
             <input id="confirm_password" name="confirm_password" type="password" class="auth-input" autocomplete="new-password">
 
+            <label class="booking-consent" for="newsletter_opt_in">
+                <input id="newsletter_opt_in" name="newsletter_opt_in" type="checkbox" value="1" <?= (int) ($user['newsletter_opt_in'] ?? 0) === 1 ? 'checked' : '' ?>>
+                <span><?= esc(lang('App.newsletterOptInLabel')) ?></span>
+            </label>
+
             <button type="submit" class="book-btn auth-submit"><?= esc(lang('App.profileSave')) ?></button>
         </form>
 

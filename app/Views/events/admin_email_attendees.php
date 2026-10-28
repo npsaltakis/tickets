@@ -16,11 +16,11 @@
 
         <form method="post" action="<?= base_url('admin/events/' . $event['slug'] . '/email-attendees') ?>" class="auth-form">
             <?= csrf_field() ?>
-            <label class="auth-label"><?= esc(lang('App.emailAttendeesSubjectLabel')) ?></label>
-            <input name="subject" type="text" class="auth-input" value="<?= esc((string) old('subject')) ?>" required>
+            <label class="auth-label" for="ea_subject"><?= esc(lang('App.emailAttendeesSubjectLabel')) ?></label>
+            <input id="ea_subject" name="subject" type="text" class="auth-input" value="<?= esc((string) old('subject')) ?>" required>
 
-            <label class="auth-label"><?= esc(lang('App.emailAttendeesMessageLabel')) ?></label>
-            <textarea name="message" class="auth-input event-textarea" style="min-height:180px" required><?= esc((string) old('message')) ?></textarea>
+            <label class="auth-label" for="ea_message"><?= esc(lang('App.emailAttendeesMessageLabel')) ?></label>
+            <textarea id="ea_message" name="message" class="auth-input event-textarea" style="min-height:180px" required><?= esc((string) old('message')) ?></textarea>
 
             <p class="field-hint"><?= esc(lang('App.emailAttendeesHint')) ?></p>
 

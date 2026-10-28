@@ -28,6 +28,11 @@
             <label for="confirm_password" class="auth-label"><?= esc(lang('App.confirmPasswordLabel')) ?></label>
             <input id="confirm_password" name="confirm_password" type="password" class="auth-input" required autocomplete="new-password">
 
+            <label class="booking-consent" for="newsletter_opt_in">
+                <input id="newsletter_opt_in" name="newsletter_opt_in" type="checkbox" value="1" <?= old('newsletter_opt_in') === '1' ? 'checked' : '' ?>>
+                <span><?= esc(lang('App.newsletterOptInLabel')) ?></span>
+            </label>
+
             <?php if (!empty($turnstileSiteKey)): ?>
                 <div class="turnstile-wrapper">
                     <div class="cf-turnstile" data-sitekey="<?= esc((string) $turnstileSiteKey, 'attr') ?>"></div>

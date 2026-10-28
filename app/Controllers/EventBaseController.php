@@ -738,7 +738,7 @@ abstract class EventBaseController extends BaseController
                 ));
             }
 
-            $queue->flush(30);
+            $queue->flush(\App\Libraries\EmailQueue::batchSize());
         } catch (\Throwable $exception) {
             log_message('error', 'Event change notification failed: {message}', ['message' => $exception->getMessage()]);
         }

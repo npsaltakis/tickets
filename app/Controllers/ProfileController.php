@@ -232,7 +232,8 @@ class ProfileController extends BaseController
             return redirect()->to(base_url('/'));
         }
 
-        unset($user['password']);
+        // Secrets stay out of the export: a leaked file must not allow 2FA codes or unsubscribing someone.
+        unset($user['password'], $user['totp_secret'], $user['newsletter_token']);
 
         $db      = db_connect();
         $tickets = $db->table($db->prefixTable('tickets') . ' t')
@@ -301,6 +302,9 @@ class ProfileController extends BaseController
             'email'      => 'deleted-' . $userId . '-' . bin2hex(random_bytes(4)) . '@deleted.invalid',
             'password'   => password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT),
             'status'     => 'banned',
+            'newsletter_opt_in'    => 0,
+            'newsletter_opt_in_at' => null,
+            'newsletter_token'     => null,
         ]);
 
         session()->destroy();
@@ -349,6 +353,11 @@ class ProfileController extends BaseController
         }
 
         $this->userModel->update($userId, $payload);
+
+        $wantsNewsletter = $this->request->getPost('newsletter_opt_in') === '1';
+        if ($wantsNewsletter !== ((int) ($user['newsletter_opt_in'] ?? 0) === 1)) {
+            $this->userModel->setNewsletter($userId, $wantsNewsletter);
+        }
 
         session()->set([
             'user_name' => trim($firstName . ' ' . $lastName),

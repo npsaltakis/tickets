@@ -23,6 +23,9 @@ class UserModel extends Model
         'status',
         'totp_secret',
         'totp_enabled',
+        'newsletter_opt_in',
+        'newsletter_opt_in_at',
+        'newsletter_token',
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -57,4 +60,22 @@ class UserModel extends Model
     protected $afterFind = [];
     protected $beforeDelete = [];
     protected $afterDelete = [];
+
+    /**
+     * Turns the newsletter consent on or off; the unsubscribe token is created once and kept.
+     */
+    public function setNewsletter(int $userId, bool $optIn): void
+    {
+        $user = $this->find($userId);
+        if ($user === null) {
+            return;
+        }
+
+        $this->skipValidation(true)->update($userId, [
+            'newsletter_opt_in'    => $optIn ? 1 : 0,
+            'newsletter_opt_in_at' => $optIn ? date('Y-m-d H:i:s') : null,
+            'newsletter_token'     => (string) ($user['newsletter_token'] ?? '') !== '' ? $user['newsletter_token'] : bin2hex(random_bytes(24)),
+        ]);
+        $this->skipValidation(false);
+    }
 }

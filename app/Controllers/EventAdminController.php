@@ -247,7 +247,7 @@ class EventAdminController extends EventBaseController
         }
 
         // Deliver the first batch now; anything left is picked up by `php spark emails:process`.
-        $sent   = $queue->flush(30);
+        $sent   = $queue->flush(\App\Libraries\EmailQueue::batchSize());
         $failed = 0;
         $this->logAdminAction('email_attendees', 'event', [
             'event_id' => (int) $event['id'],
