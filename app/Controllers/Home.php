@@ -22,7 +22,7 @@ class Home extends EventBaseController
             'categories'   => $categories,
             'activeCatId'  => $categoryId,
             'filters'      => $filters,
-            'pageTitle'    => 'All Events | Ticketing System',
+            'pageTitle'    => 'All Events | BlackBox Theater',
             'metaDescription' => lang('App.eventsPageSubtitle'),
             'canonicalUrl' => base_url('/'),
         ]);

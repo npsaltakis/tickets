@@ -217,7 +217,7 @@ class ReportController extends EventBaseController
         $lines = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
-            'PRODID:-//Ticketing System//Tickets//EN',
+            'PRODID:-//BlackBox Theater//Tickets//EN',
             'BEGIN:VEVENT',
             'UID:' . $uid,
             'DTSTAMP:' . gmdate('Ymd\THis\Z'),

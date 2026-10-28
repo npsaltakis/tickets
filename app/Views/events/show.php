@@ -94,7 +94,7 @@ $assetVersion = static function (string $relativePath): string {
         <div class="event-details-body">
             <div class="row">
                 <h1 class="event-page-title"><?= esc(event_text($event, 'title')) ?></h1>
-                <span class="status <?= esc($status) ?>"><?= esc($status) ?></span>
+                <span class="status <?= esc($status) ?>"><?= esc(lang('App.eventStatus' . ucfirst($status))) ?></span>
             </div>
 
             <?php if ($isAdmin): ?>
@@ -137,7 +137,7 @@ $assetVersion = static function (string $relativePath): string {
                 <p class="meta"><strong><?= esc(lang('App.infoUrl')) ?>:</strong> <a class="event-info-link" href="<?= esc($infoUrl) ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventMoreInfo')) ?></a></p>
             <?php endif; ?>
 
-            <p class="meta"><strong><?= esc(lang('App.type')) ?>:</strong> <?= esc($event['event_type'] ?? 'free') ?></p>
+            <p class="meta"><strong><?= esc(lang('App.type')) ?>:</strong> <?= esc(lang($isDonationEvent ? 'App.eventCreateDonationType' : 'App.filterFree')) ?></p>
             <p class="meta"><strong><?= esc(lang('App.seatsRemaining')) ?>:</strong> <?= esc((string) $remainingSeats) ?></p>
 
             <?php if ($status === 'active' && ! $bookingsEnabled): ?>

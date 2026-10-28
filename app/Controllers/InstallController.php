@@ -207,7 +207,7 @@ class InstallController extends BaseController
             'database.default.port = ' . ($input['db_port'] > 0 ? $input['db_port'] : 3306),
             '',
             '# email.fromEmail = noreply@example.com',
-            "# email.fromName = 'Ticketing System'",
+            "# email.fromName = 'BlackBox Theater'",
             '# email.protocol = smtp',
             '# email.SMTPHost =',
             '# email.SMTPUser =',

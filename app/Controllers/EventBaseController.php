@@ -290,8 +290,6 @@ abstract class EventBaseController extends BaseController
             $this->localizedLine('App.adminNewEventEmailFormatLabel', [], 'el') . ': ' . $formatLabelEl,
             $this->localizedLine('App.adminNewEventEmailStartLabel', [], 'el') . ': ' . $startDate,
             $this->localizedLine('App.adminNewEventEmailLocationLabel', [], 'el') . ': ' . (string) ($event['location'] ?? '-'),
-            $this->localizedLine('App.adminNewEventEmailLinkLabel', [], 'el') . ': ' . $eventUrl,
-            $this->localizedLine('App.adminNewEventEmailFooter', [], 'el'),
         ];
 
         $englishLines = [
@@ -301,12 +299,17 @@ abstract class EventBaseController extends BaseController
             $this->localizedLine('App.adminNewEventEmailFormatLabel', [], 'en') . ': ' . $formatLabelEn,
             $this->localizedLine('App.adminNewEventEmailStartLabel', [], 'en') . ': ' . $startDate,
             $this->localizedLine('App.adminNewEventEmailLocationLabel', [], 'en') . ': ' . (string) ($event['location'] ?? '-'),
-            $this->localizedLine('App.adminNewEventEmailLinkLabel', [], 'en') . ': ' . $eventUrl,
-            $this->localizedLine('App.adminNewEventEmailFooter', [], 'en'),
         ];
 
-        $message = $this->buildBilingualEmail($greekLines, $englishLines);
         $subject = $this->bilingualSubject('App.adminNewEventEmailSubject');
+        $message = $this->buildBilingualActionEmailHtml(
+            $greekLines,
+            $englishLines,
+            $eventUrl,
+            $this->localizedLine('App.adminNewEventEmailButton', [], 'el'),
+            $this->localizedLine('App.adminNewEventEmailButton', [], 'en'),
+            $subject
+        );
         $allSent = true;
 
         foreach ($adminEmails as $adminRow) {
@@ -319,6 +322,7 @@ abstract class EventBaseController extends BaseController
                 $emailService = service('email');
                 $emailService->setTo($recipient);
                 $emailService->setSubject($subject);
+                $emailService->setMailType('html');
                 $emailService->setMessage($message);
 
                 if (! $emailService->send()) {
