@@ -1,0 +1,98 @@
+<?php
+
+namespace App\Libraries;
+
+use Throwable;
+
+/**
+ * Site settings stored in the `settings` table, so each client can brand the site from the admin
+ * without code changes. Values are loaded once per request.
+ */
+class SiteSettings
+{
+    /**
+     * Every setting with its default. Company details fall back to the older ORG_* .env keys.
+     */
+    public const DEFAULTS = [
+        'site_name'       => 'Tickets',
+        'logo_path'       => '',
+        'favicon_path'    => '',
+        'accent_color'    => '#14b8a6',
+        'contact_email'   => '',
+        'contact_phone'   => '',
+        'contact_address' => '',
+        'footer_text'     => '',
+        'org_name'        => '',
+        'org_tax_id'      => '',
+        'org_address'     => '',
+    ];
+
+    private static ?array $values = null;
+
+    public static function get(string $key): string
+    {
+        $values = self::all();
+
+        return (string) ($values[$key] ?? self::DEFAULTS[$key] ?? '');
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function all(): array
+    {
+        if (self::$values !== null) {
+            return self::$values;
+        }
+
+        $values = self::DEFAULTS;
+        $values['org_name']    = trim((string) env('ORG_NAME', ''));
+        $values['org_tax_id']  = trim((string) env('ORG_TAX_ID', ''));
+        $values['org_address'] = trim((string) env('ORG_ADDRESS', ''));
+
+        try {
+            $db = db_connect();
+            if ($db->tableExists('settings')) {
+                foreach ($db->table($db->prefixTable('settings'))->get()->getResultArray() as $row) {
+                    if (array_key_exists((string) $row['key'], self::DEFAULTS) && (string) $row['value'] !== '') {
+                        $values[(string) $row['key']] = (string) $row['value'];
+                    }
+                }
+            }
+        } catch (Throwable) {
+            // No database yet (e.g. during installation): defaults are used.
+        }
+
+        return self::$values = $values;
+    }
+
+    /**
+     * @param array<string, string> $values
+     */
+    public static function save(array $values): void
+    {
+        $db    = db_connect();
+        $table = $db->prefixTable('settings');
+        $now   = date('Y-m-d H:i:s');
+
+        foreach ($values as $key => $value) {
+            if (! array_key_exists($key, self::DEFAULTS)) {
+                continue;
+            }
+
+            $db->table($table)->replace(['key' => $key, 'value' => trim((string) $value), 'updated_at' => $now]);
+        }
+
+        self::$values = null;
+    }
+
+    /**
+     * Public URL of an uploaded image setting (logo/favicon), or '' when none is set.
+     */
+    public static function assetUrl(string $key): string
+    {
+        $path = self::get($key);
+
+        return $path === '' ? '' : base_url($path);
+    }
+}

@@ -8,7 +8,8 @@
             </nav>
         </div>
         <div class="footer-copy-wrap">
-            <div class="footer-copy"><?= esc(lang('App.footerCopyright')) ?></div>
+            <?php $footerText = \App\Libraries\SiteSettings::get('footer_text'); ?>
+            <div class="footer-copy"><?= esc($footerText !== '' ? $footerText : '© ' . date('Y') . ' ' . lang('App.siteTitle')) ?></div>
         </div>
     </div>
 </footer>

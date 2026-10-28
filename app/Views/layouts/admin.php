@@ -19,6 +19,7 @@ $seoTitle = (string) ($pageTitle ?? $siteTitle);
     <meta name="csrf-name" content="<?= csrf_token() ?>">
     <meta name="csrf-value" content="<?= csrf_hash() ?>">
     <link rel="stylesheet" href="<?= base_url('assets/css/styles.css') ?>?v=<?= esc($assetVersion('assets/css/styles.css')) ?>">
+    <?= $this->include('layouts/_site_head') ?>
 </head>
 <body class="admin-body">
     <div class="admin-shell">

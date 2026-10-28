@@ -106,6 +106,8 @@ $routes->get('admin/analytics', 'AdminDashboardController::analytics');
 $routes->get('admin/payments', 'AdminDashboardController::payments');
 $routes->get('admin/payments/export', 'AdminDashboardController::paymentsExport');
 $routes->get('admin/email-queue', 'AdminToolsController::emailQueue');
+$routes->get('admin/settings', 'SettingsController::index');
+$routes->post('admin/settings', 'SettingsController::save');
 $routes->get('admin/newsletter', 'NewsletterController::index');
 $routes->post('admin/newsletter', 'NewsletterController::send');
 $routes->get('admin/newsletter/(:num)', 'NewsletterController::campaign/$1');

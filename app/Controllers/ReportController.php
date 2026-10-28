@@ -249,7 +249,7 @@ class ReportController extends EventBaseController
         $lines = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
-            'PRODID:-//BlackBox Theater//Tickets//EN',
+            'PRODID:-//' . str_replace('/', '-', \App\Libraries\SiteSettings::get('site_name')) . '//Tickets//EN',
             'BEGIN:VEVENT',
             'UID:' . $uid,
             'DTSTAMP:' . gmdate('Ymd\THis\Z'),
@@ -395,9 +395,9 @@ class ReportController extends EventBaseController
             'payment'     => $payment,
             'payerName'   => (string) session()->get('user_name'),
             'payerEmail'  => (string) session()->get('user_email'),
-            'orgName'     => trim((string) env('ORG_NAME', lang('App.siteTitle'))),
-            'orgTaxId'    => trim((string) env('ORG_TAX_ID', '')),
-            'orgAddress'  => trim((string) env('ORG_ADDRESS', '')),
+            'orgName'     => \App\Libraries\SiteSettings::get('org_name') ?: lang('App.siteTitle'),
+            'orgTaxId'    => \App\Libraries\SiteSettings::get('org_tax_id'),
+            'orgAddress'  => \App\Libraries\SiteSettings::get('org_address'),
             'pageTitle'   => lang('App.receiptTitle'),
         ]);
     }

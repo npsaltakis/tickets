@@ -145,6 +145,9 @@ class GoogleWallet
     private function logoUrl(): string
     {
         $url = trim((string) env('googleWallet.logoUrl', ''));
+        if ($url === '') {
+            $url = SiteSettings::assetUrl('logo_path');
+        }
 
         return $url !== '' ? $url : base_url('assets/images/logo.png');
     }

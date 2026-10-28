@@ -6,6 +6,25 @@
         <h1 class="auth-title"><?= esc(lang('App.contactTitle')) ?></h1>
         <p class="subtitle"><?= esc(lang('App.contactSubtitle')) ?></p>
 
+        <?php
+        $contactEmail   = \App\Libraries\SiteSettings::get('contact_email');
+        $contactPhone   = \App\Libraries\SiteSettings::get('contact_phone');
+        $contactAddress = \App\Libraries\SiteSettings::get('contact_address');
+        ?>
+        <?php if ($contactEmail !== '' || $contactPhone !== '' || $contactAddress !== ''): ?>
+            <ul class="contact-details">
+                <?php if ($contactEmail !== ''): ?>
+                    <li><strong><?= esc(lang('App.emailLabel')) ?>:</strong> <a href="mailto:<?= esc($contactEmail, 'attr') ?>"><?= esc($contactEmail) ?></a></li>
+                <?php endif; ?>
+                <?php if ($contactPhone !== ''): ?>
+                    <li><strong><?= esc(lang('App.settingsContactPhone')) ?>:</strong> <a href="tel:<?= esc(preg_replace('/[^0-9+]/', '', $contactPhone), 'attr') ?>"><?= esc($contactPhone) ?></a></li>
+                <?php endif; ?>
+                <?php if ($contactAddress !== ''): ?>
+                    <li><strong><?= esc(lang('App.settingsContactAddress')) ?>:</strong> <?= esc($contactAddress) ?></li>
+                <?php endif; ?>
+            </ul>
+        <?php endif; ?>
+
         <?php if (session()->getFlashdata('contact_error')): ?>
             <p role="alert" class="auth-error"><?= esc((string) session()->getFlashdata('contact_error')) ?></p>
         <?php endif; ?>

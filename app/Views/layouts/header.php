@@ -77,6 +77,7 @@ $structuredData = array_values(array_filter((array) ($structuredData ?? [])));
         <meta name="twitter:image" content="<?= esc($metaImage, 'attr') ?>">
     <?php endif; ?>
     <link rel="stylesheet" href="<?= base_url('assets/css/styles.css') ?>?v=<?= esc($assetVersion('assets/css/styles.css')) ?>">
+    <?= $this->include('layouts/_site_head') ?>
     <?php foreach ($structuredData as $structuredDataItem): ?>
         <script type="application/ld+json"><?= json_encode($structuredDataItem, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?></script>
     <?php endforeach; ?>
@@ -85,7 +86,12 @@ $structuredData = array_values(array_filter((array) ($structuredData ?? [])));
 <header class="top-nav">
     <div class="top-nav-inner">
         <div class="top-nav-left">
-            <a class="brand" href="<?= base_url('/') ?>"><?= esc(lang('App.siteTitle')) ?></a>
+            <a class="brand" href="<?= base_url('/') ?>">
+                <?php if (($siteLogo = \App\Libraries\SiteSettings::assetUrl('logo_path')) !== ''): ?>
+                    <img class="brand-logo" src="<?= esc($siteLogo, 'attr') ?>" alt="" width="36" height="36">
+                <?php endif; ?>
+                <span><?= esc(lang('App.siteTitle')) ?></span>
+            </a>
             <nav aria-label="Main navigation">
                 <ul class="menu">
                     <li><a class="menu-link <?= $currentPath === '' ? 'is-active' : '' ?>" href="<?= base_url('/') ?>"><?= esc(lang('App.navHome')) ?></a></li>
