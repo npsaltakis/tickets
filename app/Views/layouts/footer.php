@@ -1,5 +1,6 @@
 <footer class="site-footer">
     <div class="top-nav-inner footer-inner-shell">
+        <?php if (! url_is('login')): ?>
         <div class="footer-menu-card">
             <nav class="footer-menu" aria-label="Footer menu">
                 <a class="footer-menu-item footer-menu-link" href="<?= base_url('gdpr') ?>"><?= esc(lang('App.footerGdpr')) ?></a>
@@ -7,6 +8,7 @@
                 <a class="footer-menu-item footer-menu-link" href="<?= base_url('contact') ?>"><?= esc(lang('App.footerContact')) ?></a>
             </nav>
         </div>
+        <?php endif; ?>
         <div class="footer-copy-wrap">
             <?php $footerText = \App\Libraries\SiteSettings::get('footer_text'); ?>
             <div class="footer-copy"><?= esc($footerText !== '' ? $footerText : '© ' . date('Y') . ' ' . lang('App.siteTitle')) ?></div>
