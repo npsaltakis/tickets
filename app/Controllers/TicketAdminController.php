@@ -141,12 +141,15 @@ class TicketAdminController extends BaseController
         }
 
         try {
-            $qrCode = QrCode::create($ticketCode)
-                ->setEncoding(new Encoding('UTF-8'))
-                ->setErrorCorrectionLevel(ErrorCorrectionLevel::High)
-                ->setSize(300)
-                ->setMargin(10)
-                ->setRoundBlockSizeMode(RoundBlockSizeMode::Margin);
+            // endroid/qr-code 6 has no static create(); options go through the constructor.
+            $qrCode = new QrCode(
+                data: $ticketCode,
+                encoding: new Encoding('UTF-8'),
+                errorCorrectionLevel: ErrorCorrectionLevel::High,
+                size: 300,
+                margin: 10,
+                roundBlockSizeMode: RoundBlockSizeMode::Margin
+            );
 
             $writer = new PngWriter();
             $result = $writer->write($qrCode);
