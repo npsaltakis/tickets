@@ -22,7 +22,7 @@ class Home extends EventBaseController
             'categories'   => $categories,
             'activeCatId'  => $categoryId,
             'filters'      => $filters,
-            'pageTitle'    => 'All Events | ' . \App\Libraries\SiteSettings::get('site_name'),
+            'pageTitle'    => lang('App.eventsPageTitle') . ' | ' . \App\Libraries\SiteSettings::get('site_name'),
             'metaDescription' => lang('App.eventsPageSubtitle'),
             'canonicalUrl' => base_url('/'),
         ]);
