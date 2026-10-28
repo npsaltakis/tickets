@@ -154,7 +154,7 @@ $assetVersion = static function (string $relativePath): string {
                     <label for="start_date" class="auth-label"><?= esc(lang('App.startDate')) ?></label>
                     <div class="event-datetime-inputs">
                         <input id="start_date" name="start_date" type="date" class="auth-input" value="<?= esc($startDateValue) ?>" required>
-                        <select id="start_time" name="start_time" class="auth-input" required>
+                        <select id="start_time" name="start_time" class="auth-input" required aria-label="<?= esc(lang('App.startDate') . ' — ' . lang('App.eventCreateSelectTime'), 'attr') ?>">
                             <option value=""><?= esc(lang('App.eventCreateSelectTime')) ?></option>
                             <?php foreach ($timeOptions as $timeOption): ?>
                                 <option value="<?= esc($timeOption) ?>" <?= $startTimeValue === $timeOption ? 'selected' : '' ?>><?= esc($timeOption) ?></option>
@@ -167,7 +167,7 @@ $assetVersion = static function (string $relativePath): string {
                     <label for="end_date" class="auth-label"><?= esc(lang('App.endDate')) ?></label>
                     <div class="event-datetime-inputs">
                         <input id="end_date" name="end_date" type="date" class="auth-input" value="<?= esc($endDateValue) ?>" required>
-                        <select id="end_time" name="end_time" class="auth-input" required>
+                        <select id="end_time" name="end_time" class="auth-input" required aria-label="<?= esc(lang('App.endDate') . ' — ' . lang('App.eventCreateSelectTime'), 'attr') ?>">
                             <option value=""><?= esc(lang('App.eventCreateSelectTime')) ?></option>
                             <?php foreach ($timeOptions as $timeOption): ?>
                                 <option value="<?= esc($timeOption) ?>" <?= $endTimeValue === $timeOption ? 'selected' : '' ?>><?= esc($timeOption) ?></option>

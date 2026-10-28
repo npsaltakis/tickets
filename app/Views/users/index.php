@@ -33,7 +33,7 @@ $assetVersion = static function (string $relativePath): string {
         <?php else: ?>
             <form id="users-bulk-form" method="post" action="<?= base_url('users/bulk') ?>" class="users-bulk-form" data-bulk-form data-confirm-message="<?= esc(lang('App.usersBulkConfirm'), 'attr') ?>" data-none-message="<?= esc(lang('App.usersBulkNone'), 'attr') ?>">
                 <?= csrf_field() ?>
-                <select name="action" class="auth-input users-bulk-select" required>
+                <select name="action" class="auth-input users-bulk-select" required aria-label="<?= esc(lang('App.adminLogsAction'), 'attr') ?>">
                     <option value=""><?= esc(lang('App.usersBulkSelect')) ?></option>
                     <option value="block"><?= esc(lang('App.usersBulkBlock')) ?></option>
                     <option value="unblock"><?= esc(lang('App.usersBulkUnblock')) ?></option>

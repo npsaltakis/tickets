@@ -1,0 +1,4 @@
+# Uploaded event images: never execute scripts from here, even if one slips through upload validation.
+<FilesMatch "\.(?i:php\d?|phtml|phar|pl|py|cgi|sh)$">
+    Require all denied
+</FilesMatch>

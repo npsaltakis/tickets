@@ -75,7 +75,7 @@ $assetVersion = static function (string $relativePath): string {
                                 </a>
                             </td>
                             <td>
-                                <select class="js-status-select admin-status-select status-<?= esc($status) ?>" data-slug="<?= esc($event['slug']) ?>">
+                                <select class="js-status-select admin-status-select status-<?= esc($status) ?>" data-slug="<?= esc($event['slug']) ?>" aria-label="<?= esc(lang('App.eventStatusLabel') . ': ' . $event['title'], 'attr') ?>">
                                     <option value="active"    <?= $status === 'active'    ? 'selected' : '' ?>><?= esc(lang('App.eventStatusActive')) ?></option>
                                     <option value="inactive"  <?= $status === 'inactive'  ? 'selected' : '' ?>><?= esc(lang('App.eventStatusInactive')) ?></option>
                                     <option value="cancelled" <?= $status === 'cancelled' ? 'selected' : '' ?>><?= esc(lang('App.eventStatusCancelled')) ?></option>

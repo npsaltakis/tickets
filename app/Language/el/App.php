@@ -787,7 +787,7 @@ return [
     'filterType' => 'Τύπος',
     'filterAnyType' => 'Κάθε τύπος',
     'filterFree' => 'Δωρεάν',
-    'filterDonation' => 'Donation',
+    'filterDonation' => 'Δωρεά',
     'filterFormat' => 'Format',
     'filterAnyFormat' => 'Κάθε format',
     'filterFrom' => 'Από',

@@ -3588,3 +3588,61 @@ main li a:not([class]) {
         min-height: 44px;
     }
 }
+
+/* Touch targets: links and small buttons found in the logged-in pages. */
+.brand,
+.footer-menu-link,
+.back-link,
+.event-map-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+}
+
+input[name="accept_terms"] {
+    width: 20px;
+    height: 20px;
+}
+
+@media (max-width: 768px) {
+    .category-pill,
+    .ticket-export-btn,
+    .auth-link-btn {
+        min-height: 44px;
+    }
+}
+
+.ticket-picker-select {
+    font-size: 16px;
+}
+
+/* Admin: larger checkboxes and touch targets on phones. */
+.bulk-checkbox,
+.bulk-check,
+.users-select-all,
+.users-select-row,
+.event-form-grid input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+
+.admin-sidebar-brand {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+}
+
+@media (max-width: 768px) {
+    .admin-nav-link,
+    .admin-sidebar-logout,
+    .admin-topbar-logout,
+    .admin-action-btn,
+    .admin-action-link,
+    .admin-event-btn,
+    .report-event-link,
+    .paginate_button {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+    }
+}

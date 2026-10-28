@@ -1,3 +1,8 @@
+// Event data comes from the server but is still escaped before it goes into innerHTML.
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 (() => {
     const grid    = document.getElementById('events-grid');
     const calWrap = document.getElementById('calendar-wrap');
@@ -68,7 +73,7 @@
                 <span class="cal-day-num">${d}</span>`;
 
             dayEvents.forEach(ev => {
-                html += `<a class="cal-event cal-event--${ev.status}" href="${window.baseUrl}events/${ev.slug}" title="${ev.title.replace(/"/g,'&quot;')}">${ev.title}</a>`;
+                html += `<a class="cal-event cal-event--${escapeHtml(ev.status)}" href="${window.baseUrl}events/${encodeURIComponent(ev.slug)}" title="${escapeHtml(ev.title)}">${escapeHtml(ev.title)}</a>`;
             });
 
             html += '</div>';

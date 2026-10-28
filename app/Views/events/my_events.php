@@ -139,7 +139,7 @@ $assetVersion = static function (string $relativePath): string {
                             $resendBase   = base_url('my-events/tickets/');
                             ?>
                             <div class="ticket-picker" data-calendar-base="<?= esc($calendarBase, 'attr') ?>" data-resend-base="<?= esc($resendBase, 'attr') ?>">
-                                <select class="auth-input ticket-picker-select">
+                                <select class="auth-input ticket-picker-select" aria-label="<?= esc(lang('App.myEventsTicketCodes'), 'attr') ?>">
                                     <?php foreach ($tickets as $i => $ticket): ?>
                                         <option value="<?= esc($ticket['code']) ?>">
                                             <?= esc(lang('App.myEventsTicketNumber', [$i + 1])) ?> — <?= esc($ticket['code']) ?>
