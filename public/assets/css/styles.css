@@ -3981,16 +3981,30 @@ input[name="test_only"] {
     color: var(--accent);
 }
 
-/* Admin: site settings. Cards side by side on wide screens, one column on phones. */
+/* Admin: site settings. One column on phones/tablets; on wide screens Appearance takes two thirds
+   and Contact + Company stack in the last third. */
 .settings-form {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
     align-items: start;
 }
 
-.settings-form > .card {
+@media (min-width: 1100px) {
+    .settings-form {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+}
+
+.settings-form > .card,
+.settings-side {
     min-width: 0;
+}
+
+.settings-side {
+    display: grid;
+    gap: 16px;
+    align-content: start;
 }
 
 .settings-form > .auth-submit,
@@ -4052,5 +4066,38 @@ input[name="test_only"] {
     border: 1px solid var(--border);
     border-radius: 8px;
     background: #000000;
+    object-fit: contain;
+}
+
+.settings-preview-link {
+    display: inline-flex;
+    border-radius: 8px;
+    cursor: zoom-in;
+}
+
+.settings-preview-link:hover img {
+    border-color: var(--accent);
+}
+
+/* Lightbox for images opened from links with data-lightbox */
+.lightbox {
+    max-width: min(92vw, 900px);
+    max-height: 92vh;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #000000;
+    cursor: zoom-out;
+}
+
+.lightbox::backdrop {
+    background: rgba(2, 6, 23, 0.82);
+}
+
+.lightbox img {
+    display: block;
+    max-width: 100%;
+    max-height: 88vh;
+    margin: auto;
     object-fit: contain;
 }

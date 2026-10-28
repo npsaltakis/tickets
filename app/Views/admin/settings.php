@@ -28,7 +28,9 @@ $favicon = \App\Libraries\SiteSettings::assetUrl('favicon_path');
             <label class="auth-label" for="logo_path"><?= esc(lang('App.settingsLogo')) ?></label>
             <?php if ($logo !== ''): ?>
                 <div class="settings-preview">
-                    <img src="<?= esc($logo, 'attr') ?>" alt="" width="64" height="64">
+                    <a href="<?= esc($logo, 'attr') ?>" class="settings-preview-link" data-lightbox target="_blank" rel="noopener" aria-label="<?= esc(lang('App.settingsViewLarge'), 'attr') ?>">
+                        <img src="<?= esc($logo, 'attr') ?>" alt="" width="96" height="96">
+                    </a>
                     <label class="booking-consent" for="remove_logo_path"><input id="remove_logo_path" name="remove_logo_path" type="checkbox" value="1"><span><?= esc(lang('App.settingsRemove')) ?></span></label>
                 </div>
             <?php endif; ?>
@@ -38,7 +40,9 @@ $favicon = \App\Libraries\SiteSettings::assetUrl('favicon_path');
             <label class="auth-label" for="favicon_path"><?= esc(lang('App.settingsFavicon')) ?></label>
             <?php if ($favicon !== ''): ?>
                 <div class="settings-preview">
-                    <img src="<?= esc($favicon, 'attr') ?>" alt="" width="32" height="32">
+                    <a href="<?= esc($favicon, 'attr') ?>" class="settings-preview-link" data-lightbox target="_blank" rel="noopener" aria-label="<?= esc(lang('App.settingsViewLarge'), 'attr') ?>">
+                        <img src="<?= esc($favicon, 'attr') ?>" alt="" width="48" height="48">
+                    </a>
                     <label class="booking-consent" for="remove_favicon_path"><input id="remove_favicon_path" name="remove_favicon_path" type="checkbox" value="1"><span><?= esc(lang('App.settingsRemove')) ?></span></label>
                 </div>
             <?php endif; ?>
@@ -49,6 +53,7 @@ $favicon = \App\Libraries\SiteSettings::assetUrl('favicon_path');
             <input id="footer_text" name="footer_text" type="text" class="auth-input" maxlength="255" value="<?= esc($value('footer_text'), 'attr') ?>" placeholder="© <?= date('Y') ?> <?= esc($value('site_name'), 'attr') ?>">
         </section>
 
+        <div class="settings-side">
         <section class="card">
             <h2><?= esc(lang('App.settingsContactTitle')) ?></h2>
             <p class="field-hint"><?= esc(lang('App.settingsContactHint')) ?></p>
@@ -76,6 +81,7 @@ $favicon = \App\Libraries\SiteSettings::assetUrl('favicon_path');
             <label class="auth-label" for="org_address"><?= esc(lang('App.settingsOrgAddress')) ?></label>
             <input id="org_address" name="org_address" type="text" class="auth-input" maxlength="255" value="<?= esc($value('org_address'), 'attr') ?>">
         </section>
+        </div>
 
         <button type="submit" class="book-btn auth-submit"><?= esc(lang('App.settingsSave')) ?></button>
     </form>

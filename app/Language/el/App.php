@@ -464,6 +464,7 @@ return [
     'settingsFavicon' => 'Favicon (εικονίδιο καρτέλας)',
     'settingsFaviconHint' => 'PNG ή ICO, τετράγωνο (π.χ. 64×64).',
     'settingsRemove' => 'Αφαίρεση',
+    'settingsViewLarge' => 'Προβολή σε μεγάλο μέγεθος',
     'settingsFooter' => 'Κείμενο footer',
     'settingsContactTitle' => 'Στοιχεία επικοινωνίας',
     'settingsContactHint' => 'Εμφανίζονται στη σελίδα «Επικοινωνία».',

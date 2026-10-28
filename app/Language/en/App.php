@@ -464,6 +464,7 @@ return [
     'settingsFavicon' => 'Favicon (browser tab icon)',
     'settingsFaviconHint' => 'PNG or ICO, square (e.g. 64×64).',
     'settingsRemove' => 'Remove',
+    'settingsViewLarge' => 'View larger',
     'settingsFooter' => 'Footer text',
     'settingsContactTitle' => 'Contact details',
     'settingsContactHint' => 'Shown on the Contact page.',

@@ -54,3 +54,23 @@ document.querySelectorAll('input[type="password"]').forEach((input) => {
     });
     wrapper.appendChild(button);
 });
+
+// Links with data-lightbox open their image enlarged in a dialog (click or Esc closes it).
+document.addEventListener('click', (event) => {
+    const link = event.target instanceof Element ? event.target.closest('a[data-lightbox]') : null;
+    if (!link || typeof HTMLDialogElement === 'undefined') {
+        return;
+    }
+
+    event.preventDefault();
+    const dialog = document.createElement('dialog');
+    dialog.className = 'lightbox';
+    const image = document.createElement('img');
+    image.src = link.getAttribute('href') || '';
+    image.alt = link.getAttribute('aria-label') || '';
+    dialog.appendChild(image);
+    dialog.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('close', () => dialog.remove());
+    document.body.appendChild(dialog);
+    dialog.showModal();
+});
