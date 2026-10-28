@@ -325,6 +325,10 @@ class BookingController extends EventBaseController
 
     public function joinWaitlist(string $slug): RedirectResponse
     {
+        if (! WaitlistModel::isEnabled()) {
+            return redirect()->back()->with('event_error', lang('App.waitlistDisabled'));
+        }
+
         $event = $this->eventModel->where('slug', $slug)->first();
         if (empty($event)) {
             throw PageNotFoundException::forPageNotFound('Event not found');

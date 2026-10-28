@@ -16,7 +16,8 @@ $assetVersion = static function (string $relativePath): string {
     $onWaitlist = (bool) ($onWaitlist ?? false);
     $bookableSeats = min($remainingSeats, $seatAllowance);
     $canBook = $bookingsEnabled && ! $isExpired && $remainingSeats > 0 && $seatAllowance > 0 && $status === 'active';
-    $canJoinWaitlist = $bookingsEnabled && ! $isExpired && $remainingSeats < 1 && $status === 'active';
+    $isSoldOut = $bookingsEnabled && ! $isExpired && $remainingSeats < 1 && $status === 'active';
+    $canJoinWaitlist = $isSoldOut && \App\Models\WaitlistModel::isEnabled();
     $isDonationEvent = ($event['event_type'] ?? 'free') === 'donation';
     $isLoggedIn = session()->get('is_logged_in') === true;
     $isAdmin = $isLoggedIn && (string) session()->get('user_role') === 'admin';
@@ -211,10 +212,11 @@ $assetVersion = static function (string $relativePath): string {
                 </section>
             <?php endif; ?>
 
-            <?php if ($canJoinWaitlist): ?>
+            <?php if ($isSoldOut): ?>
                 <section class="booking-box waitlist-box">
                     <p class="meta"><strong><?= esc(lang('App.waitlistSoldOut')) ?></strong></p>
-                    <?php if (!$isLoggedIn): ?>
+                    <?php if (! $canJoinWaitlist): ?>
+                    <?php elseif (!$isLoggedIn): ?>
                         <a class="auth-link-btn" href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a>
                     <?php elseif ($onWaitlist): ?>
                         <p role="status" class="auth-info alert-inline"><?= esc(lang('App.waitlistOnList')) ?></p>
@@ -231,7 +233,7 @@ $assetVersion = static function (string $relativePath): string {
                 </section>
             <?php endif; ?>
 
-            <?php if ($canJoinWaitlist): ?>
+            <?php if ($isSoldOut): ?>
             <?php elseif (!$isDonationEvent): ?>
                 <form method="post" action="<?= base_url('events/' . $event['slug'] . '/book') ?>" class="booking-box" id="free-booking-form">
                     <?= csrf_field() ?>

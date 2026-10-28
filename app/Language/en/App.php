@@ -744,6 +744,7 @@ return [
     'waitlistJoined' => 'You joined the waiting list. We will email you when a seat becomes available.',
     'waitlistLeft' => 'You were removed from the waiting list.',
     'waitlistSoldOut' => 'This event is sold out.',
+    'waitlistDisabled' => 'The waiting list is not available.',
     'waitlistOnList' => 'You are on the waiting list.',
     'waitlistLeave' => 'Leave waiting list',
     'waitlistJoin' => 'Join waiting list',

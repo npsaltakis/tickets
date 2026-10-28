@@ -744,6 +744,7 @@ return [
     'waitlistJoined' => 'Μπήκατε στη λίστα αναμονής. Θα σας στείλουμε email όταν ελευθερωθεί θέση.',
     'waitlistLeft' => 'Αφαιρεθήκατε από τη λίστα αναμονής.',
     'waitlistSoldOut' => 'Το event είναι sold out.',
+    'waitlistDisabled' => 'Η λίστα αναμονής δεν είναι διαθέσιμη.',
     'waitlistOnList' => 'Είστε στη λίστα αναμονής.',
     'waitlistLeave' => 'Έξοδος από τη λίστα αναμονής',
     'waitlistJoin' => 'Μπες στη λίστα αναμονής',

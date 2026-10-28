@@ -31,7 +31,9 @@
         <article><span><?= esc(lang('App.ticketStatsBooked')) ?></span><strong><?= (int) $stats['booked'] ?></strong></article>
         <article class="<?= $stats['available'] === 0 ? 'is-full' : '' ?>"><span><?= esc(lang('App.ticketStatsAvailable')) ?></span><strong><?= (int) $stats['available'] ?></strong></article>
         <article><span><?= esc(lang('App.ticketStatsCheckedIn')) ?></span><strong><?= (int) $stats['checkedIn'] ?><small> / <?= (int) $stats['booked'] ?></small></strong></article>
-        <article><span><?= esc(lang('App.ticketStatsWaitlist')) ?></span><strong><?= (int) $stats['waitlist'] ?></strong></article>
+        <?php if ($waitlistEnabled): ?>
+            <article><span><?= esc(lang('App.ticketStatsWaitlist')) ?></span><strong><?= (int) $stats['waitlist'] ?></strong></article>
+        <?php endif; ?>
         <?php if (($event['event_type'] ?? 'free') === 'donation'): ?>
             <article><span><?= esc(lang('App.ticketStatsDonations')) ?></span><strong>€<?= esc(number_format((float) $stats['donations'], 2)) ?></strong></article>
         <?php endif; ?>
@@ -106,10 +108,12 @@
         </div>
 
         <div class="card">
-            <h2 style="margin:0 0 12px;font-size:1rem;color:#f8fafc"><?= esc(lang('App.waitlistAdminTitle')) ?> (<?= count($waitlist ?? []) ?>)</h2>
-            <?php if (empty($waitlist)): ?>
+            <?php if (! $waitlistEnabled): ?>
+            <?php elseif (empty($waitlist)): ?>
+                <h2 style="margin:0 0 12px;font-size:1rem;color:#f8fafc"><?= esc(lang('App.waitlistAdminTitle')) ?> (0)</h2>
                 <p class="meta"><?= esc(lang('App.waitlistAdminEmpty')) ?></p>
             <?php else: ?>
+                <h2 style="margin:0 0 12px;font-size:1rem;color:#f8fafc"><?= esc(lang('App.waitlistAdminTitle')) ?> (<?= count($waitlist) ?>)</h2>
                 <ol style="margin:0 0 20px;padding-left:18px">
                     <?php foreach ($waitlist as $w): ?>
                         <li class="meta" style="margin-bottom:6px">

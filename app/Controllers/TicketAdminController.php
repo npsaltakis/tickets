@@ -81,6 +81,7 @@ class TicketAdminController extends BaseController
             'users'     => $users,
             'waitlist'  => $waitlist,
             'stats'     => $stats,
+            'waitlistEnabled' => \App\Models\WaitlistModel::isEnabled(),
             'pageTitle' => lang('App.adminTicketsPageTitle') . ' — ' . ($event['title'] ?? ''),
         ]);
     }
