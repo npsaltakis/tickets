@@ -31,7 +31,9 @@ Options -Indexes
 	# request to the front controller, index.php
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteCond %{REQUEST_FILENAME} !-d
-	RewriteRule ^([\s\S]*)$ index.php/$1 [L,NC,QSA]
+	# No PATH_INFO: PHP-FPM/FastCGI (e.g. Plesk) answers "No input file specified" to index.php/$1.
+	# The URI is read from REQUEST_URI (Config\App::$uriProtocol).
+	RewriteRule ^([\s\S]*)$ index.php [L,NC,QSA]
 
 	# Ensure Authorization header is passed along
 	RewriteCond %{HTTP:Authorization} .
