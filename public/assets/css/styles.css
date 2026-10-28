@@ -3718,3 +3718,73 @@ input[name="test_only"] {
     height: 21px;
     flex-shrink: 0;
 }
+
+/* Admin: per-event ticket stats */
+.ticket-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.ticket-stats article {
+    padding: 14px 16px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(31, 41, 55, 0.92), rgba(15, 23, 42, 0.92));
+}
+
+.ticket-stats span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.ticket-stats strong {
+    color: #f8fafc;
+    font-size: 1.5rem;
+}
+
+.ticket-stats small {
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.ticket-stats .is-full strong {
+    color: #f87171;
+}
+
+.ticket-fill {
+    margin-bottom: 20px;
+}
+
+.ticket-fill-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.ticket-fill-label strong {
+    color: #f8fafc;
+}
+
+.ticket-fill-bar {
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.18);
+    overflow: hidden;
+}
+
+.ticket-fill-bar span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--accent);
+}

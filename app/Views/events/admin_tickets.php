@@ -26,6 +26,30 @@
         </div>
     </div>
 
+    <section class="ticket-stats" aria-label="<?= esc(lang('App.ticketStatsTitle'), 'attr') ?>">
+        <article><span><?= esc(lang('App.ticketStatsCapacity')) ?></span><strong><?= (int) $stats['capacity'] ?></strong></article>
+        <article><span><?= esc(lang('App.ticketStatsBooked')) ?></span><strong><?= (int) $stats['booked'] ?></strong></article>
+        <article class="<?= $stats['available'] === 0 ? 'is-full' : '' ?>"><span><?= esc(lang('App.ticketStatsAvailable')) ?></span><strong><?= (int) $stats['available'] ?></strong></article>
+        <article><span><?= esc(lang('App.ticketStatsCheckedIn')) ?></span><strong><?= (int) $stats['checkedIn'] ?><small> / <?= (int) $stats['booked'] ?></small></strong></article>
+        <article><span><?= esc(lang('App.ticketStatsWaitlist')) ?></span><strong><?= (int) $stats['waitlist'] ?></strong></article>
+        <?php if (($event['event_type'] ?? 'free') === 'donation'): ?>
+            <article><span><?= esc(lang('App.ticketStatsDonations')) ?></span><strong>€<?= esc(number_format((float) $stats['donations'], 2)) ?></strong></article>
+        <?php endif; ?>
+        <?php if ($stats['cancelled'] > 0): ?>
+            <article><span><?= esc(lang('App.ticketStatsCancelled')) ?></span><strong><?= (int) $stats['cancelled'] ?></strong></article>
+        <?php endif; ?>
+    </section>
+
+    <div class="ticket-fill">
+        <div class="ticket-fill-label">
+            <span><?= esc(lang('App.ticketStatsFill')) ?></span>
+            <strong><?= (int) $stats['fillPct'] ?>%</strong>
+        </div>
+        <div class="ticket-fill-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?= (int) $stats['fillPct'] ?>" aria-label="<?= esc(lang('App.ticketStatsFill'), 'attr') ?>">
+            <span style="width:<?= (int) $stats['fillPct'] ?>%"></span>
+        </div>
+    </div>
+
     <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start">
 
         <div class="card" style="overflow:auto">

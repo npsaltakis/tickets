@@ -60,11 +60,27 @@ class TicketAdminController extends BaseController
             ->get()
             ->getResultArray();
 
+        // Only valid tickets hold a seat; cancelled/refunded ones are counted separately.
+        $valid     = array_filter($tickets, static fn (array $t): bool => (string) $t['status'] === 'valid');
+        $capacity  = (int) ($event['capacity'] ?? 0);
+        $booked    = count($valid);
+        $stats     = [
+            'capacity'  => $capacity,
+            'booked'    => $booked,
+            'available' => max(0, $capacity - $booked),
+            'checkedIn' => count(array_filter($valid, static fn (array $t): bool => ! empty($t['checked_in_at']))),
+            'cancelled' => count($tickets) - $booked,
+            'waitlist'  => count($waitlist),
+            'donations' => array_sum(array_map(static fn (array $t): float => (float) $t['donation_amount'], $valid)),
+            'fillPct'   => $capacity > 0 ? min(100, (int) round($booked * 100 / $capacity)) : 0,
+        ];
+
         return view('events/admin_tickets', [
             'event'     => $event,
             'tickets'   => $tickets,
             'users'     => $users,
             'waitlist'  => $waitlist,
+            'stats'     => $stats,
             'pageTitle' => lang('App.adminTicketsPageTitle') . ' — ' . ($event['title'] ?? ''),
         ]);
     }
