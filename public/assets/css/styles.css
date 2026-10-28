@@ -3981,11 +3981,21 @@ input[name="test_only"] {
     color: var(--accent);
 }
 
-/* Admin: site settings */
+/* Admin: site settings. Cards side by side on wide screens, one column on phones. */
 .settings-form {
     display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
     gap: 16px;
-    max-width: 720px;
+    align-items: start;
+}
+
+.settings-form > .card {
+    min-width: 0;
+}
+
+.settings-form > .auth-submit,
+.settings-form > input[type="hidden"] {
+    grid-column: 1 / -1;
 }
 
 .settings-form .card {
