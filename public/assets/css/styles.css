@@ -3788,3 +3788,166 @@ input[name="test_only"] {
     border-radius: 999px;
     background: var(--accent);
 }
+
+/* Report: seats per event (stacked: checked in / booked / free). Blues validated as an ordinal pair on the dark card. */
+.seat-chart {
+    margin-bottom: 20px;
+}
+
+.seat-chart h2 {
+    margin: 0 0 10px;
+    color: #f8fafc;
+    font-size: 1.05rem;
+}
+
+.seat-chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin: 0 0 16px;
+    padding: 0;
+    list-style: none;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.seat-chart-legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.seat-chart-swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.seat-chart-rows {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.seat-chart-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(140px, 260px) 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    outline: none;
+}
+
+.seat-chart-row:hover,
+.seat-chart-row:focus-visible {
+    background: rgba(148, 163, 184, 0.08);
+}
+
+.seat-chart-row:focus-visible {
+    box-shadow: 0 0 0 2px var(--accent);
+}
+
+.seat-chart-label {
+    overflow: hidden;
+    color: #e5e7eb;
+    font-size: 0.9rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.seat-chart-label small {
+    display: block;
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+
+.seat-chart-bar {
+    display: flex;
+    gap: 2px;
+    height: 14px;
+}
+
+.seat-chart-bar .seg {
+    min-width: 2px;
+}
+
+.seat-chart-bar .seg:first-child {
+    border-radius: 4px 0 0 4px;
+}
+
+.seat-chart-bar .seg:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+.seat-chart-bar .seg:only-child {
+    border-radius: 4px;
+}
+
+.seg--in {
+    background: #3987e5;
+}
+
+.seg--booked {
+    background: #86b6ef;
+}
+
+.seg--free {
+    background: rgba(148, 163, 184, 0.22);
+}
+
+.seat-chart-value {
+    color: #e5e7eb;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.seat-chart-tip {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% - 2px);
+    left: 50%;
+    display: none;
+    gap: 4px;
+    min-width: 200px;
+    padding: 10px 12px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 10px;
+    background: #0f172a;
+    color: #e5e7eb;
+    font-size: 0.85rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    pointer-events: none;
+}
+
+.seat-chart-tip > span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.seat-chart-row:hover .seat-chart-tip,
+.seat-chart-row:focus-visible .seat-chart-tip {
+    display: grid;
+}
+
+@media (max-width: 640px) {
+    .seat-chart-row {
+        grid-template-columns: 1fr auto;
+    }
+
+    .seat-chart-bar {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    .seat-chart-tip {
+        left: 8px;
+    }
+}

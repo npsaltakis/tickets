@@ -28,6 +28,63 @@ $assetVersion = static function (string $relativePath): string {
     </div>
 
     <div class="report-tab-panel is-active" data-report-panel="summary" role="tabpanel">
+        <?php if (! empty($reportRows)): ?>
+            <?php $checkInRate = $totals['booked'] > 0 ? (int) round($totals['checkedIn'] * 100 / $totals['booked']) : 0; ?>
+            <section class="ticket-stats" aria-label="<?= esc(lang('App.reportChartTotals'), 'attr') ?>">
+                <article><span><?= esc(lang('App.reportChartEvents')) ?></span><strong><?= (int) $totals['events'] ?></strong></article>
+                <article><span><?= esc(lang('App.ticketStatsBooked')) ?></span><strong><?= (int) $totals['booked'] ?></strong></article>
+                <article><span><?= esc(lang('App.reportChartCheckInRate')) ?></span><strong><?= $checkInRate ?>%<small> (<?= (int) $totals['checkedIn'] ?>)</small></strong></article>
+                <?php if ($totals['donations'] > 0): ?>
+                    <article><span><?= esc(lang('App.ticketStatsDonations')) ?></span><strong>€<?= esc(number_format($totals['donations'], 2)) ?></strong></article>
+                <?php endif; ?>
+            </section>
+
+            <?php if (! empty($chartRows)): ?>
+                <div class="card seat-chart">
+                    <h2><?= esc(lang('App.reportChartTitle')) ?></h2>
+                    <ul class="seat-chart-legend">
+                        <li><span class="seat-chart-swatch seg--in"></span><?= esc(lang('App.reportChartCheckedIn')) ?></li>
+                        <li><span class="seat-chart-swatch seg--booked"></span><?= esc(lang('App.reportChartBookedOnly')) ?></li>
+                        <li><span class="seat-chart-swatch seg--free"></span><?= esc(lang('App.ticketStatsAvailable')) ?></li>
+                    </ul>
+                    <ol class="seat-chart-rows">
+                        <?php foreach ($chartRows as $row): ?>
+                            <?php
+                            $bookedOnly = $row['booked'] - $row['checkedIn'];
+                            $pct        = (int) round(min(100, $row['booked'] * 100 / $row['capacity']));
+                            $date       = $row['start'] !== '' ? date('d/m/Y', strtotime($row['start'])) : '';
+                            $summary    = strtr(lang('App.reportChartRowSummary'), [
+                                '{title}'   => $row['title'],
+                                '{in}'      => (string) $row['checkedIn'],
+                                '{booked}'  => (string) $row['booked'],
+                                '{cap}'     => (string) $row['capacity'],
+                                '{free}'    => (string) $row['free'],
+                            ]);
+                            ?>
+                            <li class="seat-chart-row" tabindex="0">
+                                <span class="seat-chart-label"><?= esc($row['title']) ?><?php if ($date !== ''): ?><small><?= esc($date) ?></small><?php endif; ?></span>
+                                <span class="seat-chart-bar" role="img" aria-label="<?= esc($summary, 'attr') ?>">
+                                    <?php if ($row['checkedIn'] > 0): ?><span class="seg seg--in" style="flex-grow:<?= (int) $row['checkedIn'] ?>"></span><?php endif; ?>
+                                    <?php if ($bookedOnly > 0): ?><span class="seg seg--booked" style="flex-grow:<?= (int) $bookedOnly ?>"></span><?php endif; ?>
+                                    <?php if ($row['free'] > 0): ?><span class="seg seg--free" style="flex-grow:<?= (int) $row['free'] ?>"></span><?php endif; ?>
+                                </span>
+                                <span class="seat-chart-value"><?= (int) $row['booked'] ?>/<?= (int) $row['capacity'] ?> · <?= $pct ?>%</span>
+                                <span class="seat-chart-tip" role="tooltip">
+                                    <strong><?= esc($row['title']) ?></strong>
+                                    <span><span class="seat-chart-swatch seg--in"></span><?= esc(lang('App.reportChartCheckedIn')) ?>: <?= (int) $row['checkedIn'] ?></span>
+                                    <span><span class="seat-chart-swatch seg--booked"></span><?= esc(lang('App.reportChartBookedOnly')) ?>: <?= (int) $bookedOnly ?></span>
+                                    <span><span class="seat-chart-swatch seg--free"></span><?= esc(lang('App.ticketStatsAvailable')) ?>: <?= (int) $row['free'] ?></span>
+                                </span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ol>
+                    <?php if ($chartHidden > 0): ?>
+                        <p class="meta"><?= esc(strtr(lang('App.reportChartMore'), ['{n}' => (string) $chartHidden])) ?></p>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
+
         <div class="card report-card">
             <?php if (empty($reportRows)): ?>
                 <p><?= esc(lang('App.reportEmpty')) ?></p>

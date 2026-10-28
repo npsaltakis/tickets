@@ -96,7 +96,38 @@ class ReportController extends EventBaseController
             unset($ticketRow);
         }
 
+        // Chart data: totals for the stat tiles and, per event, seats split into checked in / booked / free.
+        $totals = ['events' => count($reportRows), 'booked' => 0, 'checkedIn' => 0, 'donations' => 0.0];
+        $chart  = [];
+        foreach ($reportRows as $row) {
+            $capacity  = (int) ($row['capacity'] ?? 0);
+            $booked    = (int) ($row['issued_tickets'] ?? 0);
+            $checkedIn = min($booked, (int) ($row['checked_in_tickets'] ?? 0));
+
+            $totals['booked']    += $booked;
+            $totals['checkedIn'] += $checkedIn;
+            $totals['donations'] += (float) ($row['donation_total'] ?? 0);
+
+            if ($capacity > 0) {
+                $chart[] = [
+                    'title'     => (string) ($row['title'] ?? ''),
+                    'start'     => (string) ($row['start_date'] ?? ''),
+                    'capacity'  => $capacity,
+                    'booked'    => $booked,
+                    'checkedIn' => $checkedIn,
+                    'free'      => max(0, $capacity - $booked),
+                ];
+            }
+        }
+        // Newest events first; the full list stays in the table below.
+        usort($chart, static fn (array $a, array $b): int => strcmp($b['start'], $a['start']));
+        $chartHidden = max(0, count($chart) - 12);
+        $chart       = array_slice($chart, 0, 12);
+
         return view('events/report', [
+            'totals'      => $totals,
+            'chartRows'   => $chart,
+            'chartHidden' => $chartHidden,
             'reportRows' => $reportRows,
             'selectedEventId' => $selectedEventId,
             'selectedEvent' => $selectedEvent,
