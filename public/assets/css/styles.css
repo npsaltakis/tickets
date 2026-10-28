@@ -3988,6 +3988,33 @@ input[name="test_only"] {
     max-width: 720px;
 }
 
+.settings-form .card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px;
+}
+
+.settings-form .auth-label {
+    margin-top: 6px;
+}
+
+.settings-form .auth-input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.settings-form input[type="file"].auth-input {
+    padding: 8px;
+    color: var(--muted);
+}
+
+.settings-form .field-hint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
 .settings-form h2 {
     margin: 0 0 8px;
     color: #f8fafc;

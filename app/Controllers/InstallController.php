@@ -32,6 +32,8 @@ class InstallController extends BaseController
 
         $input = [
             'base_url'    => trim((string) $this->request->getPost('base_url')),
+            'site_name'   => mb_substr(trim((string) $this->request->getPost('site_name')), 0, 100),
+            'contact_email' => strtolower(trim((string) $this->request->getPost('contact_email'))),
             'db_host'     => trim((string) $this->request->getPost('db_host')),
             'db_port'     => (int) $this->request->getPost('db_port'),
             'db_name'     => trim((string) $this->request->getPost('db_name')),
@@ -55,6 +57,13 @@ class InstallController extends BaseController
             return $this->renderForm($input, lang('App.installBaseUrlInvalid'));
         }
         $input['base_url'] = rtrim($input['base_url'], '/') . '/';
+
+        if ($input['site_name'] === '') {
+            return $this->renderForm($input, lang('App.settingsNameRequired'));
+        }
+        if ($input['contact_email'] !== '' && ! filter_var($input['contact_email'], FILTER_VALIDATE_EMAIL)) {
+            return $this->renderForm($input, lang('App.invalidEmail'));
+        }
 
         if ($input['db_host'] === '' || $input['db_name'] === '' || $input['db_user'] === '' || preg_match('/^\w*$/', $input['db_prefix']) !== 1) {
             return $this->renderForm($input, lang('App.installDatabaseRequired'));
@@ -121,6 +130,11 @@ class InstallController extends BaseController
             return $this->renderForm($input, implode(' ', $userModel->errors()) ?: lang('App.installAdminFailed'));
         }
 
+        \App\Libraries\SiteSettings::save([
+            'site_name'     => $input['site_name'],
+            'contact_email' => $input['contact_email'],
+        ]);
+
         file_put_contents(WRITEPATH . self::LOCK_FILE, 'Installed at ' . date(DATE_ATOM) . ' by ' . $input['email'] . "\n");
 
         session()->setFlashdata('login_info', lang('App.installDone'));
@@ -160,6 +174,8 @@ class InstallController extends BaseController
         $host = (string) $this->request->getServer('HTTP_HOST');
 
         return [
+            'site_name'  => \App\Libraries\SiteSettings::get('site_name'),
+            'contact_email' => \App\Libraries\SiteSettings::get('contact_email'),
             'base_url'   => is_file(ROOTPATH . '.env') ? (string) config('App')->baseURL : ($this->request->isSecure() ? 'https' : 'http') . '://' . $host . '/',
             'db_host'    => (string) ($db['hostname'] ?: 'localhost'),
             'db_port'    => (int) ($db['port'] ?: 3306),
@@ -206,8 +222,8 @@ class InstallController extends BaseController
             'database.default.DBPrefix = ' . $quote($input['db_prefix']),
             'database.default.port = ' . ($input['db_port'] > 0 ? $input['db_port'] : 3306),
             '',
-            '# email.fromEmail = noreply@example.com',
-            "# email.fromName = 'Tickets'",
+            '# email.fromEmail = ' . ($input['contact_email'] !== '' ? $input['contact_email'] : 'noreply@example.com'),
+            '# email.fromName = ' . $quote($input['site_name']),
             '# email.protocol = smtp',
             '# email.SMTPHost =',
             '# email.SMTPUser =',
@@ -215,7 +231,7 @@ class InstallController extends BaseController
             '# email.SMTPPort = 587',
             '# email.SMTPCrypto = tls',
             '# email.mailType = html',
-            '# ADMIN_NOTIFY_EMAIL =',
+            '# ADMIN_NOTIFY_EMAIL = ' . $input['contact_email'],
             '',
             '# turnstile.siteKey =',
             '# turnstile.secretKey =',

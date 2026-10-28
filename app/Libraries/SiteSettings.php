@@ -50,6 +50,12 @@ class SiteSettings
         $values['org_tax_id']  = trim((string) env('ORG_TAX_ID', ''));
         $values['org_address'] = trim((string) env('ORG_ADDRESS', ''));
 
+        // Before installation there is no .env: do not open (and cache) a shared connection with empty credentials,
+        // the installer still has to point it at the real database.
+        if (! is_file(ROOTPATH . '.env')) {
+            return self::$values = $values;
+        }
+
         try {
             $db = db_connect();
             if ($db->tableExists('settings')) {

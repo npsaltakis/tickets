@@ -956,6 +956,8 @@ return [
     'installDatabaseRequired' => 'Συμπληρώστε host, όνομα και χρήστη της βάσης (το πρόθεμα δέχεται μόνο γράμματα, αριθμούς και _).',
     'installDatabaseFailed' => 'Αποτυχία σύνδεσης με τη βάση:',
     'installEnvWriteFailed' => 'Δεν ήταν δυνατή η εγγραφή του .env. Κάντε εγγράψιμο τον φάκελο του project και δοκιμάστε ξανά.',
+    'installContactEmailLabel' => 'Email επικοινωνίας (προαιρετικό)',
+    'installSiteHint' => 'Το λογότυπο, το χρώμα και τα υπόλοιπα στοιχεία αλλάζουν μετά από το Admin → Ρυθμίσεις Site.',
     'installNameRequired' => 'Το όνομα και το επώνυμο είναι υποχρεωτικά.',
     'installMigrationFailed' => 'Η δημιουργία των πινάκων της βάσης απέτυχε.',
     'installAdminFailed' => 'Η δημιουργία του διαχειριστή απέτυχε.',

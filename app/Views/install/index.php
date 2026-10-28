@@ -45,6 +45,13 @@ $field = static fn (string $key): string => esc((string) ($values[$key] ?? ''), 
                 <label for="base_url" class="auth-label"><?= esc(lang('App.installBaseUrlLabel')) ?></label>
                 <input id="base_url" name="base_url" type="url" value="<?= $field('base_url') ?>" class="auth-input" required>
 
+                <label for="site_name" class="auth-label"><?= esc(lang('App.settingsSiteName')) ?></label>
+                <input id="site_name" name="site_name" type="text" maxlength="100" value="<?= $field('site_name') ?>" class="auth-input" required>
+
+                <label for="contact_email" class="auth-label"><?= esc(lang('App.installContactEmailLabel')) ?></label>
+                <input id="contact_email" name="contact_email" type="email" maxlength="191" value="<?= $field('contact_email') ?>" class="auth-input" autocomplete="email">
+                <p class="meta"><?= esc(lang('App.installSiteHint')) ?></p>
+
                 <h2><?= esc(lang('App.installDatabaseTitle')) ?></h2>
                 <p class="meta"><?= esc(lang('App.installDatabaseHint')) ?></p>
                 <label for="db_host" class="auth-label"><?= esc(lang('App.installDbHostLabel')) ?></label>
