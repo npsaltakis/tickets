@@ -157,6 +157,18 @@ $assetVersion = static function (string $relativePath): string {
                                     <a class="ticket-export-btn ticket-export-link" href="<?= esc($calendarBase . urlencode($firstCode) . '/calendar.ics') ?>">
                                         <?= esc(lang('App.myEventsAddToCalendar')) ?>
                                     </a>
+                                    <?php if ($walletEnabled): ?>
+                                        <a class="ticket-picker-wallet wallet-btn" href="<?= esc($resendBase . urlencode($firstCode) . '/google-wallet') ?>" target="_blank" rel="noopener noreferrer">
+                                            <svg class="wallet-btn-icon" viewBox="0 0 32 26" aria-hidden="true">
+                                                <rect x="1" y="1" width="30" height="24" rx="5" fill="#1a73e8"/>
+                                                <path d="M1 6a5 5 0 0 1 5-5h20a5 5 0 0 1 5 5v2H1z" fill="#ea4335"/>
+                                                <path d="M1 8h30v3H1z" fill="#fbbc04"/>
+                                                <path d="M1 11h30v3H1z" fill="#34a853"/>
+                                                <path d="M1 14h12a5 5 0 0 1 5 5 5 5 0 0 0 5 5h-17a5 5 0 0 1-5-5z" fill="#4285f4"/>
+                                            </svg>
+                                            <span><?= esc(lang('App.walletSave')) ?></span>
+                                        </a>
+                                    <?php endif; ?>
                                     <form method="post" action="<?= esc($resendBase . urlencode($firstCode) . '/resend-email') ?>" class="ticket-resend-form ticket-picker-resend">
                                         <?= csrf_field() ?>
                                         <button type="submit" class="ticket-export-btn ticket-export-btn--secondary">

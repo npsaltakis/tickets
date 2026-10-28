@@ -444,6 +444,8 @@ return [
     'googleSignIn' => 'Sign in with Google',
     'googleNotConfigured' => 'Sign in with Google is not available.',
     'googleFailed' => 'Signing in with Google did not complete. Please try again.',
+    'walletSave' => 'Add to Google Wallet',
+    'walletUnavailable' => 'Saving to Google Wallet is not available right now.',
     'adminNewEventEmailTitleLabel' => 'Title',
     'adminNewEventEmailFormatLabel' => 'Format',
     'adminNewEventEmailStartLabel' => 'Start',

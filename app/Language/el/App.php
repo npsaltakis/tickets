@@ -444,6 +444,8 @@ return [
     'googleSignIn' => 'Σύνδεση με Google',
     'googleNotConfigured' => 'Η σύνδεση με Google δεν είναι διαθέσιμη.',
     'googleFailed' => 'Η σύνδεση με Google δεν ολοκληρώθηκε. Δοκίμασε ξανά.',
+    'walletSave' => 'Αποθήκευση στο Google Wallet',
+    'walletUnavailable' => 'Η αποθήκευση στο Google Wallet δεν είναι διαθέσιμη αυτή τη στιγμή.',
     'adminNewEventEmailTitleLabel' => 'Τίτλος',
     'adminNewEventEmailFormatLabel' => 'Format',
     'adminNewEventEmailStartLabel' => 'Έναρξη',

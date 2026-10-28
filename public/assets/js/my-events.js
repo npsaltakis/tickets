@@ -198,6 +198,7 @@ document.querySelectorAll('.ticket-picker').forEach(picker => {
     const resendForm = picker.querySelector('.ticket-picker-resend');
     const transferForm = picker.querySelector('.ticket-picker-transfer');
     const receiptLink = picker.querySelector('.ticket-picker-receipt');
+    const walletLink = picker.querySelector('.ticket-picker-wallet');
     const calBase  = picker.dataset.calendarBase;
     const resendBase = picker.dataset.resendBase;
 
@@ -210,6 +211,7 @@ document.querySelectorAll('.ticket-picker').forEach(picker => {
         if (resendForm)  resendForm.action = resendBase + encodeURIComponent(code) + '/resend-email';
         if (transferForm) transferForm.action = resendBase + encodeURIComponent(code) + '/transfer';
         if (receiptLink) receiptLink.href = resendBase + encodeURIComponent(code) + '/receipt';
+        if (walletLink)  walletLink.href = resendBase + encodeURIComponent(code) + '/google-wallet';
     });
 
     if (transferForm) {

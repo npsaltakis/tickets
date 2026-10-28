@@ -134,3 +134,7 @@ docs/next-session.md
 # Deploy bundle / installer lock
 /deploy/build/
 writable/install.lock
+
+# Service account keys (Google Wallet) - never commit
+/keys/
+*.iam.gserviceaccount*.json

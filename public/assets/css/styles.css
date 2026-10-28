@@ -3686,3 +3686,35 @@ input[name="test_only"] {
 .google-btn:hover {
     background: #f1f3f4;
 }
+
+/* Save to Google Wallet: Google's badge style (black pill, wallet icon, white text). */
+.wallet-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 8px 18px 8px 12px;
+    border-radius: 999px;
+    border: 1px solid #5f6368;
+    background: #000000;
+    color: #ffffff;
+    font-size: 0.92rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.wallet-btn:hover,
+.wallet-btn:focus-visible {
+    background: #202124;
+    border-color: #9aa0a6;
+    color: #ffffff;
+}
+
+.wallet-btn-icon {
+    width: 26px;
+    height: 21px;
+    flex-shrink: 0;
+}

@@ -76,6 +76,7 @@ $routes->get('auth/google/callback', 'LoginController::googleCallback');
 $routes->post('login/2fa', 'LoginController::twoFactorVerify');
 $routes->post('my-events/tickets/(:segment)/transfer', 'ReportController::transferTicket/$1');
 $routes->get('my-events/tickets/(:segment)/receipt', 'ReportController::receipt/$1');
+$routes->get('my-events/tickets/(:segment)/google-wallet', 'ReportController::googleWallet/$1');
 $routes->post('profile/delete', 'ProfileController::deleteAccount');
 
 $routes->get('contact', 'PagesController::contact');

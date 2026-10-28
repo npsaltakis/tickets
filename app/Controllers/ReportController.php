@@ -192,6 +192,7 @@ class ReportController extends EventBaseController
 
         return view('events/my_events', [
             'events' => array_values($events),
+            'walletEnabled' => (new \App\Libraries\GoogleWallet())->isConfigured(),
             'pageTitle' => lang('App.myEventsPageTitle'),
         ]);
     }
@@ -694,6 +695,39 @@ class ReportController extends EventBaseController
         $totals['rate'] = $totals['issued'] > 0 ? (int) round(($totals['checked_in'] / $totals['issued']) * 100) : 0;
 
         return [$rows, $totals];
+    }
+
+    public function googleWallet(string $ticketCode): RedirectResponse
+    {
+        if (session()->get('is_logged_in') !== true) {
+            return redirect()->to(base_url('login'))->with('login_info', lang('App.bookingLoginRequired'));
+        }
+
+        $wallet = new \App\Libraries\GoogleWallet();
+        $ticket = $this->findUserTicketWithEvent($ticketCode);
+        if ($ticket === null || ! $wallet->isConfigured()) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.walletUnavailable'));
+        }
+
+        $user = (new \App\Models\UserModel())->find((int) session()->get('user_id'));
+        $url  = $wallet->saveUrl([
+            'ticket_code' => $ticket['ticket_code'],
+            'first_name'  => $user['first_name'] ?? '',
+            'last_name'   => $user['last_name'] ?? '',
+            'event_id'    => $ticket['event_id'],
+            'slug'        => $ticket['event_slug'],
+            'title'       => $ticket['event_title'],
+            'location'    => $ticket['event_location'],
+            'address'     => $ticket['event_address'],
+            'start_date'  => $ticket['event_start_date'],
+            'end_date'    => $ticket['event_end_date'],
+        ]);
+
+        if ($url === null) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.walletUnavailable'));
+        }
+
+        return redirect()->to($url);
     }
 
     private function findUserTicketWithEvent(string $ticketCode): ?array
