@@ -47,9 +47,10 @@ class CategoryAdminController extends BaseController
             return redirect()->to(base_url('admin/categories?edit=' . $id))->with('cat_error', lang('App.categoriesNameRequired'));
         }
 
-        // The slug stays as created so existing links and filters keep working.
+        // Category slugs are not used in URLs (filters use the id), so they follow the name.
         $this->categoryModel->update($id, [
             'name'  => $name,
+            'slug'  => $this->makeSlug($name, $id),
             'color' => preg_match('/^#[0-9a-fA-F]{6}$/', $color) === 1 ? $color : ($category['color'] ?? '#14b8a6'),
         ]);
 
@@ -105,14 +106,26 @@ class CategoryAdminController extends BaseController
         return session()->get('is_logged_in') === true && (string) session()->get('user_role') === 'admin';
     }
 
-    private function makeSlug(string $name): string
+    private function makeSlug(string $name, ?int $ignoreId = null): string
     {
-        $slug = strtolower(trim(preg_replace('/[^a-zA-Z0-9-]+/', '-', $name) ?? $name, '-'));
-        $base = $slug;
-        $i    = 1;
-        while ($this->categoryModel->where('slug', $slug)->first() !== null) {
+        // Greek (and other scripts) are transliterated to Latin, as for event slugs.
+        $value = trim($name);
+        if (function_exists('transliterator_transliterate')) {
+            $value = (string) (transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $value) ?: $value);
+        } elseif (function_exists('iconv')) {
+            $value = (string) (iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) ?: $value);
+        }
+
+        $slug = trim(preg_replace('/[^a-z0-9]+/', '-', strtolower($value)) ?? '', '-');
+        $slug = trim(substr($slug, 0, 180), '-');
+        $base = $slug !== '' ? $slug : 'category';
+        $slug = $base;
+        $i    = 2;
+
+        while (($existing = $this->categoryModel->where('slug', $slug)->first()) !== null && (int) $existing['id'] !== $ignoreId) {
             $slug = $base . '-' . $i++;
         }
+
         return $slug;
     }
 }
