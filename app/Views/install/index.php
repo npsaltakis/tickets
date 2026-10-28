@@ -21,7 +21,7 @@ $field = static fn (string $key): string => esc((string) ($values[$key] ?? ''), 
         <p class="subtitle"><?= esc(lang('App.installSubtitle')) ?></p>
 
         <?php if ($error !== ''): ?>
-            <p class="auth-error"><?= esc($error) ?></p>
+            <p role="alert" class="auth-error"><?= esc($error) ?></p>
         <?php endif; ?>
 
         <h2><?= esc(lang('App.installChecksTitle')) ?></h2>
@@ -36,7 +36,7 @@ $field = static fn (string $key): string => esc((string) ($values[$key] ?? ''), 
         </ul>
 
         <?php if (! $canSubmit): ?>
-            <p class="auth-error"><?= esc(lang('App.installChecksFailed')) ?></p>
+            <p role="alert" class="auth-error"><?= esc(lang('App.installChecksFailed')) ?></p>
         <?php else: ?>
             <form method="post" action="/install" class="auth-form" autocomplete="off">
                 <?= csrf_field() ?>

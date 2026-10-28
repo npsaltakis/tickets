@@ -4,10 +4,10 @@
     <a class="back-link" href="<?= base_url('admin/events/' . $event['slug'] . '/tickets') ?>">&larr; <?= esc($event['title']) ?></a>
 
     <?php if (session()->getFlashdata('email_info')): ?>
-        <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('email_info')) ?></p>
+        <p role="status" class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('email_info')) ?></p>
     <?php endif; ?>
     <?php if (session()->getFlashdata('email_error')): ?>
-        <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('email_error')) ?></p>
+        <p role="alert" class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('email_error')) ?></p>
     <?php endif; ?>
 
     <div class="card" style="max-width:640px;margin-top:16px">

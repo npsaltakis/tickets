@@ -4,10 +4,10 @@
 <div class="wrapper admin-categories-page">
 
     <?php if (session()->getFlashdata('cat_info')): ?>
-        <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('cat_info')) ?></p>
+        <p role="status" class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('cat_info')) ?></p>
     <?php endif; ?>
     <?php if (session()->getFlashdata('cat_error')): ?>
-        <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('cat_error')) ?></p>
+        <p role="alert" class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('cat_error')) ?></p>
     <?php endif; ?>
 
     <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start">

@@ -3482,3 +3482,79 @@ button:focus-visible,
 .install-check.is-warning .install-check-mark { color: #f59e0b; }
 .install-check.is-error { border-color: #ef4444; }
 .install-check.is-error .install-check-mark { color: #ef4444; }
+
+/* Accessibility and touch targets */
+input,
+select,
+textarea {
+    font-size: 16px;
+}
+
+:focus-visible,
+.auth-input:focus-visible,
+.seats-input:focus-visible,
+.donation-input:focus-visible,
+.events-search-input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.view-toggle-btn {
+    width: 44px;
+    height: 44px;
+}
+
+.lang-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+}
+
+@media (max-width: 768px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+    select,
+    button,
+    .book-btn,
+    .auth-link-btn {
+        min-height: 44px;
+    }
+}
+
+.password-field {
+    position: relative;
+}
+
+.password-field .auth-input {
+    width: 100%;
+    padding-right: 104px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    transform: translateY(-50%);
+    min-height: 36px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--accent);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

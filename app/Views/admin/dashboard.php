@@ -11,10 +11,10 @@
     </div>
 
     <?php if (session()->getFlashdata('dashboard_info')): ?>
-        <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('dashboard_info')) ?></p>
+        <p role="status" class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('dashboard_info')) ?></p>
     <?php endif; ?>
     <?php if (session()->getFlashdata('dashboard_error')): ?>
-        <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('dashboard_error')) ?></p>
+        <p role="alert" class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('dashboard_error')) ?></p>
     <?php endif; ?>
 
     <section class="admin-dashboard-stats">

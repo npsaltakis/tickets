@@ -4,10 +4,10 @@
 <div class="wrapper">
 
     <?php if (session()->getFlashdata('dc_info')): ?>
-        <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('dc_info')) ?></p>
+        <p role="status" class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('dc_info')) ?></p>
     <?php endif; ?>
     <?php if (session()->getFlashdata('dc_error')): ?>
-        <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('dc_error')) ?></p>
+        <p role="alert" class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('dc_error')) ?></p>
     <?php endif; ?>
 
     <?php $newCodes = (array) session()->getFlashdata('dc_new_codes'); ?>

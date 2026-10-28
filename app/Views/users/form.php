@@ -16,7 +16,7 @@
         </div>
 
         <?php if (session()->getFlashdata('users_error')): ?>
-            <p class="auth-error"><?= esc((string) session()->getFlashdata('users_error')) ?></p>
+            <p role="alert" class="auth-error"><?= esc((string) session()->getFlashdata('users_error')) ?></p>
         <?php endif; ?>
 
         <form method="post" action="<?= $formAction ?>" class="event-form-grid users-form-grid">

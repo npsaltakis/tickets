@@ -7,10 +7,10 @@
         <p class="subtitle"><?= esc(lang('App.profileSubtitle')) ?></p>
 
         <?php if (session()->getFlashdata('profile_error')): ?>
-            <p class="auth-error"><?= esc((string) session()->getFlashdata('profile_error')) ?></p>
+            <p role="alert" class="auth-error"><?= esc((string) session()->getFlashdata('profile_error')) ?></p>
         <?php endif; ?>
         <?php if (session()->getFlashdata('profile_info')): ?>
-            <p class="auth-info"><?= esc((string) session()->getFlashdata('profile_info')) ?></p>
+            <p role="status" class="auth-info"><?= esc((string) session()->getFlashdata('profile_info')) ?></p>
         <?php endif; ?>
 
         <form method="post" action="<?= base_url('profile') ?>" class="auth-form" style="margin-top:16px">
@@ -55,7 +55,7 @@
         <h2 class="meta" style="margin:0 0 8px"><strong><?= esc(lang('App.twoFactorSection')) ?></strong></h2>
         <?php $totpEnabled = (int) ($user['totp_enabled'] ?? 0) === 1; $totpSecret = (string) ($user['totp_secret'] ?? ''); ?>
         <?php if ($totpEnabled): ?>
-            <p class="auth-info"><?= esc(lang('App.twoFactorIsOn')) ?></p>
+            <p role="status" class="auth-info"><?= esc(lang('App.twoFactorIsOn')) ?></p>
             <form method="post" action="<?= base_url('profile/2fa/disable') ?>" class="auth-form">
                 <?= csrf_field() ?>
                 <label class="auth-label" for="disable_password"><?= esc(lang('App.profileCurrentPassword')) ?></label>

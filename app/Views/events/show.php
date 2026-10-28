@@ -77,11 +77,11 @@ $assetVersion = static function (string $relativePath): string {
     </div>
 
     <?php if (session()->getFlashdata('event_info')): ?>
-        <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('event_info')) ?></p>
+        <p role="status" class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('event_info')) ?></p>
     <?php endif; ?>
 
     <?php if (session()->getFlashdata('event_error')): ?>
-        <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('event_error')) ?></p>
+        <p role="alert" class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('event_error')) ?></p>
     <?php endif; ?>
 
     <section class="event-details-card">
@@ -141,7 +141,7 @@ $assetVersion = static function (string $relativePath): string {
             <p class="meta"><strong><?= esc(lang('App.seatsRemaining')) ?>:</strong> <?= esc((string) $remainingSeats) ?></p>
 
             <?php if ($status === 'active' && ! $bookingsEnabled): ?>
-                <p class="auth-info alert-inline"><?= esc(lang('App.bookingClosedMessage')) ?></p>
+                <p role="status" class="auth-info alert-inline"><?= esc(lang('App.bookingClosedMessage')) ?></p>
             <?php endif; ?>
 
             <?php if ($isDonationEvent): ?>
@@ -217,7 +217,7 @@ $assetVersion = static function (string $relativePath): string {
                     <?php if (!$isLoggedIn): ?>
                         <a class="auth-link-btn" href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a>
                     <?php elseif ($onWaitlist): ?>
-                        <p class="auth-info alert-inline"><?= esc(lang('App.waitlistOnList')) ?></p>
+                        <p role="status" class="auth-info alert-inline"><?= esc(lang('App.waitlistOnList')) ?></p>
                         <form method="post" action="<?= base_url('events/' . $event['slug'] . '/waitlist/leave') ?>">
                             <?= csrf_field() ?>
                             <button type="submit" class="book-btn"><?= esc(lang('App.waitlistLeave')) ?></button>
@@ -318,7 +318,7 @@ $assetVersion = static function (string $relativePath): string {
                             <p class="booking-auth-message"><?= esc(lang('App.bookingLoginRequired')) ?></p>
                             <a class="auth-link-btn" href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a>
                         <?php elseif ($paypalClientId === ''): ?>
-                            <p class="auth-error"><?= esc(lang('App.paypalConfigurationError')) ?></p>
+                            <p role="alert" class="auth-error"><?= esc(lang('App.paypalConfigurationError')) ?></p>
                         <?php else: ?>
                             <div id="paypal-button-container"></div>
                         <?php endif; ?>

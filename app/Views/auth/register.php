@@ -7,7 +7,7 @@
         <p class="subtitle"><?= esc(lang('App.registerSubtitle')) ?></p>
 
         <?php if (session()->getFlashdata('register_error')): ?>
-            <p class="auth-error"><?= esc((string) session()->getFlashdata('register_error')) ?></p>
+            <p role="alert" class="auth-error"><?= esc((string) session()->getFlashdata('register_error')) ?></p>
         <?php endif; ?>
 
         <form method="post" action="<?= base_url('register') ?>" class="auth-form">

@@ -40,7 +40,7 @@ $assetVersion = static function (string $relativePath): string {
         </div>
 
         <?php if (session()->getFlashdata('event_error')): ?>
-            <p class="auth-error"><?= esc((string) session()->getFlashdata('event_error')) ?></p>
+            <p role="alert" class="auth-error"><?= esc((string) session()->getFlashdata('event_error')) ?></p>
         <?php endif; ?>
 
         <form method="post" action="<?= $formAction ?>" class="event-form-grid" enctype="multipart/form-data">

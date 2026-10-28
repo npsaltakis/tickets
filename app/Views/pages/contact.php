@@ -7,10 +7,10 @@
         <p class="subtitle"><?= esc(lang('App.contactSubtitle')) ?></p>
 
         <?php if (session()->getFlashdata('contact_error')): ?>
-            <p class="auth-error"><?= esc((string) session()->getFlashdata('contact_error')) ?></p>
+            <p role="alert" class="auth-error"><?= esc((string) session()->getFlashdata('contact_error')) ?></p>
         <?php endif; ?>
         <?php if (session()->getFlashdata('contact_info')): ?>
-            <p class="auth-info"><?= esc((string) session()->getFlashdata('contact_info')) ?></p>
+            <p role="status" class="auth-info"><?= esc((string) session()->getFlashdata('contact_info')) ?></p>
         <?php endif; ?>
 
         <form method="post" action="<?= base_url('contact') ?>" class="auth-form" style="margin-top:16px">

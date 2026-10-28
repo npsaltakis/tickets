@@ -3,7 +3,7 @@
 <?= $this->section('content') ?>
 <div class="wrapper">
     <?php if (session()->getFlashdata('queue_info')): ?>
-        <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('queue_info')) ?></p>
+        <p role="status" class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('queue_info')) ?></p>
     <?php endif; ?>
 
     <div class="card" style="margin-bottom:16px">

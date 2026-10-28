@@ -7,7 +7,7 @@
         <p class="subtitle"><?= esc(lang('App.resetPasswordSubtitle')) ?></p>
 
         <?php if (session()->getFlashdata('reset_error')): ?>
-            <p class="auth-error"><?= esc((string) session()->getFlashdata('reset_error')) ?></p>
+            <p role="alert" class="auth-error"><?= esc((string) session()->getFlashdata('reset_error')) ?></p>
         <?php endif; ?>
 
         <form method="post" action="<?= base_url('reset-password') ?>" class="auth-form">

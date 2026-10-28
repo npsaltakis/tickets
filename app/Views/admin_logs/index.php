@@ -12,7 +12,7 @@
 
     <div class="card report-card admin-logs-card">
         <?php if (! $tableReady): ?>
-            <p class="auth-info"><?= esc(lang('App.adminLogsMigrationRequired')) ?></p>
+            <p role="status" class="auth-info"><?= esc(lang('App.adminLogsMigrationRequired')) ?></p>
         <?php else: ?>
             <?php
             $filters = is_array($filters ?? null) ? $filters : [];
@@ -22,11 +22,11 @@
             ?>
 
             <?php if (session()->getFlashdata('admin_logs_info')): ?>
-                <p class="auth-info"><?= esc((string) session()->getFlashdata('admin_logs_info')) ?></p>
+                <p role="status" class="auth-info"><?= esc((string) session()->getFlashdata('admin_logs_info')) ?></p>
             <?php endif; ?>
 
             <?php if (session()->getFlashdata('admin_logs_error')): ?>
-                <p class="auth-error"><?= esc((string) session()->getFlashdata('admin_logs_error')) ?></p>
+                <p role="alert" class="auth-error"><?= esc((string) session()->getFlashdata('admin_logs_error')) ?></p>
             <?php endif; ?>
 
             <div class="admin-log-stats">

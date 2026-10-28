@@ -7,7 +7,7 @@
         <p class="subtitle"><?= esc(lang('App.twoFactorPrompt')) ?></p>
 
         <?php if (session()->getFlashdata('login_error')): ?>
-            <p class="auth-error"><?= esc((string) session()->getFlashdata('login_error')) ?></p>
+            <p role="alert" class="auth-error"><?= esc((string) session()->getFlashdata('login_error')) ?></p>
         <?php endif; ?>
 
         <form method="post" action="<?= base_url('login/2fa') ?>" class="auth-form">

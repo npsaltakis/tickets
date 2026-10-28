@@ -9,10 +9,10 @@ $assetVersion = static function (string $relativePath): string {
 <div class="wrapper admin-events-page">
 
     <?php if (session()->getFlashdata('event_info')): ?>
-        <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('event_info')) ?></p>
+        <p role="status" class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('event_info')) ?></p>
     <?php endif; ?>
     <?php if (session()->getFlashdata('event_error')): ?>
-        <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('event_error')) ?></p>
+        <p role="alert" class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('event_error')) ?></p>
     <?php endif; ?>
 
     <div class="events-header" style="margin-bottom:16px">

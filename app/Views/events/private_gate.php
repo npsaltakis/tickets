@@ -7,7 +7,7 @@
         <p class="subtitle"><?= esc(lang('App.privateEventPrompt')) ?></p>
 
         <?php if (session()->getFlashdata('event_error')): ?>
-            <p class="auth-error"><?= esc((string) session()->getFlashdata('event_error')) ?></p>
+            <p role="alert" class="auth-error"><?= esc((string) session()->getFlashdata('event_error')) ?></p>
         <?php endif; ?>
 
         <form method="post" action="<?= base_url('events/' . $event['slug'] . '/access') ?>" class="auth-form">

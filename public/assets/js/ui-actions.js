@@ -30,3 +30,27 @@ document.addEventListener('click', (event) => {
         });
     }
 });
+
+// Show/hide toggle for every password field.
+document.querySelectorAll('input[type="password"]').forEach((input) => {
+    const english = document.documentElement.lang === 'en';
+    const labels = english ? ['Show', 'Hide'] : ['Εμφάνιση', 'Απόκρυψη'];
+    const wrapper = document.createElement('div');
+    wrapper.className = 'password-field';
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'password-toggle';
+    button.textContent = labels[0];
+    button.setAttribute('aria-pressed', 'false');
+    button.setAttribute('aria-label', english ? 'Show password' : 'Εμφάνιση κωδικού');
+    button.addEventListener('click', () => {
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        button.textContent = labels[show ? 1 : 0];
+        button.setAttribute('aria-pressed', show ? 'true' : 'false');
+    });
+    wrapper.appendChild(button);
+});

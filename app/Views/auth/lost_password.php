@@ -7,11 +7,11 @@
         <p class="subtitle"><?= esc(lang('App.lostPasswordSubtitle')) ?></p>
 
         <?php if (session()->getFlashdata('lost_error')): ?>
-            <p class="auth-error"><?= esc((string) session()->getFlashdata('lost_error')) ?></p>
+            <p role="alert" class="auth-error"><?= esc((string) session()->getFlashdata('lost_error')) ?></p>
         <?php endif; ?>
 
         <?php if (session()->getFlashdata('lost_info')): ?>
-            <p class="auth-info"><?= esc((string) session()->getFlashdata('lost_info')) ?></p>
+            <p role="status" class="auth-info"><?= esc((string) session()->getFlashdata('lost_info')) ?></p>
         <?php endif; ?>
 
         <form method="post" action="<?= base_url('lost-password') ?>" class="auth-form">

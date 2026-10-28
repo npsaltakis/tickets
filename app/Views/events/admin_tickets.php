@@ -4,10 +4,10 @@
 <div class="wrapper admin-tickets-page">
 
     <?php if (session()->getFlashdata('ticket_info')): ?>
-        <p class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('ticket_info')) ?></p>
+        <p role="status" class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('ticket_info')) ?></p>
     <?php endif; ?>
     <?php if (session()->getFlashdata('ticket_error')): ?>
-        <p class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('ticket_error')) ?></p>
+        <p role="alert" class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('ticket_error')) ?></p>
     <?php endif; ?>
 
     <div class="events-header" style="margin-bottom:20px">
