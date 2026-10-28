@@ -40,5 +40,39 @@
             <button type="submit" class="book-btn auth-submit"><?= esc(lang('App.newsletterSend')) ?></button>
         </form>
     </div>
+
+    <div class="card" style="margin-top:16px;overflow:auto">
+        <h2 style="margin:0 0 12px;color:#f8fafc;font-size:1.1rem"><?= esc(lang('App.newsletterHistory')) ?></h2>
+        <?php if (empty($campaigns)): ?>
+            <div class="empty"><?= esc(lang('App.newsletterHistoryEmpty')) ?></div>
+        <?php else: ?>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th><?= esc(lang('App.newsletterColDate')) ?></th>
+                        <th><?= esc(lang('App.emailAttendeesSubjectLabel')) ?></th>
+                        <th><?= esc(lang('App.newsletterColRecipients')) ?></th>
+                        <th><?= esc(lang('App.newsletterStatusSent')) ?></th>
+                        <th><?= esc(lang('App.newsletterStatusPending')) ?></th>
+                        <th><?= esc(lang('App.newsletterStatusFailed')) ?></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($campaigns as $c): ?>
+                        <tr>
+                            <td><?= esc(date('d/m/Y H:i', strtotime((string) $c['created_at']))) ?></td>
+                            <td><?= esc($c['subject']) ?></td>
+                            <td><?= (int) $c['recipients'] ?></td>
+                            <td><?= (int) $c['sent'] ?></td>
+                            <td><?= (int) $c['pending'] ?></td>
+                            <td><?= (int) $c['failed'] > 0 ? '<strong style="color:#f87171">' . (int) $c['failed'] . '</strong>' : '0' ?></td>
+                            <td><a class="admin-action-btn" href="<?= base_url('admin/newsletter/' . (int) $c['id']) ?>"><?= esc(lang('App.newsletterDetails')) ?></a></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </div>
 </div>
 <?= $this->endSection() ?>

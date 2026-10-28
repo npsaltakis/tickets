@@ -24,6 +24,101 @@ class Newsletter
             ->getResultArray();
     }
 
+    public function createCampaign(string $subject, ?int $eventId, int $createdBy): int
+    {
+        $db = db_connect();
+        $db->table($db->prefixTable('newsletter_campaigns'))->insert([
+            'subject'    => mb_substr($subject, 0, 255),
+            'event_id'   => $eventId,
+            'recipients' => 0,
+            'created_by' => $createdBy,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        return (int) $db->insertID();
+    }
+
+    public function setRecipients(int $campaignId, int $recipients): void
+    {
+        $db = db_connect();
+        $db->table($db->prefixTable('newsletter_campaigns'))->where('id', $campaignId)->update([
+            'recipients' => $recipients,
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    /**
+     * Latest campaigns with sent / pending / failed counts from the email queue.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function campaigns(int $limit = 50): array
+    {
+        $db       = db_connect();
+        $campaign = $db->prefixTable('newsletter_campaigns');
+        $queue    = $db->prefixTable('email_queue');
+        $max      = EmailQueue::MAX_ATTEMPTS;
+
+        return $db->query(
+            "SELECT c.id, c.subject, c.recipients, c.created_at,
+                    SUM(q.sent_at IS NOT NULL) AS sent,
+                    SUM(q.sent_at IS NULL AND q.attempts < ?) AS pending,
+                    SUM(q.sent_at IS NULL AND q.attempts >= ?) AS failed
+             FROM {$campaign} c
+             LEFT JOIN {$queue} q ON q.campaign_id = c.id
+             GROUP BY c.id, c.subject, c.recipients, c.created_at
+             ORDER BY c.id DESC
+             LIMIT ?",
+            [$max, $max, $limit]
+        )->getResultArray();
+    }
+
+    public function campaign(int $campaignId): ?array
+    {
+        $db = db_connect();
+
+        return $db->table($db->prefixTable('newsletter_campaigns'))->where('id', $campaignId)->get()->getRowArray();
+    }
+
+    /**
+     * Recipients of one campaign, optionally only 'sent', 'pending' or 'failed'.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function recipients(int $campaignId, string $status = ''): array
+    {
+        $db      = db_connect();
+        $builder = $db->table($db->prefixTable('email_queue'))
+            ->select('id, to_email, attempts, last_error, sent_at, updated_at')
+            ->where('campaign_id', $campaignId);
+
+        if ($status === 'sent') {
+            $builder->where('sent_at IS NOT NULL', null, false);
+        } elseif ($status === 'pending') {
+            $builder->where('sent_at', null)->where('attempts <', EmailQueue::MAX_ATTEMPTS);
+        } elseif ($status === 'failed') {
+            $builder->where('sent_at', null)->where('attempts >=', EmailQueue::MAX_ATTEMPTS);
+        }
+
+        return $builder->orderBy('id', 'ASC')->get()->getResultArray();
+    }
+
+    /**
+     * Puts the failed emails of a campaign back in the queue; returns how many.
+     */
+    public function retryFailed(int $campaignId): int
+    {
+        $db = db_connect();
+        $db->table($db->prefixTable('email_queue'))
+            ->where('campaign_id', $campaignId)
+            ->where('sent_at', null)
+            ->where('attempts >=', EmailQueue::MAX_ATTEMPTS)
+            ->update(['attempts' => 0, 'last_error' => null, 'updated_at' => date('Y-m-d H:i:s')]);
+
+        return $db->affectedRows();
+    }
+
     public function unsubscribeUrl(string $token): string
     {
         return base_url('newsletter/unsubscribe/' . rawurlencode($token));

@@ -49,12 +49,75 @@ class NewsletterController extends BaseController
             return redirect()->to(base_url('/'));
         }
 
+        $newsletter = new Newsletter();
+
         return view('admin/newsletter', [
-            'subscriberCount' => count((new Newsletter())->subscribers()),
+            'subscriberCount' => count($newsletter->subscribers()),
             'events'          => $this->upcomingEvents(),
             'batchSize'       => EmailQueue::batchSize(),
+            'campaigns'       => $newsletter->campaigns(),
             'pageTitle'       => lang('App.newsletterTitle'),
         ]);
+    }
+
+    public function campaign(int $campaignId): string|RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'));
+        }
+
+        $newsletter = new Newsletter();
+        $campaign   = $newsletter->campaign($campaignId);
+        if ($campaign === null) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        $status = (string) $this->request->getGet('status');
+        if (! in_array($status, ['sent', 'pending', 'failed'], true)) {
+            $status = '';
+        }
+
+        $all    = $newsletter->recipients($campaignId);
+        $counts = ['sent' => 0, 'pending' => 0, 'failed' => 0];
+        foreach ($all as $row) {
+            $counts[$this->rowStatus($row)]++;
+        }
+
+        return view('admin/newsletter_campaign', [
+            'campaign'  => $campaign,
+            'rows'      => $status === '' ? $all : array_values(array_filter($all, fn (array $row): bool => $this->rowStatus($row) === $status)),
+            'counts'    => $counts,
+            'status'    => $status,
+            'maxTries'  => EmailQueue::MAX_ATTEMPTS,
+            'pageTitle' => lang('App.newsletterCampaignTitle'),
+        ]);
+    }
+
+    public function retry(int $campaignId): RedirectResponse
+    {
+        if (! $this->isAdmin()) {
+            return redirect()->to(base_url('/'));
+        }
+
+        $newsletter = new Newsletter();
+        $retried    = $newsletter->retryFailed($campaignId);
+        $sent       = $retried > 0 ? (new EmailQueue())->flush(EmailQueue::batchSize()) : 0;
+
+        $this->logAdminAction('newsletter_retry', 'system', ['campaign_id' => $campaignId, 'retried' => $retried]);
+
+        return redirect()->to(base_url('admin/newsletter/' . $campaignId))->with('newsletter_info', strtr(lang('App.newsletterRetried'), [
+            '{n}'    => (string) $retried,
+            '{sent}' => (string) $sent,
+        ]));
+    }
+
+    private function rowStatus(array $row): string
+    {
+        if ($row['sent_at'] !== null) {
+            return 'sent';
+        }
+
+        return (int) $row['attempts'] >= EmailQueue::MAX_ATTEMPTS ? 'failed' : 'pending';
     }
 
     public function send(): RedirectResponse
@@ -92,22 +155,26 @@ class NewsletterController extends BaseController
             return $back->with('newsletter_info', lang('App.newsletterTestSent'));
         }
 
+        $campaignId = $newsletter->createCampaign($subject, $eventId > 0 ? $eventId : null, (int) session()->get('user_id'));
+
         $queued = 0;
         foreach ($newsletter->subscribers() as $subscriber) {
             $queue->push(
                 (string) $subscriber['email'],
                 $subject,
-                $this->buildMessage($newsletter, $subject, $message, (string) $subscriber['first_name'], $actionUrl, $newsletter->unsubscribeUrl((string) $subscriber['newsletter_token']))
+                $this->buildMessage($newsletter, $subject, $message, (string) $subscriber['first_name'], $actionUrl, $newsletter->unsubscribeUrl((string) $subscriber['newsletter_token'])),
+                $campaignId
             );
             $queued++;
         }
+        $newsletter->setRecipients($campaignId, $queued);
 
         // Only one small batch now; the cron job (`php spark emails:process`) sends the rest at the host's pace.
         $sent = $queue->flush(EmailQueue::batchSize());
 
-        $this->logAdminAction('newsletter_send', 'system', ['subject' => $subject, 'recipients' => $queued, 'event_id' => $eventId ?: null]);
+        $this->logAdminAction('newsletter_send', 'system', ['campaign_id' => $campaignId, 'subject' => $subject, 'recipients' => $queued, 'event_id' => $eventId ?: null]);
 
-        return redirect()->to(base_url('admin/newsletter'))->with('newsletter_info', strtr(lang('App.newsletterQueued'), [
+        return redirect()->to(base_url('admin/newsletter/' . $campaignId))->with('newsletter_info', strtr(lang('App.newsletterQueued'), [
             '{queued}' => (string) $queued,
             '{sent}'   => (string) $sent,
         ]));

@@ -105,6 +105,8 @@ $routes->get('admin/payments/export', 'AdminDashboardController::paymentsExport'
 $routes->get('admin/email-queue', 'AdminToolsController::emailQueue');
 $routes->get('admin/newsletter', 'NewsletterController::index');
 $routes->post('admin/newsletter', 'NewsletterController::send');
+$routes->get('admin/newsletter/(:num)', 'NewsletterController::campaign/$1');
+$routes->post('admin/newsletter/(:num)/retry', 'NewsletterController::retry/$1');
 $routes->get('newsletter/unsubscribe/(:segment)', 'NewsletterController::unsubscribeForm/$1');
 $routes->post('newsletter/unsubscribe/(:segment)', 'NewsletterController::unsubscribe/$1');
 $routes->post('admin/email-queue/(:segment)', 'AdminToolsController::emailQueueAction/$1');

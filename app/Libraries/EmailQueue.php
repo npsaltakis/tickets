@@ -28,7 +28,7 @@ class EmailQueue
         return max(1, (int) env('emailQueue.batchSize', 20));
     }
 
-    public function push(string $to, string $subject, string $htmlBody): void
+    public function push(string $to, string $subject, string $htmlBody, ?int $campaignId = null): void
     {
         $to = trim($to);
         if ($to === '') {
@@ -36,6 +36,7 @@ class EmailQueue
         }
 
         db_connect()->table($this->table)->insert([
+            'campaign_id' => $campaignId,
             'to_email'   => $to,
             'subject'    => mb_substr($subject, 0, 255),
             'body'       => $htmlBody,
@@ -89,7 +90,11 @@ class EmailQueue
                     continue;
                 }
 
-                $error = 'send() returned false';
+                // Keep the mail server's own reply (e.g. a rate-limit or rejected address) instead of a generic text.
+                $debug = trim(preg_replace('/\s+/', ' ', strip_tags((string) $mail->printDebugger([]))) ?? '');
+                $error = preg_match_all('/\b[45]\d{2}[ -][^<]{3,160}?(?=\s(?:[1-5]\d{2}[ -]|\w+:|The following|Unable to)|$)/', $debug, $replies) > 0
+                    ? (string) end($replies[0])
+                    : ($debug !== '' ? $debug : 'send() returned false');
             } catch (Throwable $exception) {
                 $error = $exception->getMessage();
             }
@@ -102,7 +107,8 @@ class EmailQueue
 
             $db->table($this->table)->where('id', (int) $row['id'])->update([
                 'attempts'   => (int) $row['attempts'] + 1,
-                'last_error' => mb_substr((string) $error, 0, 255),
+                // The server's error is at the end of the SMTP transcript, so keep the tail.
+                'last_error' => mb_strlen((string) $error) > 255 ? '…' . mb_substr((string) $error, -254) : (string) $error,
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
         }
