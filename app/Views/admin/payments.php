@@ -16,8 +16,8 @@
     </form>
 
     <div class="card" style="margin-bottom:16px;display:flex;gap:32px;flex-wrap:wrap">
-        <div><div class="meta"><?= esc(lang('App.paymentsReceived')) ?></div><strong style="font-size:1.6rem">€<?= esc(number_format($totals['completed'], 2)) ?></strong></div>
-        <div><div class="meta"><?= esc(lang('App.paymentsRefunded')) ?></div><strong style="font-size:1.6rem">€<?= esc(number_format($totals['refunded'], 2)) ?></strong></div>
+        <div><div class="meta"><?= esc(lang('App.paymentsReceived')) ?></div><strong style="font-size:1.6rem"><?= esc(money($totals['completed'])) ?></strong></div>
+        <div><div class="meta"><?= esc(lang('App.paymentsRefunded')) ?></div><strong style="font-size:1.6rem"><?= esc(money($totals['refunded'])) ?></strong></div>
     </div>
 
     <div class="card" style="overflow:auto">
@@ -32,7 +32,7 @@
                         <td class="meta" style="white-space:nowrap"><?= esc(date('d/m/Y H:i', strtotime((string) $r['created_at']))) ?></td>
                         <td><?= esc((string) $r['event_title']) ?></td>
                         <td><?= esc(trim((string) $r['first_name'] . ' ' . (string) $r['last_name'])) ?><div class="meta" style="font-size:0.8rem"><?= esc((string) $r['email']) ?></div></td>
-                        <td><?= esc((string) $r['currency']) ?> <?= esc(number_format((float) $r['amount'], 2)) ?></td>
+                        <td><?= esc(money($r['amount'], (string) $r['currency'])) ?></td>
                         <td><?= esc((string) $r['payment_status']) ?></td>
                         <td class="meta"><code><?= esc((string) $r['paypal_transaction_id']) ?></code></td>
                     </tr>

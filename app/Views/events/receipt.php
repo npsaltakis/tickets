@@ -32,7 +32,7 @@
         <tr><td><?= esc(lang('App.receiptEvent')) ?></td><td><?= esc((string) $ticket['event_title']) ?><?= ! empty($ticket['event_start_date']) ? '<br><span class="muted">' . esc(date('d/m/Y H:i', strtotime((string) $ticket['event_start_date']))) . '</span>' : '' ?></td></tr>
         <tr><td><?= esc(lang('App.reportTicketCode')) ?></td><td><?= esc((string) $ticket['ticket_code']) ?></td></tr>
         <tr><td><?= esc(lang('App.receiptTransaction')) ?></td><td><?= esc((string) $payment['paypal_transaction_id']) ?></td></tr>
-        <tr class="total"><td><?= esc(lang('App.receiptAmount')) ?></td><td><?= esc((string) $payment['currency']) ?> <?= esc(number_format((float) $payment['amount'], 2)) ?></td></tr>
+        <tr class="total"><td><?= esc(lang('App.receiptAmount')) ?></td><td><?= esc(money($payment['amount'], (string) $payment['currency'])) ?></td></tr>
     </table>
 
     <p class="muted"><?= esc(lang('App.receiptDisclaimer')) ?></p>

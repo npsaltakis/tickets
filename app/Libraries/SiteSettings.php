@@ -25,6 +25,24 @@ class SiteSettings
         'org_name'        => '',
         'org_tax_id'      => '',
         'org_address'     => '',
+        'currency'        => 'EUR',
+    ];
+
+    /**
+     * Currencies offered in the settings (all supported by PayPal with two decimals) and their symbols.
+     */
+    public const CURRENCIES = [
+        'EUR' => '€',
+        'USD' => '$',
+        'GBP' => '£',
+        'CHF' => 'CHF ',
+        'CAD' => 'CA$',
+        'AUD' => 'A$',
+        'SEK' => 'SEK ',
+        'NOK' => 'NOK ',
+        'DKK' => 'DKK ',
+        'PLN' => 'PLN ',
+        'CZK' => 'CZK ',
     ];
 
     private static ?array $values = null;
@@ -90,6 +108,31 @@ class SiteSettings
         }
 
         self::$values = null;
+    }
+
+    /**
+     * ISO code of the site currency (used for prices, PayPal orders and reports).
+     */
+    public static function currency(): string
+    {
+        $code = self::get('currency');
+
+        return array_key_exists($code, self::CURRENCIES) ? $code : 'EUR';
+    }
+
+    public static function currencySymbol(?string $code = null): string
+    {
+        $code ??= self::currency();
+
+        return self::CURRENCIES[$code] ?? $code . ' ';
+    }
+
+    /**
+     * An amount with the currency symbol, e.g. €12.50. Payments keep the currency they were made in.
+     */
+    public static function money(float $amount, ?string $code = null): string
+    {
+        return self::currencySymbol($code) . number_format($amount, 2);
     }
 
     /**

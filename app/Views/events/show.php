@@ -146,7 +146,7 @@ $assetVersion = static function (string $relativePath): string {
             <?php endif; ?>
 
             <?php if ($isDonationEvent): ?>
-                <p class="meta"><strong><?= esc(lang('App.minimumDonation')) ?>:</strong> €<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2)) ?></p>
+                <p class="meta"><strong><?= esc(lang('App.minimumDonation')) ?>:</strong> <?= esc(money((float) ($event['min_donation'] ?? 0))) ?></p>
             <?php endif; ?>
 
             <?php $goal = (float) ($event['donation_goal'] ?? 0); ?>
@@ -154,7 +154,7 @@ $assetVersion = static function (string $relativePath): string {
                 <?php $raised = (float) ($donationRaised ?? 0); $pct = (int) min(100, round($raised / $goal * 100)); ?>
                 <div class="donation-goal">
                     <div class="donation-goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?= $pct ?>"><span style="width:<?= $pct ?>%"></span></div>
-                    <p class="meta"><strong>€<?= esc(number_format($raised, 2)) ?></strong> <?= esc(lang('App.donationGoalOf')) ?> €<?= esc(number_format($goal, 2)) ?> (<?= $pct ?>%)</p>
+                    <p class="meta"><strong><?= esc(money($raised)) ?></strong> <?= esc(lang('App.donationGoalOf')) ?> <?= esc(money($goal)) ?> (<?= $pct ?>%)</p>
                 </div>
             <?php endif; ?>
 
@@ -265,6 +265,7 @@ $assetVersion = static function (string $relativePath): string {
                     data-discount-url="<?= esc(base_url('events/' . $event['slug'] . '/discount/preview'), 'attr') ?>"
                     data-min-donation="<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2, '.', ''), 'attr') ?>"
                     data-min-message="<?= esc(lang('App.donationMinimumError'), 'attr') ?>"
+                    data-currency-symbol="<?= esc(\App\Libraries\SiteSettings::currencySymbol(), 'attr') ?>"
                     data-paypal-error="<?= esc(lang('App.paypalGenericError'), 'attr') ?>"
                     data-total-label="<?= esc(lang('App.donationTotalLabel'), 'attr') ?>"
                     data-total-template="<?= esc(lang('App.donationTotalSummary'), 'attr') ?>"
@@ -308,7 +309,7 @@ $assetVersion = static function (string $relativePath): string {
                         <p id="discount-message" class="meta" aria-live="polite"></p>
                     </div>
 
-                    <p id="donation-total" class="meta"><strong><?= esc(lang('App.donationTotalLabel')) ?>:</strong> €<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2)) ?></p>
+                    <p id="donation-total" class="meta"><strong><?= esc(lang('App.donationTotalLabel')) ?>:</strong> <?= esc(money((float) ($event['min_donation'] ?? 0))) ?></p>
 
                     <label class="booking-consent" for="donation_booking_consent">
                         <input id="donation_booking_consent" name="accept_terms" type="checkbox" value="1" data-error-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>" <?= $hasExistingBooking ? 'checked' : '' ?> <?= $canBook && $isLoggedIn && $paypalClientId !== '' ? '' : 'disabled' ?>>
@@ -335,7 +336,7 @@ $assetVersion = static function (string $relativePath): string {
     </section>
 </main>
 <?php if ($isDonationEvent && $paypalClientId !== '' && $isLoggedIn && $canBook): ?>
-    <script src="https://www.paypal.com/sdk/js?client-id=<?= esc($paypalClientId) ?>&currency=EUR&intent=capture&locale=<?= esc($paypalLocale) ?>"></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=<?= esc($paypalClientId) ?>&currency=<?= esc(\App\Libraries\SiteSettings::currency(), 'url') ?>&intent=capture&locale=<?= esc($paypalLocale) ?>"></script>
 <?php endif; ?>
 <script src="<?= base_url('assets/js/event-show.js') ?>?v=<?= esc($assetVersion('assets/js/event-show.js')) ?>"></script>
 <?= $this->endSection() ?>

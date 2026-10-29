@@ -292,7 +292,7 @@ class ReportController extends EventBaseController
             'online_access_notes' => $ticket['online_access_notes'] ?? null,
         ];
 
-        if (! $this->sendBookingConfirmationEmail($event, 1, [(string) ($ticket['ticket_code'] ?? $ticketCode)], (float) ($ticket['donation_amount'] ?? 0), 'EUR')) {
+        if (! $this->sendBookingConfirmationEmail($event, 1, [(string) ($ticket['ticket_code'] ?? $ticketCode)], (float) ($ticket['donation_amount'] ?? 0), \App\Libraries\SiteSettings::currency())) {
             return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketResendFailed'));
         }
 
@@ -357,7 +357,7 @@ class ReportController extends EventBaseController
             1,
             [(string) $ticket['ticket_code']],
             0.0,
-            'EUR',
+            \App\Libraries\SiteSettings::currency(),
             (string) $recipient['email'],
             trim(($recipient['first_name'] ?? '') . ' ' . ($recipient['last_name'] ?? ''))
         );
@@ -541,7 +541,7 @@ class ReportController extends EventBaseController
             'customer_name' => $customerName !== '' ? $customerName : '-',
             'customer_email' => (string) ($ticket['email'] ?? '-'),
             'payment_status_label' => lang('App.paymentStatus' . ucfirst((string) ($ticket['payment_status'] ?? 'free'))),
-            'donation_amount' => 'EUR ' . number_format((float) ($ticket['donation_amount'] ?? 0), 2),
+            'donation_amount' => money($ticket['donation_amount'] ?? 0),
             'booked_at' => ! empty($ticket['created_at']) ? date('d/m/Y H:i', strtotime((string) $ticket['created_at'])) : '-',
             'checked_in_at' => ! empty($ticket['checked_in_at']) ? date('d/m/Y H:i', strtotime((string) $ticket['checked_in_at'])) : '',
         ];

@@ -66,7 +66,7 @@ $assetVersion = static function (string $relativePath): string {
                     'end_date' => $endDateFormatted,
                     'booked_at' => $bookedAtFormatted,
                     'payment_status' => $paymentLabel,
-                    'donation_total' => 'EUR ' . number_format((float) ($event['donation_total'] ?? 0), 2),
+                    'donation_total' => money($event['donation_total'] ?? 0),
                 ];
                 ?>
                 <article class="card my-event-card">
@@ -99,7 +99,7 @@ $assetVersion = static function (string $relativePath): string {
                         <?php endif; ?>
 
                         <p class="meta"><?= esc(lang('App.myEventsTicketsBooked')) ?>: <?= esc((string) ($event['tickets_count'] ?? 0)) ?></p>
-                        <p class="meta"><?= esc(lang('App.myEventsDonationTotal')) ?>: €<?= esc(number_format((float) ($event['donation_total'] ?? 0), 2)) ?></p>
+                        <p class="meta"><?= esc(lang('App.myEventsDonationTotal')) ?>: <?= esc(money((float) ($event['donation_total'] ?? 0))) ?></p>
                         <p class="meta"><?= esc(lang('App.myEventsPaymentStatus')) ?>: <?= esc($paymentLabel) ?></p>
 
                         <?php if ($bookedAtFormatted !== ''): ?>

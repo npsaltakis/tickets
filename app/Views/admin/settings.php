@@ -25,6 +25,14 @@ $favicon = \App\Libraries\SiteSettings::assetUrl('favicon_path');
             <label class="auth-label" for="accent_color"><?= esc(lang('App.settingsAccent')) ?></label>
             <input id="accent_color" name="accent_color" type="color" class="settings-color" value="<?= esc($value('accent_color'), 'attr') ?>">
 
+            <label class="auth-label" for="currency"><?= esc(lang('App.settingsCurrency')) ?></label>
+            <select id="currency" name="currency" class="auth-input">
+                <?php foreach (\App\Libraries\SiteSettings::CURRENCIES as $code => $symbol): ?>
+                    <option value="<?= esc($code, 'attr') ?>" <?= $value('currency') === $code ? 'selected' : '' ?>><?= esc($code . ' (' . trim($symbol) . ')') ?></option>
+                <?php endforeach; ?>
+            </select>
+            <p class="field-hint"><?= esc(lang('App.settingsCurrencyHint')) ?></p>
+
             <label class="auth-label" for="logo_path"><?= esc(lang('App.settingsLogo')) ?></label>
             <?php if ($logo !== ''): ?>
                 <div class="settings-preview">

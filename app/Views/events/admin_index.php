@@ -64,7 +64,7 @@ $assetVersion = static function (string $relativePath): string {
                         $startDate   = ! empty($event['start_date']) ? date('d/m/Y H:i', strtotime((string) $event['start_date'])) : '—';
                         $endDate     = ! empty($event['end_date'])   ? date('d/m/Y H:i', strtotime((string) $event['end_date']))   : '—';
                         $type        = ($event['event_type'] ?? 'free') === 'donation'
-                            ? lang('App.eventCreateDonationType') . ' €' . number_format((float) ($event['min_donation'] ?? 0), 2)
+                            ? lang('App.eventCreateDonationType') . ' ' . money($event['min_donation'] ?? 0)
                             : lang('App.freeEvent');
                         ?>
                         <tr>

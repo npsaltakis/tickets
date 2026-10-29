@@ -5,8 +5,8 @@ namespace App\Libraries;
 use CodeIgniter\Language\Language;
 
 /**
- * Language lines may contain `%site%`, replaced with the site name from Site settings,
- * so the brand is never written into the translation files.
+ * Language lines may contain `%site%` and `%currency%`, replaced with the site name and the currency
+ * symbol from Site settings, so neither is written into the translation files.
  */
 class SiteLanguage extends Language
 {
@@ -15,7 +15,10 @@ class SiteLanguage extends Language
         $output = parent::getLine($line, $args);
 
         if (is_string($output) && str_contains($output, '%site%')) {
-            return str_replace('%site%', SiteSettings::get('site_name'), $output);
+            $output = str_replace('%site%', SiteSettings::get('site_name'), $output);
+        }
+        if (is_string($output) && str_contains($output, '%currency%')) {
+            $output = str_replace('%currency%', trim(SiteSettings::currencySymbol()), $output);
         }
 
         return $output;

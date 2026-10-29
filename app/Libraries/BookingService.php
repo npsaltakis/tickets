@@ -155,7 +155,7 @@ class BookingService
     {
         $captureId = (string) ($capture['id'] ?? '');
         $amount    = (float) ($capture['amount']['value'] ?? 0);
-        $currency  = (string) ($capture['amount']['currency_code'] ?? 'EUR');
+        $currency  = (string) ($capture['amount']['currency_code'] ?? SiteSettings::currency());
         $seats     = (int) ($booking['seats'] ?? 0);
         $userId    = (int) ($booking['user_id'] ?? 0);
         $event     = $this->events->find((int) ($booking['event_id'] ?? 0));

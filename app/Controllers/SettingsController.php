@@ -62,6 +62,9 @@ class SettingsController extends BaseController
         }
         $values['accent_color'] = $accent;
 
+        $currency = strtoupper(trim((string) $this->request->getPost('currency')));
+        $values['currency'] = array_key_exists($currency, SiteSettings::CURRENCIES) ? $currency : SiteSettings::currency();
+
         foreach (['logo_path' => ['png', 'jpg', 'jpeg', 'webp'], 'favicon_path' => ['png', 'ico']] as $field => $extensions) {
             $current = SiteSettings::get($field);
 

@@ -305,7 +305,7 @@ class Home extends EventBaseController
                 'availability' => ((int) ($event['remaining_seats'] ?? 0) > 0 && $status === 'active')
                     ? 'https://schema.org/InStock'
                     : 'https://schema.org/SoldOut',
-                'priceCurrency' => 'EUR',
+                'priceCurrency' => \App\Libraries\SiteSettings::currency(),
                 'price' => (string) (($event['event_type'] ?? 'free') === 'donation' ? (float) ($event['min_donation'] ?? 0) : 0),
             ],
         ];

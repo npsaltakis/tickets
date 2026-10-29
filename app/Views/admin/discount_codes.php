@@ -45,7 +45,7 @@
                                     <?php endif; ?>
                                 </td>
                                 <td><span class="table-pill"><?= esc($code['type']) ?></span></td>
-                                <td><?= $code['type'] === 'percent' ? esc($code['value']) . '%' : '€' . esc(number_format((float)$code['value'], 2)) ?></td>
+                                <td><?= $code['type'] === 'percent' ? esc($code['value']) . '%' : esc(money($code['value'])) ?></td>
                                 <td><?= esc($code['used_count']) ?><?= $code['max_uses'] !== null ? ' / ' . esc($code['max_uses']) : '' ?></td>
                                 <td class="meta" style="font-size:0.82rem;white-space:nowrap">
                                     <?= !empty($code['expires_at']) ? esc(date('d/m/Y H:i', strtotime((string)$code['expires_at']))) : '—' ?>

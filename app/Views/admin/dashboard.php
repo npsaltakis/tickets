@@ -32,7 +32,7 @@
         </article>
         <article>
             <span><?= esc(lang('App.adminDashboardDonationTotal')) ?></span>
-            <strong>EUR <?= esc(number_format((float) ($stats['donation_total'] ?? 0), 2)) ?></strong>
+            <strong><?= esc(money((float) ($stats['donation_total'] ?? 0))) ?></strong>
         </article>
     </section>
 

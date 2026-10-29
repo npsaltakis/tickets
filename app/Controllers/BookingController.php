@@ -69,7 +69,7 @@ class BookingController extends EventBaseController
         $ticketCodes = $booking['codes'];
         $bookingMessage = lang('App.bookingSuccess');
 
-        if (! $this->sendBookingConfirmationEmail($event, $requestedSeats, $ticketCodes, 0.00, 'EUR')) {
+        if (! $this->sendBookingConfirmationEmail($event, $requestedSeats, $ticketCodes, 0.00, \App\Libraries\SiteSettings::currency())) {
             $bookingMessage .= ' ' . lang('App.bookingEmailFailed');
         }
 
@@ -153,7 +153,7 @@ class BookingController extends EventBaseController
                         'description' => 'Donation booking for ' . (string) ($event['title'] ?? 'Event'),
                         'custom_id' => $customId,
                         'amount' => [
-                            'currency_code' => 'EUR',
+                            'currency_code' => \App\Libraries\SiteSettings::currency(),
                             'value' => number_format($totalDonationAmount, 2, '.', ''),
                         ],
                     ]],

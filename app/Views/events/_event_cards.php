@@ -43,7 +43,7 @@
             <?php endif; ?>
 
             <?php if (($event['event_type'] ?? 'free') === 'donation'): ?>
-                <span class="pill"><?= esc(lang('App.donationFrom')) ?> €<?= esc(number_format((float) ($event['min_donation'] ?? 0), 2)) ?></span>
+                <span class="pill"><?= esc(lang('App.donationFrom')) ?> <?= esc(money((float) ($event['min_donation'] ?? 0))) ?></span>
             <?php else: ?>
                 <span class="pill"><?= esc(lang('App.freeEvent')) ?></span>
             <?php endif; ?>

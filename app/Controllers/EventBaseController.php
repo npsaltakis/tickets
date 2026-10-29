@@ -857,8 +857,8 @@ abstract class EventBaseController extends BaseController
         ];
 
         if ($donationAmount > 0) {
-            $greekMessageParts[] = $this->localizedLine('App.bookingEmailDonationLabel', [], 'el') . ': ' . $currency . ' ' . number_format($donationAmount, 2);
-            $englishMessageParts[] = $this->localizedLine('App.bookingEmailDonationLabel', [], 'en') . ': ' . $currency . ' ' . number_format($donationAmount, 2);
+            $greekMessageParts[] = $this->localizedLine('App.bookingEmailDonationLabel', [], 'el') . ': ' . money($donationAmount, $currency);
+            $englishMessageParts[] = $this->localizedLine('App.bookingEmailDonationLabel', [], 'en') . ': ' . money($donationAmount, $currency);
         }
 
         $eventFormat = (string) ($event['event_format'] ?? 'physical');
@@ -1012,7 +1012,7 @@ abstract class EventBaseController extends BaseController
 
         if ($donationAmount < $minimumDonation) {
             return [0, 0.0, strtr(lang('App.donationMinimumError'), [
-                '{min}' => number_format($minimumDonation, 2),
+                '{min}' => money($minimumDonation),
             ])];
         }
 

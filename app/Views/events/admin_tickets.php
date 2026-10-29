@@ -35,7 +35,7 @@
             <article><span><?= esc(lang('App.ticketStatsWaitlist')) ?></span><strong><?= (int) $stats['waitlist'] ?></strong></article>
         <?php endif; ?>
         <?php if (($event['event_type'] ?? 'free') === 'donation'): ?>
-            <article><span><?= esc(lang('App.ticketStatsDonations')) ?></span><strong>€<?= esc(number_format((float) $stats['donations'], 2)) ?></strong></article>
+            <article><span><?= esc(lang('App.ticketStatsDonations')) ?></span><strong><?= esc(money((float) $stats['donations'])) ?></strong></article>
         <?php endif; ?>
         <?php if ($stats['cancelled'] > 0): ?>
             <article><span><?= esc(lang('App.ticketStatsCancelled')) ?></span><strong><?= (int) $stats['cancelled'] ?></strong></article>

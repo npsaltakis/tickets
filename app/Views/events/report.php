@@ -35,7 +35,7 @@ $assetVersion = static function (string $relativePath): string {
                 <article><span><?= esc(lang('App.ticketStatsBooked')) ?></span><strong><?= (int) $totals['booked'] ?></strong></article>
                 <article><span><?= esc(lang('App.reportChartCheckInRate')) ?></span><strong><?= $checkInRate ?>%<small> (<?= (int) $totals['checkedIn'] ?>)</small></strong></article>
                 <?php if ($totals['donations'] > 0): ?>
-                    <article><span><?= esc(lang('App.ticketStatsDonations')) ?></span><strong>€<?= esc(number_format($totals['donations'], 2)) ?></strong></article>
+                    <article><span><?= esc(lang('App.ticketStatsDonations')) ?></span><strong><?= esc(money($totals['donations'])) ?></strong></article>
                 <?php endif; ?>
             </section>
 
@@ -140,7 +140,7 @@ $assetVersion = static function (string $relativePath): string {
                                     <td><?= esc((string) ($row['checked_in_tickets'] ?? 0)) ?></td>
                                     <td><?= esc((string) ($row['not_checked_in_tickets'] ?? 0)) ?></td>
                                     <td><?= esc((string) ($row['remaining_seats'] ?? 0)) ?></td>
-                                    <td>EUR <?= esc(number_format((float) ($row['donation_total'] ?? 0), 2)) ?></td>
+                                    <td><?= esc(money((float) ($row['donation_total'] ?? 0))) ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -243,7 +243,7 @@ $assetVersion = static function (string $relativePath): string {
                                         <td><?= esc(lang('App.paymentStatus' . ucfirst($paymentStatus))) ?></td>
                                         <td><?= esc((string) ($ticketRow['gateway_payment_status'] ?? '-')) ?></td>
                                         <td><code><?= esc((string) ($ticketRow['paypal_transaction_id'] ?? '-')) ?></code></td>
-                                        <td>EUR <?= esc(number_format((float) ($ticketRow['donation_amount'] ?? 0), 2)) ?></td>
+                                        <td><?= esc(money((float) ($ticketRow['donation_amount'] ?? 0))) ?></td>
                                         <td data-order="<?= esc(strtotime((string) ($ticketRow['booked_at'] ?? '')) ?: 0) ?>"><?= esc(! empty($ticketRow['booked_at']) ? date('d/m/Y H:i', strtotime((string) $ticketRow['booked_at'])) : '-') ?></td>
                                         <td><?= esc((string) ($ticketRow['checked_in_label'] ?? '-')) ?></td>
                                         <td data-order="<?= esc(strtotime((string) ($ticketRow['checked_in_at'] ?? '')) ?: 0) ?>"><?= esc((string) ($ticketRow['checked_in_at_formatted'] ?? '-')) ?></td>

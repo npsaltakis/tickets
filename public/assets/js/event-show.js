@@ -98,6 +98,7 @@
     const minDonation = Number(donationBooking.dataset.minDonation || 0);
     const minMessageTemplate = donationBooking.dataset.minMessage || 'Minimum donation is {min}.';
     const paypalErrorMessage = donationBooking.dataset.paypalError || 'Something went wrong with PayPal.';
+    const currencySymbol = donationBooking.dataset.currencySymbol || '€';
     const totalLabel = donationBooking.dataset.totalLabel || 'Total';
     const totalTemplate = donationBooking.dataset.totalTemplate || 'Total: {seats} x {donation} = {total}';
     const createOrderUrl = donationBooking.dataset.createOrderUrl;
@@ -126,10 +127,10 @@
             refreshDiscountedTotal(seats, donationPerSeat);
         }
 
-        donationTotal.innerHTML = `<strong>${totalLabel}:</strong> €${totalValue.toFixed(2)} <span class="meta">(${totalTemplate
+        donationTotal.innerHTML = `<strong>${totalLabel}:</strong> ${currencySymbol}${totalValue.toFixed(2)} <span class="meta">(${totalTemplate
             .replace('{seats}', String(seats))
-            .replace('{donation}', `€${donationPerSeat.toFixed(2)}`)
-            .replace('{total}', `€${totalValue.toFixed(2)}`)})</span>`;
+            .replace('{donation}', `${currencySymbol}${donationPerSeat.toFixed(2)}`)
+            .replace('{total}', `${currencySymbol}${totalValue.toFixed(2)}`)})</span>`;
     };
 
     const requestDiscount = async (seats, donationPerSeat) => {
@@ -163,7 +164,7 @@
             }
 
             if (ok && data.valid) {
-                donationTotal.innerHTML = `<strong>${totalLabel}:</strong> <s>€${(seats * donationPerSeat).toFixed(2)}</s> €${Number(data.total).toFixed(2)}`;
+                donationTotal.innerHTML = `<strong>${totalLabel}:</strong> <s>${currencySymbol}${(seats * donationPerSeat).toFixed(2)}</s> ${currencySymbol}${Number(data.total).toFixed(2)}`;
             }
         } catch (error) {
             console.error('Discount refresh failed.', error);
@@ -261,12 +262,12 @@
         const minimumDonation = getMinimumDonation();
 
         if (!Number.isFinite(value)) {
-            setError(minMessageTemplate.replace('{min}', minimumDonation.toFixed(2)));
+            setError(minMessageTemplate.replace('{min}', currencySymbol + minimumDonation.toFixed(2)));
             return null;
         }
 
         if (value < minimumDonation) {
-            setError(minMessageTemplate.replace('{min}', minimumDonation.toFixed(2)));
+            setError(minMessageTemplate.replace('{min}', currencySymbol + minimumDonation.toFixed(2)));
             return null;
         }
 
