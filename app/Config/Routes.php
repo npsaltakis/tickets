@@ -13,6 +13,7 @@ $routes->get('install', 'InstallController::index');
 $routes->post('install', 'InstallController::run');
 $routes->post('admin/migrate', 'AdminToolsController::runMigrations');
 $routes->get('admin/dashboard', 'AdminDashboardController::index');
+$routes->addRedirect('admin', 'admin/dashboard');
 $routes->get('my-events', 'ReportController::myEvents');
 $routes->get('my-events/tickets/(:segment)/calendar.ics', 'ReportController::ticketCalendar/$1');
 $routes->post('my-events/tickets/(:segment)/resend-email', 'ReportController::resendTicketEmail/$1');
