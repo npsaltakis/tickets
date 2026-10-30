@@ -1023,6 +1023,7 @@ return [
     'updaterBadPackage' => 'Μη έγκυρο πακέτο έκδοσης.',
     'updaterDownloadFailed' => 'Η λήψη του πακέτου απέτυχε.',
     'updaterCopyFailed' => 'Δεν ήταν δυνατή η εγγραφή του αρχείου',
+    'adminMenu' => 'Μενού',
 ];
 
 

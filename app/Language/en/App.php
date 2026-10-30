@@ -1028,6 +1028,7 @@ Please check the event page for the latest information.',
     'updaterBadPackage' => 'Invalid release package.',
     'updaterDownloadFailed' => 'Downloading the package failed.',
     'updaterCopyFailed' => 'Could not write the file',
+    'adminMenu' => 'Menu',
 ];
 
 

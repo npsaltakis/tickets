@@ -3,36 +3,50 @@
     const toggle  = document.getElementById('admin-sidebar-toggle');
     if (!sidebar || !toggle) return;
 
+    const menuBtn     = document.getElementById('admin-menu-btn');
+    const backdrop    = document.getElementById('admin-backdrop');
     const STORAGE_KEY = 'admin_sidebar_collapsed';
-    const isMobile = () => window.innerWidth <= 768;
+    const mobile      = window.matchMedia('(max-width: 768px)');
 
-    const applyState = (collapsed) => {
-        if (isMobile()) {
-            sidebar.classList.toggle('is-mobile-open', !collapsed);
-            sidebar.classList.remove('is-collapsed');
-        } else {
-            sidebar.classList.toggle('is-collapsed', collapsed);
-            sidebar.classList.remove('is-mobile-open');
-        }
+    const savedCollapsed = () => {
+        try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch (e) { return false; }
     };
 
-    const savedCollapsed = localStorage.getItem(STORAGE_KEY) === '1';
-    applyState(savedCollapsed);
+    // Phones: the sidebar is a drawer opened from the topbar button, closed by default.
+    const setDrawer = (open) => {
+        sidebar.classList.toggle('is-mobile-open', open);
+        if (backdrop) backdrop.hidden = !open;
+        if (menuBtn) menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) sidebar.querySelector('.admin-nav-link.is-active')?.scrollIntoView({ block: 'nearest' });
+    };
+
+    const applyLayout = () => {
+        setDrawer(false);
+        sidebar.classList.toggle('is-collapsed', !mobile.matches && savedCollapsed());
+    };
+
+    applyLayout();
+    mobile.addEventListener('change', applyLayout);
 
     toggle.addEventListener('click', () => {
-        const collapsed = isMobile()
-            ? sidebar.classList.contains('is-mobile-open')
-            : !sidebar.classList.contains('is-collapsed');
-
-        applyState(collapsed);
-
-        if (!isMobile()) {
-            localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0');
+        if (mobile.matches) {
+            setDrawer(false);
+            menuBtn?.focus();
+            return;
         }
+
+        const collapsed = !sidebar.classList.contains('is-collapsed');
+        sidebar.classList.toggle('is-collapsed', collapsed);
+        try { localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0'); } catch (e) { /* not stored */ }
     });
 
-    window.addEventListener('resize', () => {
-        const collapsed = localStorage.getItem(STORAGE_KEY) === '1';
-        applyState(collapsed);
+    menuBtn?.addEventListener('click', () => setDrawer(!sidebar.classList.contains('is-mobile-open')));
+    backdrop?.addEventListener('click', () => setDrawer(false));
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && sidebar.classList.contains('is-mobile-open')) {
+            setDrawer(false);
+            menuBtn?.focus();
+        }
     });
 })();

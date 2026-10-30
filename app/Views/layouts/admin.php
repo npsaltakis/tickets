@@ -24,6 +24,7 @@ $seoTitle = (string) ($pageTitle ?? $siteTitle);
 <body class="admin-body">
     <div class="admin-shell">
         <?= $this->include('layouts/admin_sidebar') ?>
+        <div class="admin-backdrop" id="admin-backdrop" hidden></div>
         <div class="admin-main" id="admin-main">
             <?= $this->include('layouts/admin_topbar') ?>
             <main class="admin-content">

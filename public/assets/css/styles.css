@@ -2987,27 +2987,92 @@ button:focus-visible,
     font-size: 0.9rem;
 }
 
-/* Mobile: sidebar overlays */
+/* Section titles must not be squeezed when the menu is taller than the screen (it scrolls instead). */
+.admin-sidebar-nav > * {
+    flex-shrink: 0;
+}
+
+.admin-menu-btn {
+    display: none;
+}
+
+.admin-topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Phones: the sidebar is a drawer opened from the topbar button. */
 @media (max-width: 768px) {
     .admin-sidebar {
         position: fixed;
         left: 0;
         top: 0;
-        width: 52px;
+        width: min(280px, 85vw);
         z-index: 50;
+        transform: translateX(-100%);
+        visibility: hidden;
+        transition: transform 0.2s ease, visibility 0s linear 0.2s;
     }
 
     .admin-sidebar.is-mobile-open {
-        width: 220px;
+        transform: none;
+        visibility: visible;
         box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+        transition: transform 0.2s ease;
     }
 
-    .admin-sidebar.is-mobile-open .admin-sidebar-label {
+    .admin-sidebar .admin-sidebar-label {
         display: inline;
     }
 
+    .admin-sidebar-toggle {
+        width: 44px;
+        height: 44px;
+    }
+
+    .admin-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 45;
+        background: rgba(2, 6, 23, 0.6);
+    }
+
+    .admin-backdrop[hidden] {
+        display: none;
+    }
+
+    .admin-menu-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        margin-left: -10px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: #f8fafc;
+        cursor: pointer;
+    }
+
+    .admin-menu-btn svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .admin-menu-btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    .admin-topbar-user {
+        display: none;
+    }
+
     .admin-main {
-        margin-left: 52px;
+        margin-left: 0;
     }
 
     .admin-content {
