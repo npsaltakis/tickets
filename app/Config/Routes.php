@@ -112,6 +112,8 @@ $routes->post('admin/pages/(:segment)/(:segment)/reset', 'PagesAdminController::
 $routes->post('admin/pages/(:segment)/(:segment)', 'PagesAdminController::save/$1/$2');
 $routes->get('admin/settings', 'SettingsController::index');
 $routes->post('admin/settings', 'SettingsController::save');
+$routes->get('admin/update', 'UpdateController::index');
+$routes->post('admin/update', 'UpdateController::install');
 $routes->get('admin/newsletter', 'NewsletterController::index');
 $routes->post('admin/newsletter', 'NewsletterController::send');
 $routes->get('admin/newsletter/(:num)', 'NewsletterController::campaign/$1');

@@ -1,0 +1,45 @@
+name: Release package
+
+# Publishing a GitHub Release (tag v1.2.3) builds the installable zip (with vendor/) that
+# Admin → Updates downloads, and attaches it with its SHA-256 checksum.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: intl, mbstring, mysqli, gd, curl, zip
+          coverage: none
+
+      - name: Install production dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --no-progress --optimize-autoloader
+
+      - name: Build zip
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          echo "$TAG" > VERSION
+          NAME="tickets-$TAG.zip"
+          # writable/ ships only its empty skeleton (for new installs; updates never touch it). Uploaded images
+          # and per-site files are never part of the package.
+          zip -qr "$NAME" app public vendor writable spark preload.php composer.json composer.lock LICENSE README.md PRODUCTION_CHECKLIST.md VERSION \
+            -x 'public/assets/images/[0-9]*' 'public/assets/images/site/*' '*.DS_Store'
+          sha256sum "$NAME" | cut -d' ' -f1 > "$NAME.sha256"
+          ls -lh "$NAME"
+
+      - name: Attach to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" "tickets-$TAG.zip" "tickets-$TAG.zip.sha256" --clobber
