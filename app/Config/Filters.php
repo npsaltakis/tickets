@@ -14,6 +14,9 @@ use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
 use App\Filters\AdminFilter;
 use App\Filters\AuthFilter;
+use App\Filters\CheckBlockedIp;
+use App\Filters\LogLoginAttempt;
+use App\Filters\RateLimit;
 use App\Filters\StaffFilter;
 
 class Filters extends BaseFilters
@@ -40,6 +43,9 @@ class Filters extends BaseFilters
         'admin'         => AdminFilter::class,
         'auth'          => AuthFilter::class,
         'staff'         => StaffFilter::class,
+        'ratelimit'       => RateLimit::class,
+        'checkblockedip'  => CheckBlockedIp::class,
+        'logloginattempt' => LogLoginAttempt::class,
     ];
 
     /**
@@ -75,10 +81,23 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
-            'csrf' => ['except' => ['paypal/webhook']],
+            // Admin/staff pages and machine endpoints are not throttled (check-in scans and polls quickly).
+            'ratelimit' => ['except' => [
+                'admin', 'admin/*', 'admin-logs', 'admin-logs/*', 'check-in', 'check-in/*',
+                'robots.txt', 'sitemap.xml', 'health', 'install', 'paypal/webhook',
+            ]],
+            // Deliberately applies to the admin area too, so a blocked IP also loses a signed-in session.
+            // admin/security and logout stay reachable, so a blocked admin can still lift the block.
+            'checkblockedip' => ['except' => [
+                'admin/security', 'admin/security/*', 'logout',
+                'robots.txt', 'sitemap.xml', 'health', 'install', 'paypal/webhook',
+            ]],
+            'honeypot' => ['except' => ['admin', 'admin/*', 'install', 'paypal/webhook']],
+            'csrf'     => ['except' => ['paypal/webhook']],
             'invalidchars',
         ],
         'after' => [
+            'honeypot' => ['except' => ['admin', 'admin/*', 'install', 'paypal/webhook']],
             'secureheaders',
         ],
     ];
@@ -108,6 +127,7 @@ class Filters extends BaseFilters
      * @var array<string, array<string, list<string>>>
      */
     public array $filters = [
+        'logloginattempt' => ['after' => ['login']],
         'admin' => [
             'before' => [
                 'admin/*',

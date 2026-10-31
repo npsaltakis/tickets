@@ -40,7 +40,8 @@ class ContentSecurityPolicy extends BaseConfig
      * HTTP to HTTPS. This directive is for websites with
      * large numbers of old URLs that need to be rewritten.
      */
-    public bool $upgradeInsecureRequests = false;
+    // Production only: the local site runs on plain http.
+    public bool $upgradeInsecureRequests = ENVIRONMENT === 'production';
 
     // -------------------------------------------------------------------------
     // CSP DIRECTIVES SETTINGS
@@ -151,7 +152,7 @@ class ContentSecurityPolicy extends BaseConfig
      *
      * @var list<string>|string|null
      */
-    public $frameAncestors;
+    public $frameAncestors = 'self';
 
     /**
      * The frame-src directive restricts the URLs which may
