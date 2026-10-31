@@ -212,6 +212,9 @@ document.querySelectorAll('.ticket-picker').forEach(picker => {
         if (transferForm) transferForm.action = resendBase + encodeURIComponent(code) + '/transfer';
         if (receiptLink) receiptLink.href = resendBase + encodeURIComponent(code) + '/receipt';
         if (walletLink)  walletLink.href = resendBase + encodeURIComponent(code) + '/google-wallet';
+        picker.querySelectorAll('[data-ticket-qr]').forEach(qr => {
+            qr.hidden = qr.dataset.ticketQr !== code;
+        });
     });
 
     if (transferForm) {

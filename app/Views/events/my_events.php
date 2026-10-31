@@ -29,6 +29,8 @@ $assetVersion = static function (string $relativePath): string {
         </div>
     </div>
 
+    <p role="status" class="auth-info alert-inline offline-banner" data-offline-banner hidden><?= esc(lang('App.pwaOfflineBanner')) ?></p>
+
     <?php if (session()->getFlashdata('event_info')): ?>
         <p role="status" class="auth-info alert-inline"><?= esc((string) session()->getFlashdata('event_info')) ?></p>
     <?php endif; ?>
@@ -146,6 +148,16 @@ $assetVersion = static function (string $relativePath): string {
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+                                <details class="ticket-qr">
+                                    <summary class="ticket-export-btn"><?= esc(lang('App.pwaShowQr')) ?></summary>
+                                    <?php foreach ($tickets as $i => $ticket): ?>
+                                        <figure class="ticket-qr-item" data-ticket-qr="<?= esc($ticket['code'], 'attr') ?>"<?= $i > 0 ? ' hidden' : '' ?>>
+                                            <img src="<?= esc($ticket['qr'], 'attr') ?>" alt="QR <?= esc($ticket['code'], 'attr') ?>" width="240" height="240">
+                                            <figcaption><?= esc($ticket['code']) ?></figcaption>
+                                        </figure>
+                                    <?php endforeach; ?>
+                                    <p class="meta ticket-qr-hint"><?= esc(lang('App.pwaQrHint')) ?></p>
+                                </details>
                                 <div class="ticket-picker-actions">
                                     <button
                                         type="button"

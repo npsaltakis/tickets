@@ -122,6 +122,45 @@ h1 {
     cursor: pointer;
 }
 
+.ticket-qr summary {
+    list-style: none;
+    cursor: pointer;
+    width: fit-content;
+}
+
+.ticket-qr summary::-webkit-details-marker {
+    display: none;
+}
+
+.ticket-qr-item {
+    margin: 12px 0 0;
+    text-align: center;
+}
+
+.ticket-qr-item img {
+    width: 100%;
+    max-width: 240px;
+    height: auto;
+    background: #fff;
+    border-radius: 8px;
+    image-rendering: pixelated;
+}
+
+.ticket-qr-item figcaption {
+    font-family: monospace;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    margin-top: 6px;
+}
+
+.ticket-qr-hint {
+    text-align: center;
+}
+
+.offline-banner[hidden] {
+    display: none;
+}
+
 .ticket-picker-actions {
     display: flex;
     flex-wrap: wrap;

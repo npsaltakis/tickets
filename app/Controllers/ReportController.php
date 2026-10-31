@@ -202,6 +202,8 @@ class ReportController extends EventBaseController
             $events[$eventId]['tickets'][] = [
                 'code'           => (string) ($row['ticket_code'] ?? ''),
                 'payment_status' => (string) ($row['payment_status'] ?? 'free'),
+                // Inline, so the saved offline copy of this page still shows the QR at the entrance.
+                'qr'             => 'data:image/png;base64,' . base64_encode($this->buildTicketQrImageContent((string) ($row['ticket_code'] ?? ''))),
             ];
             $events[$eventId]['payment_statuses'][(string) ($row['payment_status'] ?? '')] = true;
 

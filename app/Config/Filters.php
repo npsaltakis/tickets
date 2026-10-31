@@ -85,6 +85,7 @@ class Filters extends BaseFilters
             'ratelimit' => ['except' => [
                 'admin', 'admin/*', 'admin-logs', 'admin-logs/*', 'check-in', 'check-in/*',
                 'robots.txt', 'sitemap.xml', 'health', 'install', 'paypal/webhook',
+                'manifest.webmanifest', 'pwa/*', 'offline',
             ]],
             // Deliberately applies to the admin area too, so a blocked IP also loses a signed-in session.
             // admin/security and logout stay reachable, so a blocked admin can still lift the block.

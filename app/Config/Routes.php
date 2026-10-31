@@ -135,6 +135,11 @@ $routes->post('events/(:segment)/access', 'Home::grantAccess/$1');
 $routes->get('login', 'LoginController::index');
 $routes->post('login', 'LoginController::authenticate');
 $routes->get('logout', 'LoginController::logout');
+
+$routes->get('manifest.webmanifest', 'PwaController::manifest');
+$routes->get('pwa/icon-(:num).png', 'PwaController::icon/$1');
+$routes->get('pwa/icon-maskable-(:num).png', 'PwaController::maskableIcon/$1');
+$routes->get('offline', 'PwaController::offline');
 $routes->get('register', 'LoginController::register');
 $routes->post('register', 'LoginController::storeRegister');
 $routes->get('verify-email', 'LoginController::verifyEmail');
