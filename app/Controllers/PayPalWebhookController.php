@@ -11,6 +11,7 @@ use Throwable;
 /**
  * Receives PayPal webhooks so payments and refunds stay in sync even when the
  * customer never returns to the site (closed browser, network drop, refund from the PayPal dashboard).
+ * Subscribe the webhook to CHECKOUT.ORDER.APPROVED, PAYMENT.CAPTURE.COMPLETED and PAYMENT.CAPTURE.REFUNDED.
  */
 class PayPalWebhookController extends EventBaseController
 {
@@ -35,6 +36,7 @@ class PayPalWebhookController extends EventBaseController
 
         try {
             match ($type) {
+                'CHECKOUT.ORDER.APPROVED'   => $this->onOrderApproved($resource),
                 'PAYMENT.CAPTURE.COMPLETED' => $this->onCaptureCompleted($resource),
                 'PAYMENT.CAPTURE.REFUNDED'  => $this->onCaptureRefunded($resource),
                 default                     => null,
@@ -47,6 +49,35 @@ class PayPalWebhookController extends EventBaseController
         }
 
         return $this->response->setJSON(['status' => 'ok']);
+    }
+
+    /**
+     * The payer approved the order but the browser may never call capture (popup closed, connection
+     * dropped after approval), which would leave it approved, unpaid and without tickets. Capture it here;
+     * if the browser already did, PayPalClient::captureOrder returns that capture and fulfilment is a no-op.
+     */
+    private function onOrderApproved(array $order): void
+    {
+        $orderId = (string) ($order['id'] ?? '');
+        if ($orderId === '') {
+            return;
+        }
+
+        [$capture, $customId, $error] = (new PayPalClient())->captureOrder($orderId);
+
+        if ($capture === null) {
+            if ($error === 'rejected') {
+                // Declined or expired: retrying will not help.
+                log_message('warning', 'PayPal webhook could not capture approved order {order}.', ['order' => $orderId]);
+
+                return;
+            }
+
+            throw new \RuntimeException('PayPal capture unavailable (' . $error . ') for order ' . $orderId);
+        }
+
+        $capture['custom_id'] = (string) ($capture['custom_id'] ?? '') ?: $customId;
+        $this->onCaptureCompleted($capture);
     }
 
     private function onCaptureCompleted(array $capture): void

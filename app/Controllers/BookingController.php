@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Libraries\BookingService;
+use App\Libraries\PayPalClient;
 use App\Models\WaitlistModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RedirectResponse;
@@ -215,45 +216,13 @@ class BookingController extends EventBaseController
             return $this->response->setStatusCode(422)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
         }
 
-        [$accessToken, $tokenError] = $this->getPayPalAccessToken();
-        if ($accessToken === null) {
-            return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalConfigurationError')]);
-        }
+        // The CHECKOUT.ORDER.APPROVED webhook may have captured it first; captureOrder then returns that capture.
+        [$capture, $customId, $captureError] = (new PayPalClient())->captureOrder($orderId);
 
-        try {
-            $paypalResponse = service('curlrequest')->post(rtrim($this->getPayPalBaseUrl(), '/') . '/v2/checkout/orders/' . urlencode($orderId) . '/capture', [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $accessToken,
-                    'Content-Type' => 'application/json',
-                ],
-                'json' => new \stdClass(),
-                'http_errors' => false,
-                'verify' => $this->shouldVerifySsl(),
-                'timeout' => 20,
-            ]);
-        } catch (Throwable $exception) {
-            log_message('error', 'PayPal capture request failed: {message}', ['message' => $exception->getMessage()]);
+        if ($capture === null) {
+            $message = $captureError === 'config' ? lang('App.paypalConfigurationError') : lang('App.paypalCaptureFailed');
 
-            return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
-        }
-
-        $captureData = json_decode($paypalResponse->getBody(), true);
-        $purchaseUnit = is_array($captureData) ? ($captureData['purchase_units'][0] ?? null) : null;
-        $capture = is_array($purchaseUnit) ? ($purchaseUnit['payments']['captures'][0] ?? null) : null;
-
-        if (! is_array($purchaseUnit) || ! is_array($capture) || (string) ($capture['status'] ?? '') !== 'COMPLETED') {
-            log_message('error', 'PayPal capture failed [{status}]: {body}', [
-                'status' => $paypalResponse->getStatusCode(),
-                'body' => $paypalResponse->getBody(),
-            ]);
-
-            return $this->response->setStatusCode(500)->setJSON(['message' => lang('App.paypalCaptureFailed')]);
-        }
-
-        $customId = (string) ($purchaseUnit['custom_id'] ?? '');
-        if ($customId === '') {
-            $orderDetails = $this->getPayPalOrderDetails($orderId, $accessToken);
-            $customId = (string) ($orderDetails['purchase_units'][0]['custom_id'] ?? '');
+            return $this->response->setStatusCode(500)->setJSON(['message' => $message]);
         }
 
         $userId  = (int) session()->get('user_id');

@@ -1055,37 +1055,6 @@ abstract class EventBaseController extends BaseController
         return '';
     }
 
-    protected function getPayPalOrderDetails(string $orderId, string $accessToken): array
-    {
-        try {
-            $response = service('curlrequest')->get(rtrim($this->getPayPalBaseUrl(), '/') . '/v2/checkout/orders/' . urlencode($orderId), [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $accessToken,
-                    'Content-Type' => 'application/json',
-                ],
-                'http_errors' => false,
-                'verify' => $this->shouldVerifySsl(),
-                'timeout' => 20,
-            ]);
-        } catch (Throwable $exception) {
-            log_message('error', 'PayPal order details request failed: {message}', ['message' => $exception->getMessage()]);
-
-            return [];
-        }
-
-        $data = json_decode($response->getBody(), true);
-        if (! is_array($data)) {
-            log_message('error', 'PayPal order details invalid response [{status}]: {body}', [
-                'status' => $response->getStatusCode(),
-                'body' => $response->getBody(),
-            ]);
-
-            return [];
-        }
-
-        return $data;
-    }
-
     protected function getPayPalAccessToken(): array
     {
         $clientId = $this->getPayPalClientId();

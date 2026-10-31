@@ -5,7 +5,7 @@ namespace App\Libraries;
 use Throwable;
 
 /**
- * Thin PayPal REST wrapper used by refunds and webhooks.
+ * Thin PayPal REST wrapper used by captures, refunds and webhooks.
  */
 class PayPalClient
 {
@@ -109,6 +109,90 @@ class PayPalClient
         ]);
 
         return [false, null, 'rejected'];
+    }
+
+    /**
+     * Captures an approved order. The browser (onApprove) and the CHECKOUT.ORDER.APPROVED webhook
+     * both call this; whichever comes second gets the existing capture back (same PayPal-Request-Id,
+     * or ORDER_ALREADY_CAPTURED), so both can hand it to BookingService::fulfillCapture safely.
+     *
+     * @return array{0: array|null, 1: string, 2: string|null} [completed capture, custom_id, error]
+     *                                                         error: config | request | rejected
+     */
+    public function captureOrder(string $orderId): array
+    {
+        $token = $this->accessToken();
+        if ($token === null) {
+            return [null, '', 'config'];
+        }
+
+        try {
+            $response = service('curlrequest')->post($this->baseUrl() . '/v2/checkout/orders/' . urlencode($orderId) . '/capture', [
+                'headers'     => [
+                    'Authorization'     => 'Bearer ' . $token,
+                    'Content-Type'      => 'application/json',
+                    'PayPal-Request-Id' => 'capture-' . $orderId,
+                ],
+                'json'        => new \stdClass(),
+                'http_errors' => false,
+                'verify'      => $this->verifySsl(),
+                'timeout'     => 20,
+            ]);
+        } catch (Throwable $exception) {
+            log_message('error', 'PayPal capture request failed: {message}', ['message' => $exception->getMessage()]);
+
+            return [null, '', 'request'];
+        }
+
+        $data = json_decode($response->getBody(), true);
+        $data = is_array($data) ? $data : [];
+
+        $issues = array_column((array) ($data['details'] ?? []), 'issue');
+        if (in_array('ORDER_ALREADY_CAPTURED', $issues, true)) {
+            $data = $this->order($orderId, $token);
+        }
+
+        $unit    = $data['purchase_units'][0] ?? null;
+        $capture = is_array($unit) ? ($unit['payments']['captures'][0] ?? null) : null;
+
+        if (! is_array($capture) || (string) ($capture['status'] ?? '') !== 'COMPLETED') {
+            log_message('error', 'PayPal capture failed [{status}]: {body}', [
+                'status' => $response->getStatusCode(),
+                'body'   => $response->getBody(),
+            ]);
+
+            return [null, '', 'rejected'];
+        }
+
+        $customId = (string) ($unit['custom_id'] ?? $capture['custom_id'] ?? '');
+        if ($customId === '') {
+            $customId = (string) ($this->order($orderId, $token)['purchase_units'][0]['custom_id'] ?? '');
+        }
+
+        return [$capture, $customId, null];
+    }
+
+    /**
+     * @return array<string, mixed> the order, or [] on failure
+     */
+    private function order(string $orderId, string $token): array
+    {
+        try {
+            $response = service('curlrequest')->get($this->baseUrl() . '/v2/checkout/orders/' . urlencode($orderId), [
+                'headers'     => ['Authorization' => 'Bearer ' . $token],
+                'http_errors' => false,
+                'verify'      => $this->verifySsl(),
+                'timeout'     => 20,
+            ]);
+        } catch (Throwable $exception) {
+            log_message('error', 'PayPal order details request failed: {message}', ['message' => $exception->getMessage()]);
+
+            return [];
+        }
+
+        $data = json_decode($response->getBody(), true);
+
+        return is_array($data) ? $data : [];
     }
 
     /**

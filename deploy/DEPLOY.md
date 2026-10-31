@@ -43,7 +43,7 @@
 
 - **Σύνδεση με Google**: Google Cloud → OAuth client (Web), redirect `https://<domain>/auth/google/callback` → `google.clientId`, `google.clientSecret`.
 - **Google Wallet**: Wallet console (Issuer ID) + service account με κλειδί JSON στο `<φάκελος>/keys/wallet.json` → `googleWallet.issuerId`, `googleWallet.keyFile = keys/wallet.json`.
-- **PayPal**: `paypal.clientId`, `paypal.secret`, `PAYPAL_BASE_URL`, webhook `https://<domain>/paypal/webhook` → `paypal.webhookId`.
+- **PayPal**: `paypal.clientId`, `paypal.secret`, `PAYPAL_BASE_URL`, webhook `https://<domain>/paypal/webhook` με τα events `CHECKOUT.ORDER.APPROVED`, `PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.REFUNDED` → `paypal.webhookId`.
 - **Λίστα αναμονής**: κλειστή από προεπιλογή, ανοίγει με `waitlist.enabled = true`.
 
 ## Ενημερώσεις
