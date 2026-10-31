@@ -30,10 +30,11 @@ final class AccessControlTest extends CIUnitTestCase
         // CSRF is covered by the framework; drop it so POST routes can be exercised here.
         $filters = new \Config\Filters();
         unset($filters->globals['before']['csrf']);
-        $filters->globals['before'] = array_values(array_filter(
+        // Keys are kept: filters with an `except` list are keyed by alias.
+        $filters->globals['before'] = array_filter(
             $filters->globals['before'],
             static fn ($v) => $v !== 'csrf'
-        ));
+        );
         \CodeIgniter\Config\Factories::injectMock('config', 'Filters', $filters);
     }
 
