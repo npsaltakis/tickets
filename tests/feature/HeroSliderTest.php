@@ -27,7 +27,9 @@ final class HeroSliderTest extends CIUnitTestCase
             $this->markTestSkipped('Hero slider tests need a MySQL test database (database.tests.* env).');
         }
 
+        // CSRF is covered by the framework; drop it (keyed or plain) so POST routes can be exercised here.
         $filters = new \Config\Filters();
+        unset($filters->globals['before']['csrf']);
         $filters->globals['before'] = array_filter($filters->globals['before'], static fn ($v) => $v !== 'csrf');
         \CodeIgniter\Config\Factories::injectMock('config', 'Filters', $filters);
 
