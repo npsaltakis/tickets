@@ -19,7 +19,7 @@
     <p><?= esc(lang('App.cookieNoticeText')) ?> <a href="<?= base_url('privacy-policy') ?>"><?= esc(lang('App.cookieNoticeMore')) ?></a></p>
     <button type="button" class="auth-link-btn" data-cookie-accept><?= esc(lang('App.cookieNoticeAccept')) ?></button>
 </div>
-    <script src="<?= base_url('assets/js/cookie-notice.js') ?>"></script>
+    <script src="<?= base_url('assets/js/cookie-notice.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/cookie-notice.js') ?: time() ?>"></script>
     <script src="<?= base_url('assets/js/ui-actions.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/ui-actions.js') ?: time() ?>"></script>
 </body>
 </html>

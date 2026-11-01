@@ -37,6 +37,6 @@
 
     <p class="muted"><?= esc(lang('App.receiptDisclaimer')) ?></p>
 </div>
-<script src="<?= base_url('assets/js/ui-actions.js') ?>"></script>
+<script src="<?= base_url('assets/js/ui-actions.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/ui-actions.js') ?: time() ?>"></script>
 </body>
 </html>

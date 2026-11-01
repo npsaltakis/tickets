@@ -168,6 +168,6 @@
 </main>
 <script src="<?= base_url('assets/vendor/html5-qrcode/html5-qrcode.min.js') ?>?v=<?= esc((string) (is_file(FCPATH . 'assets/vendor/html5-qrcode/html5-qrcode.min.js') ? filemtime(FCPATH . 'assets/vendor/html5-qrcode/html5-qrcode.min.js') : time())) ?>"></script>
 <script src="<?= base_url('assets/js/check-in.js') ?>?v=<?= esc((string) (is_file(FCPATH . 'assets/js/check-in.js') ? filemtime(FCPATH . 'assets/js/check-in.js') : time())) ?>"></script>
-<script src="<?= base_url('assets/js/check-in-search.js') ?>"></script>
+<script src="<?= base_url('assets/js/check-in-search.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/check-in-search.js') ?: time() ?>"></script>
 <script src="<?= base_url('assets/js/check-in-stats.js') ?>?v=<?= esc((string) (is_file(FCPATH . 'assets/js/check-in-stats.js') ? filemtime(FCPATH . 'assets/js/check-in-stats.js') : time())) ?>"></script>
 <?= $this->endSection() ?>

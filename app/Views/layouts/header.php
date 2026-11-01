@@ -54,7 +54,7 @@ $structuredData = array_values(array_filter((array) ($structuredData ?? [])));
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="base-url" content="<?= esc(base_url('/'), 'attr') ?>">
-    <script src="<?= base_url('assets/js/app-config.js') ?>"></script>
+    <script src="<?= base_url('assets/js/app-config.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/app-config.js') ?: time() ?>"></script>
     <title><?= esc($seoTitle) ?></title>
     <meta name="description" content="<?= esc($seoDescription, 'attr') ?>">
     <meta name="robots" content="<?= esc($metaRobots, 'attr') ?>">
