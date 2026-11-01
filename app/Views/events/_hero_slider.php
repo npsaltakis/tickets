@@ -4,27 +4,11 @@
     <div class="hero-track">
         <?php foreach (array_values($heroSlides) as $i => $slide): ?>
             <div class="hero-slide<?= $i === 0 ? ' is-active' : '' ?>" data-hero-slide role="group" aria-roledescription="slide" aria-label="<?= esc(($i + 1) . ' / ' . $count, 'attr') ?>"<?= $i === 0 ? '' : ' aria-hidden="true"' ?>>
-                <img class="hero-image" src="<?= esc($slide['image']) ?>" alt="" width="1600" height="600" <?= $i === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?> decoding="async">
-                <?php if ($slide['title'] !== '' || $slide['subtitle'] !== '' || $slide['meta'] !== [] || $slide['link'] !== ''): ?>
+                <?php /* Only the image and the button are shown; the title describes the image for screen readers. */ ?>
+                <img class="hero-image" src="<?= esc($slide['image']) ?>" alt="<?= esc($slide['title'], 'attr') ?>" width="1600" height="600" <?= $i === 0 ? 'fetchpriority="high"' : 'loading="lazy"' ?> decoding="async">
+                <?php if ($slide['link'] !== '' && $slide['button'] !== ''): ?>
                     <div class="hero-overlay">
-                        <div class="hero-content">
-                            <?php if ($slide['title'] !== ''): ?>
-                                <h2 class="hero-title"><?= esc($slide['title']) ?></h2>
-                            <?php endif; ?>
-                            <?php if ($slide['subtitle'] !== ''): ?>
-                                <p class="hero-subtitle"><?= esc($slide['subtitle']) ?></p>
-                            <?php endif; ?>
-                            <?php if ($slide['meta'] !== []): ?>
-                                <p class="hero-meta">
-                                    <?php foreach ($slide['meta'] as $meta): ?>
-                                        <span><?= esc($meta) ?></span>
-                                    <?php endforeach; ?>
-                                </p>
-                            <?php endif; ?>
-                            <?php if ($slide['link'] !== '' && $slide['button'] !== ''): ?>
-                                <a class="hero-cta" href="<?= esc($slide['link'], 'attr') ?>"<?= $i === 0 ? '' : ' tabindex="-1"' ?>><?= esc($slide['button']) ?></a>
-                            <?php endif; ?>
-                        </div>
+                        <a class="hero-cta" href="<?= esc($slide['link'], 'attr') ?>"<?= $i === 0 ? '' : ' tabindex="-1"' ?><?= $slide['title'] !== '' ? ' aria-label="' . esc($slide['button'] . ': ' . $slide['title'], 'attr') . '"' : '' ?>><?= esc($slide['button']) ?></a>
                     </div>
                 <?php endif; ?>
             </div>

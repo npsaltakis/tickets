@@ -80,17 +80,19 @@ class HeroSlideAdminController extends BaseController
 
     private function persist(?array $slide): RedirectResponse
     {
-        $back = redirect()->to(base_url('admin/hero-slides' . ($slide ? '?edit=' . (int) $slide['id'] : '')))->withInput();
+        // withInput() flashes the form at once, so it is only called on the error paths.
+        $backUrl = base_url('admin/hero-slides' . ($slide ? '?edit=' . (int) $slide['id'] : ''));
+        $back    = static fn (string $error): RedirectResponse => redirect()->to($backUrl)->withInput()->with('hero_error', $error);
 
         $type    = $this->request->getPost('type') === 'event' ? 'event' : 'image';
         $eventId = (int) $this->request->getPost('event_id');
         $linkUrl = trim((string) $this->request->getPost('link_url'));
 
         if ($type === 'event' && ! array_key_exists($eventId, array_column($this->selectableEvents(), 'title', 'id'))) {
-            return $back->with('hero_error', lang('App.heroSlideEventRequired'));
+            return $back(lang('App.heroSlideEventRequired'));
         }
         if ($linkUrl !== '' && preg_match('#^(https?://|/)#i', $linkUrl) !== 1) {
-            return $back->with('hero_error', lang('App.heroSlideLinkInvalid'));
+            return $back(lang('App.heroSlideLinkInvalid'));
         }
 
         $image = (string) ($slide['image'] ?? '');
@@ -103,7 +105,7 @@ class HeroSlideAdminController extends BaseController
         if ($file instanceof UploadedFile && $file->isValid() && ! $file->hasMoved()) {
             $stored = $this->storeImage($file);
             if ($stored === null) {
-                return $back->with('hero_error', lang('App.heroSlideImageInvalid'));
+                return $back(lang('App.heroSlideImageInvalid'));
             }
             $this->deleteUpload($image);
             $image = $stored;
@@ -111,7 +113,7 @@ class HeroSlideAdminController extends BaseController
 
         // An event slide falls back to the event's own image; an image slide needs one.
         if ($type === 'image' && $image === '') {
-            return $back->with('hero_error', lang('App.heroSlideImageRequired'));
+            return $back(lang('App.heroSlideImageRequired'));
         }
 
         $data = [

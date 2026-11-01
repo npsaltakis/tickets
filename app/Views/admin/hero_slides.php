@@ -19,20 +19,18 @@ $type = $field('type', 'image');
 
     <p class="field-hint"><?= esc(lang('App.heroSlidesHint')) ?></p>
 
-    <div class="hero-admin-grid">
+    <div class="admin-split">
 
         <div class="card">
             <?php if (empty($slides)): ?>
                 <div class="empty"><?= esc(lang('App.heroSlidesEmpty')) ?></div>
             <?php else: ?>
-                <table class="admin-table">
+                <?php /* Three columns only, so the buttons stay in view on phones and tablets. */ ?>
+                <table class="admin-table hero-admin-table">
                     <thead>
                         <tr>
-                            <th><?= esc(lang('App.heroSlideOrder')) ?></th>
                             <th><?= esc(lang('App.heroSlideImage')) ?></th>
                             <th><?= esc(lang('App.heroSlideTitle')) ?></th>
-                            <th><?= esc(lang('App.heroSlideType')) ?></th>
-                            <th><?= esc(lang('App.heroSlideActive')) ?></th>
                             <th><?= esc(lang('App.adminEventsActions')) ?></th>
                         </tr>
                     </thead>
@@ -46,7 +44,6 @@ $type = $field('type', 'image');
                             }
                             ?>
                             <tr>
-                                <td><?= (int) $slide['sort_order'] ?></td>
                                 <td>
                                     <?php if (! empty($slide['image'])): ?>
                                         <img class="hero-admin-thumb" src="<?= esc($imageUrl((string) $slide['image']), 'attr') ?>" alt="" width="96" height="40" loading="lazy">
@@ -54,15 +51,26 @@ $type = $field('type', 'image');
                                         <span class="meta"><?= esc(lang('App.heroSlideEventImage')) ?></span>
                                     <?php endif; ?>
                                 </td>
-                                <td><?= esc($title) ?></td>
-                                <td><?= esc(lang($isEvent ? 'App.heroSlideTypeEvent' : 'App.heroSlideTypeImage')) ?></td>
-                                <td><?= esc(lang((int) $slide['is_active'] === 1 ? 'App.heroSlideOn' : 'App.heroSlideOff')) ?></td>
-                                <td class="hero-admin-actions">
-                                    <a class="admin-action-btn" href="<?= base_url('admin/hero-slides?edit=' . (int) $slide['id']) ?>"><?= esc(lang('App.categoriesEdit')) ?></a>
-                                    <form method="post" action="<?= base_url('admin/hero-slides/' . (int) $slide['id'] . '/delete') ?>" data-confirm="<?= esc(lang('App.heroSlideDeleteConfirm'), 'attr') ?>">
-                                        <?= csrf_field() ?>
-                                        <button type="submit" class="admin-action-btn admin-action-btn--danger"><?= esc(lang('App.categoriesDelete')) ?></button>
-                                    </form>
+                                <td>
+                                    <?= esc($title) ?>
+                                    <div class="meta hero-admin-meta">
+                                        <?= esc(lang('App.heroSlideOrder')) ?> <?= (int) $slide['sort_order'] ?>
+                                        · <?= esc(lang($isEvent ? 'App.heroSlideTypeEvent' : 'App.heroSlideTypeImage')) ?>
+                                        · <?= esc(lang((int) $slide['is_active'] === 1 ? 'App.heroSlideActive' : 'App.heroSlideInactive')) ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="hero-admin-actions">
+                                        <a class="admin-action-btn hero-admin-icon-btn" href="<?= base_url('admin/hero-slides?edit=' . (int) $slide['id']) ?>" title="<?= esc(lang('App.categoriesEdit'), 'attr') ?>" aria-label="<?= esc(lang('App.categoriesEdit') . ': ' . $title, 'attr') ?>">
+                                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg>
+                                        </a>
+                                        <form method="post" action="<?= base_url('admin/hero-slides/' . (int) $slide['id'] . '/delete') ?>" data-confirm="<?= esc(lang('App.heroSlideDeleteConfirm'), 'attr') ?>">
+                                            <?= csrf_field() ?>
+                                            <button type="submit" class="admin-action-btn admin-action-btn--danger hero-admin-icon-btn" title="<?= esc(lang('App.categoriesDelete'), 'attr') ?>" aria-label="<?= esc(lang('App.categoriesDelete') . ': ' . $title, 'attr') ?>">
+                                                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -103,9 +111,7 @@ $type = $field('type', 'image');
 
                 <label class="auth-label" for="hero_title"><?= esc(lang('App.heroSlideTitle')) ?></label>
                 <input id="hero_title" name="title" type="text" class="auth-input" maxlength="191" value="<?= esc($field('title'), 'attr') ?>">
-
-                <label class="auth-label" for="hero_subtitle"><?= esc(lang('App.heroSlideSubtitle')) ?></label>
-                <input id="hero_subtitle" name="subtitle" type="text" class="auth-input" maxlength="255" value="<?= esc($field('subtitle'), 'attr') ?>">
+                <p class="field-hint"><?= esc(lang('App.heroSlideTitleHint')) ?></p>
 
                 <label class="auth-label" for="hero_link"><?= esc(lang('App.heroSlideLink')) ?></label>
                 <input id="hero_link" name="link_url" type="text" class="auth-input" maxlength="255" placeholder="https://… ή /events/…" value="<?= esc($field('link_url'), 'attr') ?>">

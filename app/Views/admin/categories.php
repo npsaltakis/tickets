@@ -10,7 +10,7 @@
         <p role="alert" class="auth-error alert-inline"><?= esc((string) session()->getFlashdata('cat_error')) ?></p>
     <?php endif; ?>
 
-    <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start">
+    <div class="admin-split">
 
         <div class="card">
             <?php if (empty($categories)): ?>

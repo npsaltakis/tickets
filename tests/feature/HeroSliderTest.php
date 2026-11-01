@@ -72,9 +72,12 @@ final class HeroSliderTest extends CIUnitTestCase
 
         $result = $this->get('/');
         $result->assertStatus(200);
-        $result->assertSee('Summer Festival');
-        $result->assertSee('Three nights');
-        $result->assertSee(base_url('about'));
+        // Only the image (titled through its alt text) and the button are shown.
+        $body = (string) $result->response()->getBody();
+        $this->assertStringContainsString('alt="Summer Festival"', $body);
+        $this->assertStringContainsString('>Info</a>', $body);
+        $this->assertStringContainsString(esc(base_url('about'), 'attr'), $body);
+        $this->assertStringNotContainsString('Three nights', $body);
         $result->assertDontSee('Hidden Slide');
     }
 }

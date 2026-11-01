@@ -52,7 +52,7 @@
         </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start">
+    <div class="admin-split">
 
         <div class="card" style="overflow:auto">
             <?php if (empty($tickets)): ?>

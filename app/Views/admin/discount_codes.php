@@ -18,7 +18,7 @@
         </div>
     <?php endif; ?>
 
-    <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
+    <div class="admin-split">
 
         <div class="card" style="overflow:auto">
             <?php if (empty($codes)): ?>

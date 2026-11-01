@@ -625,6 +625,7 @@ h1 {
 
 .admin-log-clear-form {
     display: flex;
+    flex-wrap: wrap;
     gap: 1rem;
     align-items: center;
     justify-content: space-between;
@@ -1088,7 +1089,7 @@ h1 {
 
 @media (max-width: 640px) {
     .event-form-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .event-datetime-grid,
@@ -1116,6 +1117,7 @@ h1 {
 
 .report-table-wrap {
     min-width: 0;
+    overflow-x: auto;
 }
 
 .report-event-link {
@@ -2997,6 +2999,30 @@ button:focus-visible,
     margin: 0;
 }
 
+/* Form fields never push a card wider than the screen (long <option> texts, file inputs). */
+.admin-content select,
+.admin-content textarea,
+.admin-content input:not([type="checkbox"]):not([type="radio"]) {
+    max-width: 100%;
+}
+
+/* List + side form pages (categories, discount codes, tickets, hero slider); stacked on phones and tablets. */
+.admin-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 20px;
+    align-items: start;
+}
+
+.admin-split > * {
+    min-width: 0;
+    overflow-x: auto;
+}
+
+@media (max-width: 1024px) {
+    .admin-split { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* --- Topbar --- */
 
 .admin-topbar {
@@ -3625,8 +3651,8 @@ button:focus-visible,
 .donation-discount-field .auth-link-btn { width: auto; }
 .donation-discount-field #discount-message { flex-basis: 100%; margin: 0; }
 .waitlist-box form { margin-top: 10px; }
-.users-bulk-form { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
-.users-bulk-select { max-width: 240px; }
+.users-bulk-form { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; align-items: center; }
+.users-bulk-select { flex: 1 1 160px; min-width: 0; max-width: 240px; }
 
 /* Filters, cookie notice */
 .events-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin: 12px 0; }
@@ -4460,29 +4486,14 @@ input[name="test_only"] {
     display: flex;
     align-items: flex-end;
     padding: 0 40px 56px;
-    background: linear-gradient(to top, rgba(11, 18, 32, 0.92) 0%, rgba(11, 18, 32, 0.45) 45%, rgba(11, 18, 32, 0) 75%);
-}
-
-.hero-content {
-    max-width: 720px;
-}
-
-.hero-title {
-    margin: 0 0 8px;
-    font-size: clamp(1.4rem, 3.2vw, 2.4rem);
-    line-height: 1.2;
-    color: #f8fafc;
-}
-
-.hero-meta {
-    margin: 0 0 18px;
-    color: #cbd5e1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 16px;
+    /* Only the button sits on the image: a light shade at the bottom keeps it readable. */
+    background: linear-gradient(to top, rgba(11, 18, 32, 0.55) 0%, rgba(11, 18, 32, 0) 35%);
+    pointer-events: none;
 }
 
 .hero-cta {
+    pointer-events: auto;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
     display: inline-block;
     padding: 10px 20px;
     border-radius: 999px;
@@ -4570,17 +4581,6 @@ input[name="test_only"] {
 }
 
 /* Admin → Hero slider */
-.hero-admin-grid {
-    display: grid;
-    grid-template-columns: 1fr 360px;
-    gap: 20px;
-    align-items: start;
-}
-
-@media (max-width: 1024px) {
-    .hero-admin-grid { grid-template-columns: 1fr; }
-}
-
 .hero-admin-form-title {
     margin: 0 0 16px;
     font-size: 1rem;
@@ -4604,18 +4604,51 @@ input[name="test_only"] {
     margin-bottom: 8px;
 }
 
+/* Icon buttons keep the table narrow enough to fit the card, so it opts out of the 760px phone minimum. */
+.hero-admin-table,
+.admin-table.hero-admin-table {
+    min-width: 0;
+}
+
 .hero-admin-actions {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.hero-admin-table td {
+    vertical-align: middle;
+}
+
+.hero-admin-table th,
+.hero-admin-table td {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.hero-admin-table td:first-child,
+.hero-admin-table td:last-child {
+    width: 1%;
+}
+
+.hero-admin-meta {
+    margin-top: 4px;
+    font-size: 0.8rem;
 }
 
 .hero-admin-actions form {
     margin: 0;
 }
 
-.hero-subtitle {
-    margin: 0 0 12px;
-    color: #e2e8f0;
-    max-width: 620px;
+.hero-admin-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    min-height: 38px;
+    padding: 0;
+}
+
+@media (max-width: 480px) {
+    .hero-admin-thumb { width: 64px; height: 28px; }
 }
