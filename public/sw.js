@@ -3,7 +3,7 @@
  * so a ticket QR code still opens at the entrance without signal.
  * Bump VERSION to drop the old static caches after changing this file.
  */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const STATIC_CACHE = 'static-' + VERSION;
 const PAGES_CACHE = 'pages-' + VERSION;
 // Not versioned: assets/js/pwa.js deletes it when nobody or another account is signed in.
@@ -47,7 +47,7 @@ self.addEventListener('fetch', (event) => {
 
     const isOwnAsset = url.origin === self.location.origin && url.href.startsWith(SCOPE + 'assets/');
     if (isOwnAsset || CDN_HOSTS.includes(url.hostname)) {
-        event.respondWith(staleWhileRevalidate(event, request));
+        event.respondWith(staleWhileRevalidate(event, request, isOwnAsset));
     }
 });
 
@@ -80,11 +80,13 @@ async function handleNavigation(request, url) {
     }
 }
 
-async function staleWhileRevalidate(event, request) {
+async function staleWhileRevalidate(event, request, isOwnAsset) {
     const cache = await caches.open(STATIC_CACHE);
     const cached = await cache.match(request);
 
-    const network = fetch(request)
+    // Our assets are revalidated with the server (ETag), not the browser's HTTP cache: the server sends
+    // a 10-day max-age, so a copy cached wrong once (e.g. read mid-update) would otherwise stick for days.
+    const network = fetch(request, isOwnAsset ? { cache: 'no-cache' } : undefined)
         .then(async (response) => {
             // Cross-origin scripts come back opaque (status 0); they are still usable from the cache.
             if (response.ok || response.type === 'opaque') {
