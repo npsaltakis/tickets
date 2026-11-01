@@ -26,6 +26,7 @@ class SiteSettings
         'org_tax_id'      => '',
         'org_address'     => '',
         'currency'        => 'EUR',
+        'help_chat_enabled' => '1',
     ];
 
     /**
@@ -118,6 +119,14 @@ class SiteSettings
         $code = self::get('currency');
 
         return array_key_exists($code, self::CURRENCIES) ? $code : 'EUR';
+    }
+
+    /**
+     * Whether the help chat is shown on the site (Admin → Settings).
+     */
+    public static function helpChatEnabled(): bool
+    {
+        return self::get('help_chat_enabled') !== '0';
     }
 
     public static function currencySymbol(?string $code = null): string

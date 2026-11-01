@@ -59,6 +59,10 @@ $favicon = \App\Libraries\SiteSettings::assetUrl('favicon_path');
 
             <label class="auth-label" for="footer_text"><?= esc(lang('App.settingsFooter')) ?></label>
             <input id="footer_text" name="footer_text" type="text" class="auth-input" maxlength="255" value="<?= esc($value('footer_text'), 'attr') ?>" placeholder="© <?= date('Y') ?> <?= esc($value('site_name'), 'attr') ?>">
+
+            <input type="hidden" name="help_chat_enabled" value="0">
+            <label class="booking-consent" for="help_chat_enabled"><input id="help_chat_enabled" name="help_chat_enabled" type="checkbox" value="1" <?= $value('help_chat_enabled') === '1' ? 'checked' : '' ?>><span><?= esc(lang('App.settingsHelpChat')) ?></span></label>
+            <p class="field-hint"><?= esc(lang('App.settingsHelpChatHint')) ?></p>
         </section>
 
         <div class="settings-side">

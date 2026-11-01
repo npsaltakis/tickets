@@ -65,6 +65,8 @@ class SettingsController extends BaseController
         $currency = strtoupper(trim((string) $this->request->getPost('currency')));
         $values['currency'] = array_key_exists($currency, SiteSettings::CURRENCIES) ? $currency : SiteSettings::currency();
 
+        $values['help_chat_enabled'] = $this->request->getPost('help_chat_enabled') === '1' ? '1' : '0';
+
         foreach (['logo_path' => ['png', 'jpg', 'jpeg', 'webp'], 'favicon_path' => ['png', 'ico']] as $field => $extensions) {
             $current = SiteSettings::get($field);
 

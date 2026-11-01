@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Libraries\HelpAssistant;
+use App\Libraries\SiteSettings;
 use CodeIgniter\HTTP\ResponseInterface;
 
 /**
@@ -13,6 +14,10 @@ class HelpController extends BaseController
 {
     public function menu(): ResponseInterface
     {
+        if (! SiteSettings::helpChatEnabled()) {
+            return $this->json(['error' => lang('App.helpDisabled')], 404);
+        }
+
         return $this->json([
             'signedIn'  => $this->userId() !== null,
             'questions' => HelpAssistant::menu($this->userId(), $this->request->getLocale()),
@@ -21,6 +26,10 @@ class HelpController extends BaseController
 
     public function answer(): ResponseInterface
     {
+        if (! SiteSettings::helpChatEnabled()) {
+            return $this->json(['error' => lang('App.helpDisabled')], 404);
+        }
+
         $id = substr((string) $this->request->getGet('q'), 0, 40);
 
         $answer = $id === '' ? null : HelpAssistant::answer($id, $this->userId(), $this->request->getLocale());
