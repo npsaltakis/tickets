@@ -25,16 +25,19 @@ $type = $field('type', 'image');
             <?php if (empty($slides)): ?>
                 <div class="empty"><?= esc(lang('App.heroSlidesEmpty')) ?></div>
             <?php else: ?>
-                <?php /* Three columns only, so the buttons stay in view on phones and tablets. */ ?>
+                <p class="field-hint"><?= esc(lang('App.heroSlidesDragHint')) ?></p>
+                <p class="field-hint hero-admin-status" data-hero-status role="status" aria-live="polite"></p>
+                <?php /* Few, narrow columns so the buttons stay in view on phones and tablets. */ ?>
                 <table class="admin-table hero-admin-table">
                     <thead>
                         <tr>
+                            <th><span class="visually-hidden"><?= esc(lang('App.heroSlideOrder')) ?></span></th>
                             <th><?= esc(lang('App.heroSlideImage')) ?></th>
                             <th><?= esc(lang('App.heroSlideTitle')) ?></th>
                             <th><?= esc(lang('App.adminEventsActions')) ?></th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody data-hero-sortable data-reorder-url="<?= esc(base_url('admin/hero-slides/reorder'), 'attr') ?>" data-saved-text="<?= esc(lang('App.heroSlidesOrderSaved'), 'attr') ?>" data-error-text="<?= esc(lang('App.heroSlidesOrderError'), 'attr') ?>">
                         <?php foreach ($slides as $slide): ?>
                             <?php
                             $isEvent = $slide['type'] === 'event';
@@ -43,7 +46,12 @@ $type = $field('type', 'image');
                                 $title = (string) ($eventTitles[(int) $slide['event_id']] ?? lang('App.heroSlideEventMissing'));
                             }
                             ?>
-                            <tr>
+                            <tr data-id="<?= (int) $slide['id'] ?>">
+                                <td>
+                                    <button type="button" class="hero-drag-handle" data-hero-handle title="<?= esc(lang('App.heroSlidesDrag'), 'attr') ?>" aria-label="<?= esc(lang('App.heroSlidesDrag') . ': ' . $title, 'attr') ?>">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>
+                                    </button>
+                                </td>
                                 <td>
                                     <?php if (! empty($slide['image'])): ?>
                                         <img class="hero-admin-thumb" src="<?= esc($imageUrl((string) $slide['image']), 'attr') ?>" alt="" width="96" height="40" loading="lazy">
@@ -54,7 +62,7 @@ $type = $field('type', 'image');
                                 <td>
                                     <?= esc($title) ?>
                                     <div class="meta hero-admin-meta">
-                                        <?= esc(lang('App.heroSlideOrder')) ?> <?= (int) $slide['sort_order'] ?>
+                                        <?= esc(lang('App.heroSlideOrder')) ?> <span data-hero-order><?= (int) $slide['sort_order'] ?></span>
                                         · <?= esc(lang($isEvent ? 'App.heroSlideTypeEvent' : 'App.heroSlideTypeImage')) ?>
                                         · <?= esc(lang((int) $slide['is_active'] === 1 ? 'App.heroSlideActive' : 'App.heroSlideInactive')) ?>
                                     </div>
@@ -135,4 +143,9 @@ $type = $field('type', 'image');
 
     </div>
 </div>
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+<script src="<?= base_url('assets/js/hero-slides-admin.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/hero-slides-admin.js') ?: time() ?>"></script>
 <?= $this->endSection() ?>

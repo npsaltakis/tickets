@@ -114,6 +114,7 @@ $routes->post('admin/pages/(:segment)/(:segment)/reset', 'PagesAdminController::
 $routes->post('admin/pages/(:segment)/(:segment)', 'PagesAdminController::save/$1/$2');
 $routes->get('admin/hero-slides', 'HeroSlideAdminController::index');
 $routes->post('admin/hero-slides', 'HeroSlideAdminController::store');
+$routes->post('admin/hero-slides/reorder', 'HeroSlideAdminController::reorder');
 $routes->post('admin/hero-slides/(:num)/update', 'HeroSlideAdminController::update/$1');
 $routes->post('admin/hero-slides/(:num)/delete', 'HeroSlideAdminController::delete/$1');
 $routes->get('admin/settings', 'SettingsController::index');

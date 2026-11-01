@@ -4453,7 +4453,6 @@ input[name="test_only"] {
     overflow: hidden;
     /* Same ratio as the recommended 1920×720 image, so phones see all of it instead of a cropped middle. */
     aspect-ratio: 8 / 3;
-    max-height: min(720px, 70vh);
     width: 100%;
     background: var(--surface-2);
     border-bottom: 1px solid rgba(148, 163, 184, 0.12);
@@ -4476,10 +4475,11 @@ input[name="test_only"] {
     visibility: visible;
 }
 
+/* The whole image is always shown; one with another ratio gets thin bars instead of being cropped. */
 .hero-image {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     display: block;
 }
 
@@ -4632,8 +4632,15 @@ input[name="test_only"] {
 }
 
 .hero-admin-table td:first-child,
+.hero-admin-table td:nth-child(2),
 .hero-admin-table td:last-child {
     width: 1%;
+}
+
+.hero-admin-table td:first-child,
+.hero-admin-table th:first-child {
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .hero-admin-meta {
@@ -4657,4 +4664,52 @@ input[name="test_only"] {
 
 @media (max-width: 480px) {
     .hero-admin-thumb { width: 64px; height: 28px; }
+}
+
+/* Admin → Hero slider: drag handle and row states while dragging */
+.hero-drag-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 38px;
+    min-height: 38px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    cursor: grab;
+    touch-action: none;
+}
+
+.hero-drag-handle:hover,
+.hero-drag-handle:focus-visible {
+    color: #f8fafc;
+    background: rgba(148, 163, 184, 0.14);
+}
+
+.hero-row-chosen .hero-drag-handle {
+    cursor: grabbing;
+}
+
+.hero-row-ghost {
+    opacity: 0.45;
+    background: rgba(var(--accent-rgb), 0.12);
+}
+
+.hero-admin-status:empty {
+    display: none;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }

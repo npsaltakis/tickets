@@ -6,6 +6,7 @@ use App\Models\EventModel;
 use App\Models\HeroSlideModel;
 use CodeIgniter\HTTP\Files\UploadedFile;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 
 /**
  * Admin → Hero slider: slides of the home page slider, each an uploaded image or an event.
@@ -60,6 +61,33 @@ class HeroSlideAdminController extends BaseController
         }
 
         return $this->persist($slide);
+    }
+
+    /**
+     * Saves the order set by dragging the rows of the list (ids in their new order).
+     */
+    public function reorder(): ResponseInterface
+    {
+        if (! $this->isAdmin()) {
+            return $this->response->setStatusCode(403)->setJSON(['error' => 'Unauthorized']);
+        }
+
+        $ids = array_values(array_unique(array_filter(array_map('intval', (array) $this->request->getPost('ids')))));
+        if ($ids === []) {
+            return $this->response->setStatusCode(422)->setJSON(['error' => 'No slides']);
+        }
+
+        $known = array_map('intval', array_column($this->slideModel->select('id')->whereIn('id', $ids)->findAll(), 'id'));
+        $order = 0;
+        foreach ($ids as $id) {
+            if (in_array($id, $known, true)) {
+                $this->slideModel->update($id, ['sort_order' => ++$order]);
+            }
+        }
+
+        $this->logAdminAction('hero_slide_reorder', 'system', ['ids' => $ids]);
+
+        return $this->response->setJSON(['success' => true]);
     }
 
     public function delete(int $id): RedirectResponse
