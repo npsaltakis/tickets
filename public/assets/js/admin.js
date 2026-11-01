@@ -49,4 +49,34 @@
             menuBtn?.focus();
         }
     });
+
+    // Menu groups: the one with the current page is open; the others open/close on click and are remembered.
+    const GROUPS_KEY = 'admin_nav_open_groups';
+    const readOpen = () => {
+        try { return JSON.parse(localStorage.getItem(GROUPS_KEY) || '[]'); } catch (e) { return []; }
+    };
+    const saveOpen = (list) => {
+        try { localStorage.setItem(GROUPS_KEY, JSON.stringify(list)); } catch (e) { /* not stored */ }
+    };
+
+    const setGroup = (group, open) => {
+        const button = group.querySelector('.admin-nav-group-toggle');
+        const items  = group.querySelector('.admin-nav-group-items');
+        group.classList.toggle('is-open', open);
+        button?.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (items) items.hidden = !open;
+    };
+
+    const remembered = readOpen();
+    sidebar.querySelectorAll('[data-nav-group]').forEach((group) => {
+        setGroup(group, group.dataset.active === '1' || remembered.includes(group.dataset.navGroup));
+
+        group.querySelector('.admin-nav-group-toggle')?.addEventListener('click', () => {
+            const open = !group.classList.contains('is-open');
+            setGroup(group, open);
+            const list = readOpen().filter((key) => key !== group.dataset.navGroup);
+            if (open) list.push(group.dataset.navGroup);
+            saveOpen(list);
+        });
+    });
 })();

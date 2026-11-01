@@ -5201,3 +5201,81 @@ input[name="test_only"] {
 @media print {
     .help-chat { display: none; }
 }
+
+/* Admin sidebar: collapsible groups and a tighter list */
+.admin-nav-link {
+    padding: 7px 10px;
+    font-size: 0.86rem;
+}
+
+.admin-nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 6px;
+}
+
+.admin-nav-group-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-height: 0;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: rgba(148, 163, 184, 0.6);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.admin-nav-group-toggle:hover,
+.admin-nav-group-toggle:focus-visible {
+    color: #f8fafc;
+    background: rgba(148, 163, 184, 0.06);
+}
+
+.admin-nav-chevron {
+    flex: 0 0 auto;
+    transition: transform 0.15s ease;
+    transform: rotate(-90deg);
+}
+
+.admin-nav-group.is-open .admin-nav-chevron {
+    transform: none;
+}
+
+.admin-nav-group-items {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.admin-nav-group-items[hidden] {
+    display: none;
+}
+
+/* Icons-only sidebar: no group headers, every icon stays reachable. */
+.admin-sidebar.is-collapsed .admin-nav-group-toggle {
+    display: none;
+}
+
+.admin-sidebar.is-collapsed .admin-nav-group {
+    margin-top: 0;
+    padding-top: 6px;
+    border-top: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.admin-sidebar.is-collapsed .admin-nav-group-items[hidden] {
+    display: flex;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-nav-chevron { transition: none; }
+}
