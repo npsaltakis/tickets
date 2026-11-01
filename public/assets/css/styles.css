@@ -386,6 +386,59 @@ h1 {
     width: 120px;
 }
 
+/* Seats − / + buttons (added by event-show.js) */
+.seats-stepper {
+    display: inline-flex;
+    align-items: stretch;
+}
+
+.seats-stepper .seats-input {
+    width: 64px;
+    border-radius: 0;
+    text-align: center;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.seats-stepper .seats-input::-webkit-outer-spin-button,
+.seats-stepper .seats-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.seats-step {
+    min-width: 44px;
+    min-height: 44px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.seats-step:first-child {
+    border-radius: 8px 0 0 8px;
+    border-right: 0;
+}
+
+.seats-step:last-child {
+    border-radius: 0 8px 8px 0;
+    border-left: 0;
+}
+
+.seats-step:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.seats-step:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 .booking-paypal-block {
     width: 100%;
     max-width: 460px;
@@ -458,6 +511,16 @@ h1 {
     .donation-booking-field .seats-input,
     .donation-booking-field .donation-input {
         width: 100%;
+    }
+
+    .donation-booking-field .seats-stepper {
+        display: flex;
+    }
+
+    .donation-booking-field .seats-stepper .seats-input {
+        flex: 1;
+        width: auto;
+        min-width: 0;
     }
 }
 

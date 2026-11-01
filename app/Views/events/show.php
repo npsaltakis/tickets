@@ -247,7 +247,10 @@ $assetVersion = static function (string $relativePath): string {
                         max="<?= esc((string) max($bookableSeats, 1)) ?>"
                         value="<?= esc((string) ($canBook ? 1 : 0)) ?>"
                         <?= $canBook ? '' : 'disabled' ?>
-                        data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>">
+                        inputmode="numeric"
+                        data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>"
+                        data-decrease-label="<?= esc(lang('App.seatsDecrease'), 'attr') ?>"
+                        data-increase-label="<?= esc(lang('App.seatsIncrease'), 'attr') ?>">
                     <label class="booking-consent" for="booking_consent">
                         <input id="booking_consent" name="accept_terms" type="checkbox" value="1" data-error-message="<?= esc(lang('App.eventBookingConsentError'), 'attr') ?>" <?= $hasExistingBooking ? 'checked' : '' ?> <?= $canBook ? '' : 'disabled' ?>>
                         <span><?= esc(lang('App.eventBookingConsentLabelStart')) ?><a href="<?= base_url('terms') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventBookingConsentTerms')) ?></a><?= esc(lang('App.eventBookingConsentMiddle')) ?><a href="<?= base_url('privacy-policy') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('App.eventBookingConsentPrivacy')) ?></a>.</span>
@@ -285,7 +288,10 @@ $assetVersion = static function (string $relativePath): string {
                                 max="<?= esc((string) max($bookableSeats, 1)) ?>"
                                 value="<?= esc((string) ($canBook ? 1 : 0)) ?>"
                                 <?= $canBook ? '' : 'disabled' ?>
-                                data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>">
+                                inputmode="numeric"
+                                data-limit-message="<?= esc(lang('App.seatsLimitError')) ?>"
+                                data-decrease-label="<?= esc(lang('App.seatsDecrease'), 'attr') ?>"
+                                data-increase-label="<?= esc(lang('App.seatsIncrease'), 'attr') ?>">
                         </div>
 
                         <div class="donation-booking-field">

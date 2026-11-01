@@ -260,6 +260,8 @@ return [
     'seats' => 'Θέσεις',
     'bookSeat' => 'Κλείσε Θέση',
     'seatsLimitError' => 'Μπορείς να επιλέξεις μέχρι {max} θέσεις.',
+    'seatsDecrease' => 'Μία θέση λιγότερη',
+    'seatsIncrease' => 'Μία θέση περισσότερη',
     'bookingLoginRequired' => 'Κάνε πρώτα σύνδεση για να κλείσεις θέσεις.',
     'bookingEventUnavailable' => 'Αυτή η εκδήλωση δεν είναι διαθέσιμη για κράτηση.',
     'bookingClosedMessage' => 'Οι κρατήσεις για αυτή την εκδήλωση έχουν κλείσει.',

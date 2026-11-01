@@ -50,9 +50,16 @@
         return true;
     };
 
-    const validateSeats = () => {
-        const rawValue = seatsInput.value;
+    // commit=false while typing: an empty or partial value is left alone, otherwise clearing the
+    // field (to type another number on a phone) snaps it straight back to the minimum.
+    const validateSeats = (commit = true) => {
+        const rawValue = seatsInput.value.trim();
         let value = Number(rawValue);
+
+        if (!commit && (rawValue === '' || value < minSeats)) {
+            seatsError.textContent = '';
+            return minSeats;
+        }
 
         if (!Number.isFinite(value)) {
             value = minSeats;
@@ -74,13 +81,51 @@
         return value;
     };
 
+    // − / + buttons: phones and tablets have no spin arrows on number inputs.
+    const addSeatsStepper = () => {
+        const stepper = document.createElement('div');
+        stepper.className = 'seats-stepper';
+        seatsInput.parentNode.insertBefore(stepper, seatsInput);
+
+        const button = (delta, label, text) => {
+            const element = document.createElement('button');
+            element.type = 'button';
+            element.className = 'seats-step';
+            element.setAttribute('aria-label', label);
+            element.textContent = text;
+            element.addEventListener('click', () => {
+                const current = Number(seatsInput.value) || minSeats;
+                seatsInput.value = String(Math.min(maxSeats, Math.max(minSeats, current + delta)));
+                seatsInput.dispatchEvent(new Event('change'));
+            });
+
+            return element;
+        };
+
+        const decrease = button(-1, seatsInput.dataset.decreaseLabel || '−1', '−');
+        const increase = button(1, seatsInput.dataset.increaseLabel || '+1', '+');
+        stepper.append(decrease, seatsInput, increase);
+
+        const refresh = () => {
+            const current = Number(seatsInput.value) || minSeats;
+            decrease.disabled = current <= minSeats;
+            increase.disabled = current >= maxSeats;
+        };
+
+        seatsInput.addEventListener('input', refresh);
+        seatsInput.addEventListener('change', refresh);
+        refresh();
+    };
+
+    addSeatsStepper();
+
     if (consentCheckbox) {
         consentCheckbox.addEventListener('change', validateConsent);
     }
 
     if (!donationBooking || !donationInput) {
-        seatsInput.addEventListener('input', validateSeats);
-        seatsInput.addEventListener('change', validateSeats);
+        seatsInput.addEventListener('input', () => validateSeats(false));
+        seatsInput.addEventListener('change', () => validateSeats());
 
         if (freeBookingForm) {
             freeBookingForm.addEventListener('submit', (event) => {
@@ -279,8 +324,8 @@
         return value;
     };
 
-    const handleSeatsChange = () => {
-        const seats = validateSeats();
+    const handleSeatsChange = (commit) => {
+        const seats = validateSeats(commit);
         syncDonationAmount(seats);
     };
 
@@ -298,8 +343,8 @@
         renderDonationTotal(currentSeats, Number.isFinite(currentValue) ? currentValue : minimumDonation);
     });
 
-    seatsInput.addEventListener('input', handleSeatsChange);
-    seatsInput.addEventListener('change', handleSeatsChange);
+    seatsInput.addEventListener('input', () => handleSeatsChange(false));
+    seatsInput.addEventListener('change', () => handleSeatsChange(true));
 
     syncDonationAmount(validateSeats(), true);
 

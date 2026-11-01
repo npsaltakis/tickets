@@ -260,6 +260,8 @@ return [
     'seats' => 'Seats',
     'bookSeat' => 'Book Seat',
     'seatsLimitError' => 'Only {max} seats available.',
+    'seatsDecrease' => 'One seat less',
+    'seatsIncrease' => 'One seat more',
     'bookingLoginRequired' => 'Please sign in to book seats.',
     'bookingEventUnavailable' => 'This event is not available for booking.',
     'bookingClosedMessage' => 'Bookings for this event are closed.',
