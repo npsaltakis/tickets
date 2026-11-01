@@ -3,7 +3,7 @@
  * so a ticket QR code still opens at the entrance without signal.
  * Bump VERSION to drop the old static caches after changing this file.
  */
-const VERSION = 'v2';
+const VERSION = 'v3';
 const STATIC_CACHE = 'static-' + VERSION;
 const PAGES_CACHE = 'pages-' + VERSION;
 // Not versioned: assets/js/pwa.js deletes it when nobody or another account is signed in.
@@ -80,16 +80,33 @@ async function handleNavigation(request, url) {
     }
 }
 
+/*
+ * Our asset URLs carry ?v=<file mtime> and the server sends that same mtime as Last-Modified. Right after an
+ * update the web server can still hand out the old file for a few seconds under the new ?v=; such a copy is
+ * older than the version asked for, so it is neither served from the cache nor stored.
+ */
+function isOutdated(request, response) {
+    const version = Number(new URL(request.url).searchParams.get('v'));
+    const modified = Date.parse(response.headers.get('last-modified') || '');
+    return version > 0 && !Number.isNaN(modified) && modified / 1000 < version - 1;
+}
+
 async function staleWhileRevalidate(event, request, isOwnAsset) {
     const cache = await caches.open(STATIC_CACHE);
-    const cached = await cache.match(request);
+    let cached = await cache.match(request);
+
+    if (cached && isOwnAsset && isOutdated(request, cached)) {
+        await cache.delete(request);
+        cached = undefined;
+    }
 
     // Our assets are revalidated with the server (ETag), not the browser's HTTP cache: the server sends
     // a 10-day max-age, so a copy cached wrong once (e.g. read mid-update) would otherwise stick for days.
     const network = fetch(request, isOwnAsset ? { cache: 'no-cache' } : undefined)
         .then(async (response) => {
             // Cross-origin scripts come back opaque (status 0); they are still usable from the cache.
-            if (response.ok || response.type === 'opaque') {
+            const usable = response.ok || response.type === 'opaque';
+            if (usable && !(isOwnAsset && isOutdated(request, response))) {
                 await cache.put(request, response.clone());
                 await trimCache(cache);
             }
