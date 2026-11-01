@@ -6,6 +6,7 @@
                 <a class="footer-menu-item footer-menu-link" href="<?= base_url('gdpr') ?>"><?= esc(lang('App.footerGdpr')) ?></a>
                 <a class="footer-menu-item footer-menu-link" href="<?= base_url('about') ?>"><?= esc(lang('App.footerAbout')) ?></a>
                 <a class="footer-menu-item footer-menu-link" href="<?= base_url('contact') ?>"><?= esc(lang('App.footerContact')) ?></a>
+                <a class="footer-menu-item footer-menu-link footer-install-link" href="<?= base_url('install-app') ?>"><?= esc(lang('App.footerInstallApp')) ?></a>
             </nav>
         </div>
         <?php endif; ?>

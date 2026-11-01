@@ -16,6 +16,11 @@ class PagesController extends BaseController
         return $this->page('privacy');
     }
 
+    public function installApp(): string
+    {
+        return view('pages/install_app', ['pageTitle' => lang('App.installAppPageTitle')]);
+    }
+
     public function about(): string
     {
         return $this->page('about');

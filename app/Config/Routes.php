@@ -83,6 +83,7 @@ $routes->post('profile/delete', 'ProfileController::deleteAccount');
 $routes->get('contact', 'PagesController::contact');
 $routes->post('contact', 'PagesController::sendContact');
 $routes->get('about', 'PagesController::about');
+$routes->get('install-app', 'PagesController::installApp');
 
 $routes->post('paypal/webhook', 'PayPalWebhookController::handle');
 $routes->post('events/(:segment)/discount/preview', 'BookingController::previewDiscount/$1');

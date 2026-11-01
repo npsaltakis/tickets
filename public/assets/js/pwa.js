@@ -29,6 +29,57 @@
         window.caches.delete('user-tickets');
     }
 
+    // Install page (pages/install_app.php): one-tap install where the browser offers it
+    // (Chrome/Edge/Android); Safari has no prompt, so the written steps stay the only way there.
+    var installPrompt = null;
+    var isInstalled = function () {
+        return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    };
+
+    window.addEventListener('beforeinstallprompt', function (event) {
+        event.preventDefault();
+        installPrompt = event;
+        var button = document.querySelector('[data-pwa-install]');
+        if (button) {
+            button.hidden = false;
+        }
+    });
+
+    window.addEventListener('appinstalled', function () {
+        installPrompt = null;
+        var button = document.querySelector('[data-pwa-install]');
+        var note = document.querySelector('[data-pwa-installed]');
+        if (button) {
+            button.hidden = true;
+        }
+        if (note) {
+            note.hidden = false;
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var button = document.querySelector('[data-pwa-install]');
+        var note = document.querySelector('[data-pwa-installed]');
+
+        if (note && isInstalled()) {
+            note.hidden = false;
+        }
+
+        if (button) {
+            button.hidden = installPrompt === null;
+            button.addEventListener('click', function () {
+                if (!installPrompt) {
+                    return;
+                }
+                installPrompt.prompt();
+                installPrompt.userChoice.finally(function () {
+                    installPrompt = null;
+                    button.hidden = true;
+                });
+            });
+        }
+    });
+
     document.addEventListener('DOMContentLoaded', function () {
         var banner = document.querySelector('[data-offline-banner]');
         if (!banner) {
