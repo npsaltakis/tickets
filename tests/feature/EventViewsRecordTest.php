@@ -53,8 +53,7 @@ final class EventViewsRecordTest extends CIUnitTestCase
 
     private function visit(array $event, string $agent = self::BROWSER, array $session = [], string $query = ''): void
     {
-        $_SERVER['HTTP_USER_AGENT'] = $agent;
-        $this->withSession($session)->get('events/' . $event['slug'] . $query)->assertStatus(200);
+        $this->withSession($session)->withHeaders(['User-Agent' => $agent])->get('events/' . $event['slug'] . $query)->assertStatus(200);
     }
 
     public function testRepeatVisitsSameDayCountOneVisitor(): void

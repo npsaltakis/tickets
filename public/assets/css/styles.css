@@ -4751,3 +4751,79 @@ input[name="test_only"] {
     margin-left: 6px;
     font-size: 0.8rem;
 }
+
+/* Admin → Events on phones: each event is a card with its fields one under the other, instead of a wide table. */
+@media (max-width: 768px) {
+    .admin-table.admin-events-table {
+        min-width: 0;
+        border-collapse: separate;
+    }
+
+    .admin-events-table thead {
+        display: none;
+    }
+
+    .admin-events-table,
+    .admin-events-table tbody {
+        display: block;
+    }
+
+    .admin-events-table tr {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 4px 10px;
+        padding: 12px;
+        margin-bottom: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.45);
+    }
+
+    .admin-events-table td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        grid-column: 1 / -1;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        min-width: 0;
+    }
+
+    .admin-events-table td[data-label]::before {
+        content: attr(data-label);
+        color: var(--muted);
+        font-size: 0.82rem;
+        flex: 0 0 auto;
+    }
+
+    /* First line: checkbox + title. */
+    .admin-events-table td.admin-events-select {
+        grid-column: 1;
+        border-bottom: 0;
+    }
+
+    .admin-events-table td.admin-events-title {
+        grid-column: 2;
+        justify-content: flex-start;
+        border-bottom: 0;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .admin-events-table td.admin-events-actions {
+        border-bottom: 0;
+        padding-top: 10px;
+    }
+
+    .admin-events-table td.admin-events-actions .admin-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .admin-events-table .admin-status-select {
+        max-width: 60%;
+    }
+}

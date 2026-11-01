@@ -50,7 +50,7 @@ class EventViews
             $db    = db_connect();
             $table = $db->prefixTable('event_views');
             $today = date('Y-m-d');
-            $hash  = hash('sha256', self::dailySalt($today) . '|' . $request->getIPAddress() . '|' . $request->getUserAgent()->getAgentString());
+            $hash  = hash('sha256', self::dailySalt($today) . '|' . $request->getIPAddress() . '|' . self::userAgent($request));
 
             // The first visit of the day keeps its source; later ones only count as extra hits.
             $db->query(
@@ -73,7 +73,7 @@ class EventViews
             return $utm;
         }
 
-        return self::sourceFromReferrer((string) $request->getServer('HTTP_REFERER'), (string) parse_url(base_url('/'), PHP_URL_HOST));
+        return self::sourceFromReferrer($request->getHeaderLine('Referer'), (string) parse_url(base_url('/'), PHP_URL_HOST));
     }
 
     public static function normalizeUtm(string $value): string
@@ -259,7 +259,14 @@ class EventViews
             return false;
         }
 
-        return ! self::isBot($request->getUserAgent()->getAgentString());
+        return ! self::isBot(self::userAgent($request));
+    }
+
+    private static function userAgent(IncomingRequest $request): string
+    {
+        $agent = $request->getHeaderLine('User-Agent');
+
+        return $agent !== '' ? $agent : $request->getUserAgent()->getAgentString();
     }
 
     private static function dailySalt(string $day): string

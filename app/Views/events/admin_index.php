@@ -69,24 +69,24 @@ $assetVersion = static function (string $relativePath): string {
                             : lang('App.freeEvent');
                         ?>
                         <tr>
-                            <td><input type="checkbox" class="bulk-check bulk-checkbox" data-slug="<?= esc($event['slug']) ?>"></td>
-                            <td>
+                            <td class="admin-events-select"><input type="checkbox" class="bulk-check bulk-checkbox" data-slug="<?= esc($event['slug']) ?>"></td>
+                            <td class="admin-events-title">
                                 <a class="admin-events-title-link" href="<?= esc(base_url('events/' . $event['slug'])) ?>">
                                     <?= esc($event['title']) ?>
                                 </a>
                             </td>
-                            <td>
+                            <td data-label="<?= esc(lang('App.eventStatusLabel'), 'attr') ?>">
                                 <select class="js-status-select admin-status-select status-<?= esc($status) ?>" data-slug="<?= esc($event['slug']) ?>" aria-label="<?= esc(lang('App.eventStatusLabel') . ': ' . $event['title'], 'attr') ?>">
                                     <option value="active"    <?= $status === 'active'    ? 'selected' : '' ?>><?= esc(lang('App.eventStatusActive')) ?></option>
                                     <option value="inactive"  <?= $status === 'inactive'  ? 'selected' : '' ?>><?= esc(lang('App.eventStatusInactive')) ?></option>
                                     <option value="cancelled" <?= $status === 'cancelled' ? 'selected' : '' ?>><?= esc(lang('App.eventStatusCancelled')) ?></option>
                                 </select>
                             </td>
-                            <td class="admin-events-date"><?= esc($startDate) ?></td>
-                            <td class="admin-events-date"><?= esc($endDate) ?></td>
-                            <td><span class="table-pill"><?= esc($type) ?></span></td>
-                            <td class="admin-events-capacity"><?= esc((string) $issued) ?> / <?= esc((string) $capacity) ?></td>
-                            <td class="admin-events-views">
+                            <td class="admin-events-date" data-label="<?= esc(lang('App.startDate'), 'attr') ?>"><?= esc($startDate) ?></td>
+                            <td class="admin-events-date" data-label="<?= esc(lang('App.endDate'), 'attr') ?>"><?= esc($endDate) ?></td>
+                            <td data-label="<?= esc(lang('App.type'), 'attr') ?>"><span class="table-pill"><?= esc($type) ?></span></td>
+                            <td class="admin-events-capacity" data-label="<?= esc(lang('App.adminEventsCapacity'), 'attr') ?>"><?= esc((string) $issued) ?> / <?= esc((string) $capacity) ?></td>
+                            <td class="admin-events-views" data-label="<?= esc(lang('App.viewsColumn'), 'attr') ?>">
                                 <?php $vs = $viewStats[(int) ($event['id'] ?? 0)] ?? null; ?>
                                 <?php if ($vs === null): ?>
                                     <span class="meta">—</span>
@@ -95,7 +95,7 @@ $assetVersion = static function (string $relativePath): string {
                                     <span class="meta admin-events-conversion" title="<?= esc(lang('App.viewsConversionHint', [$vs['bookers'], $vs['visitors']]), 'attr') ?>"><?= esc(number_format((float) $vs['conversion'], 1, ',', '')) ?>%</span>
                                 <?php endif; ?>
                             </td>
-                            <td>
+                            <td class="admin-events-actions">
                                 <div class="admin-actions">
                                     <a class="admin-action-link" href="<?= esc(base_url('admin/events/' . $event['slug'] . '/tickets')) ?>"><?= esc(lang('App.adminEventsTickets')) ?></a>
                                     <a class="admin-action-link" href="<?= esc(base_url('events/' . $event['slug'] . '/edit')) ?>"><?= esc(lang('App.eventEditButton')) ?></a>
