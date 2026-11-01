@@ -84,14 +84,14 @@ class Filters extends BaseFilters
             // Admin/staff pages and machine endpoints are not throttled (check-in scans and polls quickly).
             'ratelimit' => ['except' => [
                 'admin', 'admin/*', 'admin-logs', 'admin-logs/*', 'check-in', 'check-in/*',
-                'robots.txt', 'sitemap.xml', 'health', 'install', 'paypal/webhook',
+                'robots.txt', 'sitemap.xml', 'health', 'paypal/webhook',
                 'manifest.webmanifest', 'pwa/*', 'offline',
             ]],
             // Deliberately applies to the admin area too, so a blocked IP also loses a signed-in session.
             // admin/security and logout stay reachable, so a blocked admin can still lift the block.
             'checkblockedip' => ['except' => [
                 'admin/security', 'admin/security/*', 'logout',
-                'robots.txt', 'sitemap.xml', 'health', 'install', 'paypal/webhook',
+                'robots.txt', 'sitemap.xml', 'health', 'paypal/webhook',
             ]],
             'honeypot' => ['except' => ['admin', 'admin/*', 'install', 'paypal/webhook']],
             'csrf'     => ['except' => ['paypal/webhook']],
@@ -160,6 +160,12 @@ class Filters extends BaseFilters
             'before' => [
                 'my-events',
                 'my-events/*',
+                'profile',
+                'profile/*',
+                'events/*/book',
+                'events/*/paypal/*',
+                'events/*/waitlist',
+                'events/*/waitlist/*',
             ],
         ],
     ];

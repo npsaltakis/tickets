@@ -7,7 +7,7 @@ $assetVersion = static function (string $relativePath): string {
 
 <?= $this->section('content') ?>
 <?= $this->include('events/_hero_slider') ?>
-<main class="wrapper">
+<main class="wrapper" id="main-content">
     <?php $isAdmin = session()->get('is_logged_in') === true && (string) session()->get('user_role') === 'admin'; ?>
 
     <div class="events-header">
@@ -49,11 +49,11 @@ $assetVersion = static function (string $relativePath): string {
             <p class="events-search-hint" id="events-search-hint"><?= esc(lang('App.eventsSearchHint')) ?></p>
         </div>
         <div class="view-toggle">
-            <button id="view-grid" class="view-toggle-btn is-active" title="<?= esc(lang('App.viewGrid')) ?>" aria-label="<?= esc(lang('App.viewGrid'), 'attr') ?>">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
+            <button type="button" id="view-grid" class="view-toggle-btn is-active" aria-pressed="true" title="<?= esc(lang('App.viewGrid')) ?>" aria-label="<?= esc(lang('App.viewGrid'), 'attr') ?>">
+                <svg aria-hidden="true" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
             </button>
-            <button id="view-cal" class="view-toggle-btn" title="<?= esc(lang('App.viewCalendar')) ?>" aria-label="<?= esc(lang('App.viewCalendar'), 'attr') ?>">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+            <button type="button" id="view-cal" class="view-toggle-btn" aria-pressed="false" title="<?= esc(lang('App.viewCalendar')) ?>" aria-label="<?= esc(lang('App.viewCalendar'), 'attr') ?>">
+                <svg aria-hidden="true" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
             </button>
         </div>
     </div>
@@ -93,11 +93,11 @@ $assetVersion = static function (string $relativePath): string {
 
     <?php if (!empty($categories)): ?>
         <div class="category-filter">
-            <a href="<?= base_url('/') ?>" class="category-pill <?= ($activeCatId ?? 0) === 0 ? 'is-active' : '' ?>">
+            <a href="<?= base_url('/') ?>" class="category-pill <?= ($activeCatId ?? 0) === 0 ? 'is-active' : '' ?>" <?= ($activeCatId ?? 0) === 0 ? 'aria-current="true"' : '' ?>>
                 <?= esc(lang('App.categoryAll')) ?>
             </a>
             <?php foreach ($categories as $cat): ?>
-                <a href="<?= base_url('/?cat=' . (int)$cat['id']) ?>" class="category-pill <?= ($activeCatId ?? 0) === (int)$cat['id'] ? 'is-active' : '' ?>" style="--cat-color:<?= esc($cat['color'] ?? '#14b8a6') ?>">
+                <a href="<?= base_url('/?cat=' . (int)$cat['id']) ?>" class="category-pill <?= ($activeCatId ?? 0) === (int)$cat['id'] ? 'is-active' : '' ?>" <?= ($activeCatId ?? 0) === (int)$cat['id'] ? 'aria-current="true"' : '' ?> style="--cat-color:<?= esc($cat['color'] ?? '#14b8a6') ?>">
                     <?= esc($cat['name']) ?>
                 </a>
             <?php endforeach; ?>

@@ -71,7 +71,7 @@ class LoginController extends BaseController
 
             $this->recordFailedLoginAttempt($email);
 
-            return redirect()->back()->withInput()->with('login_error', lang('App.loginUnavailable'));
+            return redirect()->back()->withInput()->with('login_error', lang('App.loginInvalidCredentials'));
         }
 
         $this->clearLoginAttempts($email);
@@ -182,7 +182,9 @@ class LoginController extends BaseController
         }
 
         $session  = session();
-        $attempts = (int) $session->get('pending_2fa_attempts') + 1;
+        $cacheKey = '2fa_attempts_' . (int) $user['id'];
+        $attempts = max((int) $session->get('pending_2fa_attempts'), (int) cache()->get($cacheKey)) + 1;
+        cache()->save($cacheKey, $attempts, 300);
 
         if ($attempts > 5) {
             $session->remove(['pending_2fa_user', 'pending_2fa_until', 'pending_2fa_attempts']);
@@ -192,7 +194,14 @@ class LoginController extends BaseController
 
         $session->set('pending_2fa_attempts', $attempts);
 
-        if (! \App\Libraries\Totp::verify((string) $user['totp_secret'], (string) $this->request->getPost('code'))) {
+        $rawCode   = (string) $this->request->getPost('code');
+        $replayKey = 'totp_used_' . (int) $user['id'] . '_' . (preg_replace('/\D/', '', $rawCode) ?? '');
+        $validCode = cache()->get($replayKey) === null && \App\Libraries\Totp::verify((string) $user['totp_secret'], $rawCode);
+        if ($validCode) {
+            cache()->save($replayKey, 1, 90);
+            cache()->delete($cacheKey);
+        }
+        if (! $validCode) {
             return redirect()->back()->with('login_error', lang('App.twoFactorInvalid'));
         }
 
@@ -494,6 +503,7 @@ class LoginController extends BaseController
             'used_at' => Time::now()->toDateTimeString(),
         ]);
 
+        session()->regenerate(true);
         return redirect()->to(base_url('login'))->with('login_info', lang('App.passwordResetSuccess'));
     }
 

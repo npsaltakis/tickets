@@ -350,6 +350,7 @@ class ProfileController extends BaseController
                 return redirect()->back()->withInput()->with('profile_error', lang('App.profilePasswordMismatch'));
             }
             $payload['password'] = password_hash($newPass, PASSWORD_DEFAULT);
+            session()->regenerate(true);
         }
 
         $this->userModel->update($userId, $payload);

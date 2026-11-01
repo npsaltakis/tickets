@@ -28,6 +28,12 @@ class DbBackup extends BaseCommand
             return EXIT_ERROR;
         }
 
+        if (! is_file($dir . DIRECTORY_SEPARATOR . '.htaccess')) {
+            @file_put_contents($dir . DIRECTORY_SEPARATOR . '.htaccess', "<IfModule authz_core_module>\n    Require all denied\n</IfModule>\n<IfModule !authz_core_module>\n    Deny from all\n</IfModule>\n");
+        }
+        if (! is_file($dir . DIRECTORY_SEPARATOR . 'index.html')) {
+            @file_put_contents($dir . DIRECTORY_SEPARATOR . 'index.html', '');
+        }
         $file   = $dir . DIRECTORY_SEPARATOR . 'backup-' . date('Ymd-His') . '.sql.gz';
         $handle = gzopen($file, 'wb9');
 

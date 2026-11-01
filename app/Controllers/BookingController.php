@@ -333,6 +333,10 @@ class BookingController extends EventBaseController
             throw PageNotFoundException::forPageNotFound('Event not found');
         }
 
+        if (session()->get('is_logged_in') !== true) {
+            return redirect()->to(base_url('login'))->with('login_info', lang('App.bookingLoginRequired'));
+        }
+
         (new WaitlistModel())
             ->where('event_id', (int) $event['id'])
             ->where('user_id', (int) session()->get('user_id'))
@@ -378,7 +382,8 @@ class BookingController extends EventBaseController
         $cache = cache();
         $attempts = (int) ($cache->get($key) ?? 0);
 
-        if ($attempts >= 30) {
+        $limit = $scope === 'discount_preview' ? 10 : 30;
+        if ($attempts >= $limit) {
             return false;
         }
 

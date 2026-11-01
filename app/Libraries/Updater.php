@@ -22,7 +22,7 @@ class Updater
     /**
      * Paths (relative to the site root) the package never overwrites.
      */
-    private const PROTECTED = ['.env', 'writable/', 'keys/', 'public/assets/images/site/'];
+    private const PROTECTED = ['.env', 'writable/', 'keys/', 'public/assets/images/site/', 'public/assets/images/hero/'];
 
     /**
      * Files every valid package contains.
@@ -148,7 +148,7 @@ class Updater
 
             $this->removeDir($package);
             $zip = new ZipArchive();
-            if ($zip->open($zipFile) !== true || ! $zip->extractTo($package)) {
+            if ($zip->open($zipFile) !== true || ! $this->hasSafeEntries($zip) || ! $zip->extractTo($package)) {
                 throw new RuntimeException(lang('App.updaterBadPackage'));
             }
             $zip->close();
@@ -218,6 +218,18 @@ class Updater
         return preg_match('#^public/assets/images/\d+/#', $relative) === 1;
     }
 
+    private function hasSafeEntries(ZipArchive $zip): bool
+    {
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $entry = str_replace('\\', '/', (string) $zip->getNameIndex($i));
+            if ($entry === '' || str_starts_with($entry, '/') || preg_match('#(^|/)\.\.(/|$)#', $entry) === 1) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Zips the current copies of the files about to be replaced into writable/backups.
      *
@@ -231,6 +243,12 @@ class Updater
         }
 
         $from = preg_replace('/[^A-Za-z0-9._-]/', '', $this->currentVersion()) ?: 'unversioned';
+        if (! is_file($dir . DIRECTORY_SEPARATOR . '.htaccess')) {
+            @file_put_contents($dir . DIRECTORY_SEPARATOR . '.htaccess', "<IfModule authz_core_module>\n    Require all denied\n</IfModule>\n<IfModule !authz_core_module>\n    Deny from all\n</IfModule>\n");
+        }
+        if (! is_file($dir . DIRECTORY_SEPARATOR . 'index.html')) {
+            @file_put_contents($dir . DIRECTORY_SEPARATOR . 'index.html', '');
+        }
         $path = $dir . DIRECTORY_SEPARATOR . 'code-' . $from . '-before-' . preg_replace('/[^A-Za-z0-9._-]/', '', $tag) . '-' . date('Ymd-His') . '.zip';
 
         $zip = new ZipArchive();

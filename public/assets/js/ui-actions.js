@@ -1,4 +1,44 @@
 // CSP forbids inline event handlers (script-src-attr 'none'), so views declare intent with data attributes.
+const primaryMain = document.querySelector('main');
+if (primaryMain && !primaryMain.id) {
+    primaryMain.id = 'main-content';
+}
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        document.querySelectorAll('details.user-menu[open]').forEach((menu) => {
+            menu.removeAttribute('open');
+            const summary = menu.querySelector('summary');
+            if (summary instanceof HTMLElement) {
+                summary.focus();
+            }
+        });
+    }
+});
+
+// Forms marked data-submit-once (booking, waitlist) ignore a second submit for a few seconds.
+// Runs on window, after the form's own and the data-confirm handlers had their chance to cancel.
+window.addEventListener('submit', (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || !form.hasAttribute('data-submit-once') || event.defaultPrevented) {
+        return;
+    }
+    if (form.dataset.submitting === '1') {
+        event.preventDefault();
+        return;
+    }
+    form.dataset.submitting = '1';
+    const submitter = event.submitter instanceof HTMLElement ? event.submitter : form.querySelector('button[type="submit"], input[type="submit"]');
+    if (submitter instanceof HTMLElement) {
+        submitter.setAttribute('aria-busy', 'true');
+    }
+    window.setTimeout(() => {
+        delete form.dataset.submitting;
+        if (submitter instanceof HTMLElement) {
+            submitter.removeAttribute('aria-busy');
+        }
+    }, 8000);
+});
 document.addEventListener('submit', (event) => {
     const form = event.target;
 
@@ -13,6 +53,13 @@ document.addEventListener('submit', (event) => {
 
 document.addEventListener('click', (event) => {
     const target = event.target instanceof Element ? event.target : null;
+    if (target) {
+        document.querySelectorAll('details.user-menu[open]').forEach((menu) => {
+            if (!menu.contains(target)) {
+                menu.removeAttribute('open');
+            }
+        });
+    }
     if (!target) {
         return;
     }
@@ -26,7 +73,23 @@ document.addEventListener('click', (event) => {
     const copyButton = target.closest('[data-copy-url]');
     if (copyButton && navigator.clipboard) {
         navigator.clipboard.writeText(copyButton.getAttribute('data-copy-url') || '').then(() => {
-            copyButton.title = 'Copied!';
+            const english = document.documentElement.lang === 'en';
+            const copiedLabel = english ? 'Copied!' : 'Αντιγράφηκε!';
+            const origTitle = copyButton.getAttribute('data-orig-title') || copyButton.getAttribute('title') || '';
+            if (!copyButton.hasAttribute('data-orig-title')) {
+                copyButton.setAttribute('data-orig-title', origTitle);
+            }
+            copyButton.title = copiedLabel;
+            copyButton.setAttribute('aria-label', copiedLabel);
+            copyButton.setAttribute('data-copied-label', copiedLabel);
+            copyButton.classList.add('is-copied');
+            window.setTimeout(() => {
+                copyButton.classList.remove('is-copied');
+                if (origTitle) {
+                    copyButton.title = origTitle;
+                    copyButton.setAttribute('aria-label', origTitle);
+                }
+            }, 2000);
         });
     }
 });
@@ -51,6 +114,7 @@ document.querySelectorAll('input[type="password"]').forEach((input) => {
         input.type = show ? 'text' : 'password';
         button.textContent = labels[show ? 1 : 0];
         button.setAttribute('aria-pressed', show ? 'true' : 'false');
+        button.setAttribute('aria-label', english ? (show ? 'Hide password' : 'Show password') : (show ? 'Απόκρυψη κωδικού' : 'Εμφάνιση κωδικού'));
     });
     wrapper.appendChild(button);
 });

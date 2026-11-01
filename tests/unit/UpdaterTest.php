@@ -55,6 +55,7 @@ final class UpdaterTest extends CIUnitTestCase
         $this->assertTrue(Updater::isProtected('writable/cache/index.html'));
         $this->assertTrue(Updater::isProtected('keys/wallet.json'));
         $this->assertTrue(Updater::isProtected('public/assets/images/site/logo.png'));
+        $this->assertTrue(Updater::isProtected('public/assets/images/hero/slide.jpg'));
         $this->assertTrue(Updater::isProtected('public/assets/images/12/a.jpg'));
         $this->assertFalse(Updater::isProtected('public/assets/images/logo.png'));
         $this->assertFalse(Updater::isProtected('app/Config/App.php'));

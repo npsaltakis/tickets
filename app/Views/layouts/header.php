@@ -79,10 +79,11 @@ $structuredData = array_values(array_filter((array) ($structuredData ?? [])));
     <link rel="stylesheet" href="<?= base_url('assets/css/styles.css') ?>?v=<?= esc($assetVersion('assets/css/styles.css')) ?>">
     <?= $this->include('layouts/_site_head') ?>
     <?php foreach ($structuredData as $structuredDataItem): ?>
-        <script type="application/ld+json"><?= json_encode($structuredDataItem, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?></script>
+        <script type="application/ld+json"><?= json_encode($structuredDataItem, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
     <?php endforeach; ?>
 </head>
 <body>
+<a class="skip-link" href="#main-content"><?= esc($selectedLanguage === 'en' ? 'Skip to content' : 'Μετάβαση στο περιεχόμενο') ?></a>
 <header class="top-nav">
     <div class="top-nav-inner">
         <div class="top-nav-left">
@@ -94,15 +95,15 @@ $structuredData = array_values(array_filter((array) ($structuredData ?? [])));
             </a>
             <nav aria-label="Main navigation">
                 <ul class="menu">
-                    <li><a class="menu-link <?= $currentPath === '' ? 'is-active' : '' ?>" href="<?= base_url('/') ?>"><?= esc(lang('App.navHome')) ?></a></li>
+                    <li><a class="menu-link <?= $currentPath === '' ? 'is-active' : '' ?>" <?= $currentPath === '' ? 'aria-current="page"' : '' ?> href="<?= base_url('/') ?>"><?= esc(lang('App.navHome')) ?></a></li>
                     <?php if ($isAdmin): ?>
-                        <li><a class="menu-link <?= $currentPath === 'admin/dashboard' ? 'is-active' : '' ?>" href="<?= base_url('admin/dashboard') ?>"><?= esc(lang('App.navAdminDashboard')) ?></a></li>
+                        <li><a class="menu-link <?= $currentPath === 'admin/dashboard' ? 'is-active' : '' ?>" <?= $currentPath === 'admin/dashboard' ? 'aria-current="page"' : '' ?> href="<?= base_url('admin/dashboard') ?>"><?= esc(lang('App.navAdminDashboard')) ?></a></li>
                     <?php endif; ?>
                     <?php if ($isLoggedIn && (string) $session->get('user_role') === 'staff'): ?>
-                        <li><a class="menu-link <?= $currentPath === 'check-in' ? 'is-active' : '' ?>" href="<?= base_url('check-in') ?>"><?= esc(lang('App.navCheckIn')) ?></a></li>
+                        <li><a class="menu-link <?= $currentPath === 'check-in' ? 'is-active' : '' ?>" <?= $currentPath === 'check-in' ? 'aria-current="page"' : '' ?> href="<?= base_url('check-in') ?>"><?= esc(lang('App.navCheckIn')) ?></a></li>
                     <?php endif; ?>
                     <?php if (! $isLoggedIn): ?>
-                        <li><a class="menu-link <?= $currentPath === 'login' ? 'is-active' : '' ?>" href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a></li>
+                        <li><a class="menu-link <?= $currentPath === 'login' ? 'is-active' : '' ?>" <?= $currentPath === 'login' ? 'aria-current="page"' : '' ?> href="<?= base_url('login') ?>"><?= esc(lang('App.loginButton')) ?></a></li>
                     <?php endif; ?>
                 </ul>
             </nav>
@@ -110,9 +111,9 @@ $structuredData = array_values(array_filter((array) ($structuredData ?? [])));
 
         <div class="top-nav-right">
             <div class="lang-switcher" aria-label="Language switcher">
-                <a class="lang-link <?= $selectedLanguage === 'el' ? 'is-active' : '' ?>" href="<?= esc(current_url() . '?lang=el') ?>"><?= esc(lang('App.langEl')) ?></a>
-                <span class="lang-divider">|</span>
-                <a class="lang-link <?= $selectedLanguage === 'en' ? 'is-active' : '' ?>" href="<?= esc(current_url() . '?lang=en') ?>"><?= esc(lang('App.langEn')) ?></a>
+                <a class="lang-link <?= $selectedLanguage === 'el' ? 'is-active' : '' ?>" <?= $selectedLanguage === 'el' ? 'aria-current="true"' : '' ?> href="<?= esc(current_url() . '?lang=el') ?>"><?= esc(lang('App.langEl')) ?></a>
+                <span class="lang-divider" aria-hidden="true">|</span>
+                <a class="lang-link <?= $selectedLanguage === 'en' ? 'is-active' : '' ?>" <?= $selectedLanguage === 'en' ? 'aria-current="true"' : '' ?> href="<?= esc(current_url() . '?lang=en') ?>"><?= esc(lang('App.langEn')) ?></a>
             </div>
 
             <?php if ($isLoggedIn): ?>

@@ -24,6 +24,8 @@ function escapeHtml(value) {
             calWrap.style.display = 'block';
             btnGrid.classList.remove('is-active');
             btnCal.classList.add('is-active');
+            btnGrid.setAttribute('aria-pressed', 'false');
+            btnCal.setAttribute('aria-pressed', 'true');
             localStorage.setItem('events_view', 'calendar');
             renderCalendar(currentMonth, currentYear);
         } else {
@@ -31,6 +33,8 @@ function escapeHtml(value) {
             calWrap.style.display = 'none';
             btnGrid.classList.add('is-active');
             btnCal.classList.remove('is-active');
+            btnGrid.setAttribute('aria-pressed', 'true');
+            btnCal.setAttribute('aria-pressed', 'false');
             localStorage.setItem('events_view', 'grid');
         }
     };
@@ -50,9 +54,9 @@ function escapeHtml(value) {
         const startOffset = (firstDay + 6) % 7;
 
         let html = `<div class="cal-nav">
-            <button class="cal-nav-btn" id="cal-prev">&larr;</button>
+            <button type="button" class="cal-nav-btn" id="cal-prev" aria-label="Previous month">&larr;</button>
             <h2 class="cal-month-title">${MONTH_NAMES[month - 1]} ${year}</h2>
-            <button class="cal-nav-btn" id="cal-next">&rarr;</button>
+            <button type="button" class="cal-nav-btn" id="cal-next" aria-label="Next month">&rarr;</button>
         </div>
         <div class="cal-grid">
             <div class="cal-header">Mon</div><div class="cal-header">Tue</div><div class="cal-header">Wed</div>

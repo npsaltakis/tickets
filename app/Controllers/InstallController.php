@@ -161,6 +161,9 @@ class InstallController extends BaseController
         } catch (PageNotFoundException $exception) {
             throw $exception;
         } catch (Throwable) {
+            if (is_file(ROOTPATH . '.env') && env('CI_ENVIRONMENT') === 'production' && trim((string) (config(\Config\Database::class)->default['database'] ?? '')) !== '') {
+                throw PageNotFoundException::forPageNotFound();
+            }
             // No usable database yet: that is what the installer is for.
         }
     }

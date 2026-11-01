@@ -21,7 +21,7 @@ class PayPalClient
 
     private function verifySsl(): bool
     {
-        return env('CI_ENVIRONMENT', 'production') === 'production';
+        return ! in_array(strtolower((string) env('CURL_VERIFY_SSL', 'true')), ['0', 'false', 'off', 'no'], true);
     }
 
     public function accessToken(): ?string

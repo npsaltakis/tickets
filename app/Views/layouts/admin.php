@@ -22,12 +22,13 @@ $seoTitle = (string) ($pageTitle ?? $siteTitle);
     <?= $this->include('layouts/_site_head') ?>
 </head>
 <body class="admin-body">
+    <a class="skip-link" href="#main-content"><?= esc($currentLocale === 'en' ? 'Skip to content' : 'Μετάβαση στο περιεχόμενο') ?></a>
     <div class="admin-shell">
         <?= $this->include('layouts/admin_sidebar') ?>
         <div class="admin-backdrop" id="admin-backdrop" hidden></div>
         <div class="admin-main" id="admin-main">
             <?= $this->include('layouts/admin_topbar') ?>
-            <main class="admin-content">
+            <main class="admin-content" id="main-content">
                 <?= $this->renderSection('content') ?>
             </main>
         </div>

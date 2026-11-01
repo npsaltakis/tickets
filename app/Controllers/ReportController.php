@@ -325,6 +325,13 @@ class ReportController extends EventBaseController
             return redirect()->to(base_url('my-events'))->with('event_error', lang('App.ticketTransferFailed'));
         }
 
+        $rateKey  = 'ticket_transfer_rate_' . (int) session()->get('user_id');
+        $attempts = (int) (cache()->get($rateKey) ?? 0);
+        if ($attempts >= 5) {
+            return redirect()->to(base_url('my-events'))->with('event_error', lang('App.bookingRateLimited'));
+        }
+        cache()->save($rateKey, $attempts + 1, 600);
+
         $email     = strtolower(trim((string) $this->request->getPost('transfer_email')));
         $recipient = $email !== '' ? (new \App\Models\UserModel())->where('email', $email)->first() : null;
 

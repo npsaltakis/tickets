@@ -120,7 +120,7 @@ abstract class EventBaseController extends BaseController
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidInfoPhone'));
         }
 
-        if ($infoUrl !== '' && ! filter_var($infoUrl, FILTER_VALIDATE_URL)) {
+        if ($infoUrl !== '' && (! filter_var($infoUrl, FILTER_VALIDATE_URL) || preg_match('#^https?://#i', $infoUrl) !== 1)) {
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidInfoUrl'));
         }
 
@@ -138,7 +138,7 @@ abstract class EventBaseController extends BaseController
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateRequiredFields'));
         }
 
-        if ($onlineUrl !== '' && ! filter_var($onlineUrl, FILTER_VALIDATE_URL)) {
+        if ($onlineUrl !== '' && (! filter_var($onlineUrl, FILTER_VALIDATE_URL) || preg_match('#^https?://#i', $onlineUrl) !== 1)) {
             return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidOnlineUrl'));
         }
 
@@ -171,7 +171,7 @@ abstract class EventBaseController extends BaseController
         $finalImage = $existingEvent['image'] ?? null;
 
         if ($imageUrl !== '') {
-            if (! filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+            if (! filter_var($imageUrl, FILTER_VALIDATE_URL) || preg_match('#^https?://#i', $imageUrl) !== 1) {
                 return redirect()->back()->withInput()->with('event_error', lang('App.eventCreateInvalidImageUrl'));
             }
 
@@ -393,8 +393,10 @@ abstract class EventBaseController extends BaseController
             return null;
         }
 
-        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (! in_array($uploadedImage->getMimeType(), $allowedMimeTypes, true)) {
+        $mimeMap = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+        $mime = $uploadedImage->getMimeType();
+        $allowedMimeTypes = array_keys($mimeMap);
+        if (! in_array($mime, $allowedMimeTypes, true) || @getimagesize($uploadedImage->getTempName()) === false) {
             return null;
         }
 
@@ -410,7 +412,7 @@ abstract class EventBaseController extends BaseController
             return null;
         }
 
-        $fileName = $uploadedImage->getRandomName();
+        $fileName = time() . '_' . bin2hex(random_bytes(10)) . '.' . $mimeMap[$mime];
         $uploadedImage->move($targetDirectory, $fileName, true);
         $this->downscaleImage($targetDirectory . DIRECTORY_SEPARATOR . $fileName);
 
@@ -1107,7 +1109,7 @@ abstract class EventBaseController extends BaseController
 
     protected function shouldVerifySsl(): bool
     {
-        return env('CI_ENVIRONMENT', 'production') === 'production';
+        return ! in_array(strtolower((string) env('CURL_VERIFY_SSL', 'true')), ['0', 'false', 'off', 'no'], true);
     }
 
     protected function getPayPalClientId(): string

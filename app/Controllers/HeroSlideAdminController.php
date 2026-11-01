@@ -201,7 +201,8 @@ class HeroSlideAdminController extends BaseController
 
         if ($file->getSize() > 5 * 1024 * 1024
             || ! in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)
-            || ! in_array($file->getMimeType(), ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            || ! in_array($file->getMimeType(), ['image/jpeg', 'image/png', 'image/webp'], true)
+            || @getimagesize($file->getTempName()) === false) {
             return null;
         }
 
@@ -210,7 +211,8 @@ class HeroSlideAdminController extends BaseController
             return null;
         }
 
-        $name = $file->getRandomName();
+        $mimeMap = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        $name = time() . '_' . bin2hex(random_bytes(10)) . '.' . ($mimeMap[$file->getMimeType()] ?? 'jpg');
         $file->move($directory, $name, true);
 
         return self::UPLOAD_DIR . '/' . $name;

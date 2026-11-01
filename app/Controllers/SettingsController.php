@@ -102,9 +102,11 @@ class SettingsController extends BaseController
     private function storeImage(UploadedFile $file, array $extensions): ?string
     {
         $extension = strtolower((string) $file->getExtension());
-        $mimes     = ['image/png', 'image/jpeg', 'image/webp', 'image/x-icon', 'image/vnd.microsoft.icon'];
+        $mimeMap   = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp', 'image/x-icon' => 'ico', 'image/vnd.microsoft.icon' => 'ico'];
+        $mimes     = array_keys($mimeMap);
 
-        if ($file->getSize() > 2 * 1024 * 1024 || ! in_array($extension, $extensions, true) || ! in_array($file->getMimeType(), $mimes, true)) {
+        $mime = $file->getMimeType();
+        if ($file->getSize() > 2 * 1024 * 1024 || ! in_array($extension, $extensions, true) || ! in_array($mime, $mimes, true) || ($mimeMap[$mime] !== 'ico' && @getimagesize($file->getTempName()) === false)) {
             return null;
         }
 
@@ -113,7 +115,7 @@ class SettingsController extends BaseController
             return null;
         }
 
-        $name = $file->getRandomName();
+        $name = time() . '_' . bin2hex(random_bytes(10)) . '.' . ($mimeMap[$file->getMimeType()] ?? 'bin');
         $file->move($directory, $name, true);
 
         return self::UPLOAD_DIR . '/' . $name;
