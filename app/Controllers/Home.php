@@ -292,6 +292,8 @@ class Home extends EventBaseController
             ]);
         }
 
+        \App\Libraries\EventViews::record((int) $event['id'], $this->request);
+
         $donationRaised = 0.0;
         if ((float) ($event['donation_goal'] ?? 0) > 0) {
             $db  = db_connect();

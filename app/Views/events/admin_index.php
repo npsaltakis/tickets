@@ -52,6 +52,7 @@ $assetVersion = static function (string $relativePath): string {
                         <th><?= esc(lang('App.endDate')) ?></th>
                         <th><?= esc(lang('App.type')) ?></th>
                         <th><?= esc(lang('App.adminEventsCapacity')) ?></th>
+                        <th title="<?= esc(lang('App.viewsColumnHint'), 'attr') ?>"><?= esc(lang('App.viewsColumn')) ?></th>
                         <th><?= esc(lang('App.adminEventsActions')) ?></th>
                     </tr>
                 </thead>
@@ -85,6 +86,15 @@ $assetVersion = static function (string $relativePath): string {
                             <td class="admin-events-date"><?= esc($endDate) ?></td>
                             <td><span class="table-pill"><?= esc($type) ?></span></td>
                             <td class="admin-events-capacity"><?= esc((string) $issued) ?> / <?= esc((string) $capacity) ?></td>
+                            <td class="admin-events-views">
+                                <?php $vs = $viewStats[(int) ($event['id'] ?? 0)] ?? null; ?>
+                                <?php if ($vs === null): ?>
+                                    <span class="meta">—</span>
+                                <?php else: ?>
+                                    <span title="<?= esc(lang('App.viewsVisitorsViews', [$vs['visitors'], $vs['views']]), 'attr') ?>"><?= esc((string) $vs['visitors']) ?></span>
+                                    <span class="meta admin-events-conversion" title="<?= esc(lang('App.viewsConversionHint', [$vs['bookers'], $vs['visitors']]), 'attr') ?>"><?= esc(number_format((float) $vs['conversion'], 1, ',', '')) ?>%</span>
+                                <?php endif; ?>
+                            </td>
                             <td>
                                 <div class="admin-actions">
                                     <a class="admin-action-link" href="<?= esc(base_url('admin/events/' . $event['slug'] . '/tickets')) ?>"><?= esc(lang('App.adminEventsTickets')) ?></a>

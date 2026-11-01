@@ -54,5 +54,5 @@ Run this checklist before or after deploying changes to production.
 
 - Daily backup: `php spark db:backup` (keeps 14 days in `writable/backups/`, override with `backup.keepDays`). Copy the files off the server too.
 - Health alerts: `php spark health:check` every 15 minutes (emails `ADMIN_NOTIFY_EMAIL` when the DB is down, emails are stuck, disk is low or the backup is stale).
-- Weekly retention: `php spark data:purge` (`--dry-run` to preview). Tunable with `retention.adminLogsDays` (365) and `retention.unverifiedAccountDays` (30).
+- Weekly retention: `php spark data:purge` (`--dry-run` to preview). Tunable with `retention.adminLogsDays` (365), `retention.unverifiedAccountDays` (30) and `retention.eventViewsDays` (730, event page visit counts).
 - Terms/privacy acceptance is stored per booking in `consents` with the version from `TERMS_VERSION` (defaults to the GDPR page date).

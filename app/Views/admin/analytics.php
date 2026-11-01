@@ -4,6 +4,64 @@
 
     <div class="analytics-grid">
 
+        <div class="card analytics-card analytics-card--full">
+            <h2 class="analytics-title"><?= esc(lang('App.viewsTitle')) ?></h2>
+            <p class="meta analytics-views-hint"><?= esc(lang('App.viewsHint')) ?></p>
+            <?php if (array_sum($viewDaily['visitors']) === 0): ?>
+                <p class="meta"><?= esc(lang('App.viewsEmpty')) ?></p>
+            <?php else: ?>
+                <canvas id="chart-views" height="70" data-chart="<?= esc(json_encode(['labels' => $viewDaily['labels'], 'values' => $viewDaily['visitors']]), 'attr') ?>" aria-label="<?= esc(lang('App.viewsTitle'), 'attr') ?>" role="img"></canvas>
+            <?php endif; ?>
+        </div>
+
+        <?php if ($viewSources !== []): ?>
+            <div class="card analytics-card">
+                <h2 class="analytics-title"><?= esc(lang('App.viewsSourcesTitle')) ?></h2>
+                <?php $sourceTotal = max(1, array_sum($viewSources)); ?>
+                <div class="analytics-check-in-list">
+                    <?php foreach ($viewSources as $source => $visitors): ?>
+                        <?php $share = round($visitors / $sourceTotal * 100); ?>
+                        <div class="analytics-ci-row">
+                            <span class="analytics-ci-title"><?= esc(\App\Libraries\EventViews::label((string) $source)) ?></span>
+                            <div class="analytics-ci-bar-wrap">
+                                <div class="analytics-ci-bar analytics-source-bar" style="width:<?= (int) $share ?>%"></div>
+                            </div>
+                            <span class="analytics-ci-label"><?= (int) $visitors ?> (<?= (int) $share ?>%)</span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <p class="meta analytics-views-hint"><?= esc(lang('App.viewsUtmHint')) ?></p>
+            </div>
+
+            <div class="card analytics-card">
+                <h2 class="analytics-title"><?= esc(lang('App.viewsEventsTitle')) ?></h2>
+                <div class="analytics-table-wrap">
+                    <table class="admin-table analytics-views-table">
+                        <thead>
+                            <tr>
+                                <th><?= esc(lang('App.eventTitleLabel')) ?></th>
+                                <th><?= esc(lang('App.viewsVisitors')) ?></th>
+                                <th><?= esc(lang('App.viewsBookers')) ?></th>
+                                <th><?= esc(lang('App.viewsConversion')) ?></th>
+                                <th><?= esc(lang('App.viewsTopSource')) ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($viewStats as $eventId => $vs): ?>
+                                <tr>
+                                    <td><?= esc((string) ($viewTitles[$eventId] ?? '#' . $eventId)) ?></td>
+                                    <td title="<?= esc(lang('App.viewsVisitorsViews', [$vs['visitors'], $vs['views']]), 'attr') ?>"><?= (int) $vs['visitors'] ?></td>
+                                    <td><?= (int) $vs['bookers'] ?></td>
+                                    <td><?= esc(number_format((float) $vs['conversion'], 1, ',', '')) ?>%</td>
+                                    <td><?= esc(\App\Libraries\EventViews::label($vs['top_source'])) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <div class="card analytics-card">
             <h2 class="analytics-title"><?= esc(lang('App.analyticsBookingsTitle')) ?></h2>
             <canvas id="chart-bookings" height="80" data-chart="<?= esc(json_encode(['labels' => $days, 'values' => $dayCounts]), 'attr') ?>"></canvas>

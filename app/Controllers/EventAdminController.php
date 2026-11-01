@@ -37,6 +37,7 @@ class EventAdminController extends EventBaseController
         return view('events/admin_index', [
             'events'     => $events,
             'issuedMap'  => $issuedMap,
+            'viewStats'  => \App\Libraries\EventViews::perEvent(),
             'pageTitle'  => lang('App.adminEventsPageTitle'),
         ]);
     }

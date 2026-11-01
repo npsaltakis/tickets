@@ -199,7 +199,21 @@ class AdminDashboardController extends EventBaseController
              GROUP BY e.id HAVING issued > 0 ORDER BY e.start_date DESC LIMIT 10"
         )->getResultArray();
 
+        // Event page visits over the same 30 days: per day, per source and per event (most visited first).
+        $viewStats = \App\Libraries\EventViews::perEvent($since);
+        uasort($viewStats, static fn (array $a, array $b): int => $b['visitors'] <=> $a['visitors']);
+        $viewStats = array_slice($viewStats, 0, 15, true);
+        $viewTitles = $viewStats === [] ? [] : array_column(
+            $db->table($eTable)->select('id, title')->whereIn('id', array_keys($viewStats))->get()->getResultArray(),
+            'title',
+            'id'
+        );
+
         return view('admin/analytics', [
+            'viewDaily'   => \App\Libraries\EventViews::daily(30),
+            'viewSources' => \App\Libraries\EventViews::sources($since),
+            'viewStats'   => $viewStats,
+            'viewTitles'  => $viewTitles,
             'pageTitle'   => lang('App.analyticsPageTitle'),
             'days'        => $days,
             'dayCounts'   => $dayCounts,
