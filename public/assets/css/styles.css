@@ -4652,16 +4652,23 @@ input[name="test_only"] {
     margin: 0;
 }
 
-.hero-admin-icon-btn {
+/* Square icon-only action buttons in admin lists (edit, delete, tickets, QR); the name is in title/aria-label. */
+.admin-icon-btn,
+.admin-action-link.admin-icon-btn,
+.admin-action-btn.admin-icon-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex: 0 0 auto;
     width: 38px;
     height: 38px;
     min-height: 38px;
     padding: 0;
 }
 
+.admin-icon-btn svg {
+    pointer-events: none;
+}
 @media (max-width: 480px) {
     .hero-admin-thumb { width: 64px; height: 28px; }
 }
@@ -4819,11 +4826,168 @@ input[name="test_only"] {
     .admin-events-table td.admin-events-actions .admin-actions {
         display: flex;
         flex-wrap: wrap;
+        justify-content: flex-end;
         gap: 8px;
         width: 100%;
     }
 
     .admin-events-table .admin-status-select {
         max-width: 60%;
+    }
+}
+
+/* Admin → Event tickets on phones: each ticket is a card (code and QR on top, then the fields) instead of a wide table. */
+@media (max-width: 768px) {
+    .admin-table.admin-tickets-table {
+        min-width: 0;
+        border-collapse: separate;
+    }
+
+    .admin-tickets-table thead {
+        display: none;
+    }
+
+    .admin-tickets-table,
+    .admin-tickets-table tbody {
+        display: block;
+    }
+
+    .admin-tickets-table tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 2px 10px;
+        padding: 12px;
+        margin-bottom: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.45);
+    }
+
+    .admin-tickets-table td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        grid-column: 1 / -1;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        min-width: 0;
+    }
+
+    .admin-tickets-table td[data-label]::before {
+        content: attr(data-label);
+        color: var(--muted);
+        font-size: 0.82rem;
+        flex: 0 0 auto;
+    }
+
+    .admin-tickets-table td.admin-tickets-code {
+        grid-column: 1;
+        grid-row: 1;
+        border-bottom: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .admin-tickets-table td.admin-tickets-actions {
+        grid-column: 2;
+        grid-row: 1;
+        border-bottom: 0;
+        padding: 0;
+    }
+
+    .admin-tickets-table td.admin-tickets-user {
+        display: block;
+        overflow-wrap: anywhere;
+    }
+
+    .admin-tickets-table td[data-label]:nth-last-child(2) {
+        border-bottom: 0;
+    }
+}
+
+/*
+ * Every other admin list on phones: rows become cards with "label: value" lines instead of a wide table.
+ * Labels come from the column headers (assets/js/ui-actions.js). Events, tickets and hero slides have their own layouts.
+ */
+@media (max-width: 768px) {
+    .admin-content table.admin-table:not(.admin-events-table):not(.admin-tickets-table):not(.hero-admin-table),
+    .admin-content table.report-table {
+        display: block;
+        width: 100% !important;
+        min-width: 0 !important;
+        border-collapse: separate;
+    }
+
+    .admin-content table.admin-table:not(.admin-events-table):not(.admin-tickets-table):not(.hero-admin-table) thead,
+    .admin-content table.report-table thead {
+        display: none;
+    }
+
+    .admin-content table.admin-table:not(.admin-events-table):not(.admin-tickets-table):not(.hero-admin-table) tbody,
+    .admin-content table.report-table tbody {
+        display: block;
+    }
+
+    .admin-content table.admin-table:not(.admin-events-table):not(.admin-tickets-table):not(.hero-admin-table) tr,
+    .admin-content table.report-table tr {
+        display: block;
+        padding: 10px 12px;
+        margin-bottom: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.45);
+    }
+
+    .admin-content table.admin-table:not(.admin-events-table):not(.admin-tickets-table):not(.hero-admin-table) td,
+    .admin-content table.report-table td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+        width: auto !important;
+        padding: 7px 0;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        text-align: right;
+        white-space: normal !important;
+        overflow-wrap: anywhere;
+        min-width: 0;
+    }
+
+    .admin-content table.admin-table:not(.admin-events-table):not(.admin-tickets-table):not(.hero-admin-table) td:last-child,
+    .admin-content table.report-table td:last-child {
+        border-bottom: 0;
+    }
+
+    .admin-content table.admin-table:not(.admin-events-table):not(.admin-tickets-table):not(.hero-admin-table) td[data-label]::before,
+    .admin-content table.report-table td[data-label]::before {
+        content: attr(data-label);
+        color: var(--muted);
+        font-size: 0.82rem;
+        text-align: left;
+        margin-right: auto;
+    }
+
+    /* A cell without a column name (checkbox, buttons) keeps its content on the left. */
+    .admin-content table.admin-table:not(.admin-events-table):not(.admin-tickets-table):not(.hero-admin-table) td:not([data-label]),
+    .admin-content table.report-table td:not([data-label]) {
+        justify-content: flex-start;
+        text-align: left;
+    }
+
+    .admin-content table td .admin-actions {
+        justify-content: flex-end;
+        margin-left: auto;
+    }
+
+    /* DataTables with sideways scrolling: the cloned header table is not needed on cards. */
+    .admin-content .dataTables_scrollHead {
+        display: none !important;
+    }
+
+    .admin-content .dataTables_scrollBody {
+        overflow: visible !important;
+        height: auto !important;
+        max-height: none !important;
     }
 }

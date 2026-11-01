@@ -120,6 +120,7 @@ return [
     'adminTicketsStatus'   => 'Κατάσταση',
     'adminTicketsPayment'  => 'Πληρωμή',
     'adminTicketsCheckedIn'=> 'Προσήλθαν',
+    'adminTicketsShowQr'   => 'Εμφάνιση QR',
     'adminTicketsBooked'   => 'Κράτηση',
     'adminTicketsEmpty'    => 'Δεν υπάρχουν εισιτήρια για αυτή την εκδήλωση.',
     'adminTicketsCreateTitle' => 'Δημιουργία Εισιτηρίου',

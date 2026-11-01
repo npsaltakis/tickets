@@ -78,26 +78,28 @@
                             $checkedIn = !empty($ticket['checked_in_at']);
                             ?>
                             <tr class="<?= $isValid ? '' : 'admin-ticket-row--cancelled' ?>">
-                                <td>
+                                <td class="admin-tickets-code">
                                     <code class="admin-ticket-code"><?= esc($ticket['ticket_code']) ?></code>
                                 </td>
-                                <td>
+                                <td class="admin-tickets-user">
                                     <div><?= esc($name ?: '—') ?></div>
                                     <div class="meta" style="font-size:0.8rem"><?= esc($ticket['email'] ?? '—') ?></div>
                                 </td>
-                                <td><span class="status <?= $isValid ? 'active' : 'cancelled' ?>"><?= $isValid ? esc(lang('App.eventStatusActive')) : esc(lang('App.eventStatusCancelled')) ?></span></td>
-                                <td><?= esc(lang('App.paymentStatus' . ucfirst((string)($ticket['payment_status'] ?? 'free')))) ?></td>
-                                <td>
+                                <td data-label="<?= esc(lang('App.adminTicketsStatus'), 'attr') ?>"><span class="status <?= $isValid ? 'active' : 'cancelled' ?>"><?= $isValid ? esc(lang('App.eventStatusActive')) : esc(lang('App.eventStatusCancelled')) ?></span></td>
+                                <td data-label="<?= esc(lang('App.adminTicketsPayment'), 'attr') ?>"><?= esc(lang('App.paymentStatus' . ucfirst((string)($ticket['payment_status'] ?? 'free')))) ?></td>
+                                <td data-label="<?= esc(lang('App.adminTicketsCheckedIn'), 'attr') ?>">
                                     <?php if ($checkedIn): ?>
                                         <span style="color:#4ade80;font-size:0.85rem">✓ <?= esc(date('d/m H:i', strtotime((string)$ticket['checked_in_at']))) ?></span>
                                     <?php else: ?>
                                         <span class="meta">—</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="meta" style="font-size:0.82rem;white-space:nowrap"><?= esc(!empty($ticket['created_at']) ? date('d/m/Y H:i', strtotime((string)$ticket['created_at'])) : '—') ?></td>
-                                <td>
+                                <td class="meta" data-label="<?= esc(lang('App.adminTicketsBooked'), 'attr') ?>" style="font-size:0.82rem;white-space:nowrap"><?= esc(!empty($ticket['created_at']) ? date('d/m/Y H:i', strtotime((string)$ticket['created_at'])) : '—') ?></td>
+                                <td class="admin-tickets-actions">
                                     <div class="admin-actions">
-                                        <a class="admin-action-link" href="<?= base_url('admin/tickets/qr/' . urlencode($ticket['ticket_code'])) ?>" target="_blank" title="QR">QR</a>
+                                        <a class="admin-action-link admin-icon-btn" href="<?= base_url('admin/tickets/qr/' . urlencode($ticket['ticket_code'])) ?>" target="_blank" rel="noopener" title="<?= esc(lang('App.adminTicketsShowQr'), 'attr') ?>" aria-label="<?= esc(lang('App.adminTicketsShowQr') . ': ' . $ticket['ticket_code'], 'attr') ?>">
+                                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z"/></svg>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>

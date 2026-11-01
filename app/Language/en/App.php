@@ -120,6 +120,7 @@ return [
     'adminTicketsStatus'   => 'Status',
     'adminTicketsPayment'  => 'Payment',
     'adminTicketsCheckedIn'=> 'Checked In',
+    'adminTicketsShowQr'   => 'Show QR',
     'adminTicketsBooked'   => 'Booked',
     'adminTicketsEmpty'    => 'No tickets for this event.',
     'adminTicketsCreateTitle' => 'Create Ticket',

@@ -74,3 +74,29 @@ document.addEventListener('click', (event) => {
     document.body.appendChild(dialog);
     dialog.showModal();
 });
+
+// Tables become cards on phones (CSS); each cell gets its column name as a label to show in front of the value.
+function labelTableCells(table) {
+    const headers = Array.from(table.querySelectorAll('thead tr:last-child th')).map((th) => th.textContent.replace(/\s+/g, ' ').trim());
+    if (!headers.length) {
+        return;
+    }
+
+    table.querySelectorAll('tbody tr').forEach((row) => {
+        Array.from(row.children).forEach((cell, i) => {
+            if (!cell.hasAttribute('data-label') && headers[i]) {
+                cell.setAttribute('data-label', headers[i]);
+            }
+        });
+    });
+}
+
+document.querySelectorAll('table.admin-table, table.report-table').forEach((table) => {
+    labelTableCells(table);
+
+    // DataTables adds and replaces rows when paging, sorting or searching.
+    const body = table.tBodies[0];
+    if (body && 'MutationObserver' in window) {
+        new MutationObserver(() => labelTableCells(table)).observe(body, { childList: true });
+    }
+});
