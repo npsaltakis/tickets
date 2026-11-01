@@ -4420,3 +4420,202 @@ input[name="test_only"] {
         display: none;
     }
 }
+
+/* Hero slider under the top nav (home page) */
+.hero-slider {
+    position: relative;
+    overflow: hidden;
+    height: clamp(260px, 42vw, 480px);
+    background: var(--surface-2);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.hero-track,
+.hero-slide {
+    position: absolute;
+    inset: 0;
+}
+
+.hero-slide {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.7s ease, visibility 0.7s;
+}
+
+.hero-slide.is-active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 40px 56px;
+    background: linear-gradient(to top, rgba(11, 18, 32, 0.92) 0%, rgba(11, 18, 32, 0.45) 45%, rgba(11, 18, 32, 0) 75%);
+}
+
+.hero-content {
+    max-width: 720px;
+}
+
+.hero-title {
+    margin: 0 0 8px;
+    font-size: clamp(1.4rem, 3.2vw, 2.4rem);
+    line-height: 1.2;
+    color: #f8fafc;
+}
+
+.hero-meta {
+    margin: 0 0 18px;
+    color: #cbd5e1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+}
+
+.hero-cta {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #04201c;
+    font-weight: 600;
+    text-decoration: none;
+    transition: filter 0.2s ease;
+}
+
+.hero-cta:hover,
+.hero-cta:focus-visible {
+    filter: brightness(1.12);
+}
+
+.hero-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.6);
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+}
+
+.hero-arrow:hover,
+.hero-arrow:focus-visible {
+    background: rgba(var(--accent-rgb), 0.85);
+}
+
+.hero-arrow--prev { left: 16px; }
+.hero-arrow--next { right: 16px; }
+
+.hero-dots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 6px;
+    display: flex;
+    justify-content: center;
+}
+
+/* The button is the tap target, the dot itself is drawn by ::before. */
+.hero-dot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    min-height: 32px;
+    padding: 0 4px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.hero-dot::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(248, 250, 252, 0.45);
+    transition: width 0.3s ease, background 0.3s ease;
+}
+
+.hero-dot.is-active::before {
+    width: 26px;
+    background: var(--accent);
+}
+
+@media (max-width: 768px) {
+    .hero-overlay { padding: 0 16px 48px; }
+    .hero-arrow { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-slide,
+    .hero-dot::before { transition: none; }
+}
+
+/* Admin → Hero slider */
+.hero-admin-grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 20px;
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .hero-admin-grid { grid-template-columns: 1fr; }
+}
+
+.hero-admin-form-title {
+    margin: 0 0 16px;
+    font-size: 1rem;
+    color: #f8fafc;
+}
+
+.hero-admin-thumb {
+    width: 96px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    display: block;
+}
+
+.hero-admin-preview {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 8 / 3;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.hero-admin-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.hero-admin-actions form {
+    margin: 0;
+}
+
+.hero-subtitle {
+    margin: 0 0 12px;
+    color: #e2e8f0;
+    max-width: 620px;
+}

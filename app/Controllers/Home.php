@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\CategoryModel;
+use App\Models\HeroSlideModel;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class Home extends EventBaseController
@@ -16,6 +17,7 @@ class Home extends EventBaseController
         $categories = (new CategoryModel())->orderBy('name', 'ASC')->findAll();
 
         return view('events/index', [
+            'heroSlides'   => $this->fetchHeroSlides(),
             'events'       => $events,
             'batchSize'    => $batchSize,
             'hasMore'      => $hasMore,
@@ -26,6 +28,133 @@ class Home extends EventBaseController
             'metaDescription' => lang('App.eventsPageSubtitle'),
             'canonicalUrl' => base_url('/'),
         ]);
+    }
+
+    /**
+     * Slides of the hero slider under the top nav: the ones set in Admin → Hero slider,
+     * or the next public events that have an image when none is set.
+     *
+     * @return list<array{image: string, title: string, meta: list<string>, subtitle: string, link: string, button: string}>
+     */
+    private function fetchHeroSlides(int $autoLimit = 5): array
+    {
+        $db     = db_connect();
+        $slides = [];
+
+        if ($db->tableExists('hero_slides')) {
+            $rows = (new HeroSlideModel())
+                ->where('is_active', 1)
+                ->orderBy('sort_order', 'ASC')
+                ->orderBy('id', 'ASC')
+                ->findAll();
+
+            $eventIds = array_values(array_filter(array_map(static fn (array $row): int => (int) ($row['event_id'] ?? 0), $rows)));
+            $events   = [];
+            if ($eventIds !== []) {
+                $builder = $this->heroEventsBuilder()->whereIn('id', $eventIds);
+                foreach ($builder->get()->getResultArray() as $event) {
+                    $events[(int) $event['id']] = $event;
+                }
+            }
+
+            foreach ($rows as $row) {
+                $image = (string) ($row['image'] ?? '');
+
+                if ($row['type'] === 'event') {
+                    // Ended, inactive, private or deleted events drop out of the slider on their own.
+                    $event = $events[(int) $row['event_id']] ?? null;
+                    if ($event === null) {
+                        continue;
+                    }
+                    $slide = $this->eventSlide($event, $image);
+                    if ($slide === null) {
+                        continue;
+                    }
+                    $slides[] = array_merge($slide, array_filter([
+                        'title'    => trim((string) ($row['title'] ?? '')),
+                        'subtitle' => trim((string) ($row['subtitle'] ?? '')),
+                        'link'     => $this->heroLink((string) ($row['link_url'] ?? '')),
+                        'button'   => trim((string) ($row['button_text'] ?? '')),
+                    ], static fn (string $value): bool => $value !== ''));
+
+                    continue;
+                }
+
+                if ($image === '') {
+                    continue;
+                }
+                $link     = $this->heroLink((string) ($row['link_url'] ?? ''));
+                $slides[] = [
+                    'image'    => $this->normalizeEventImageUrl($image),
+                    'title'    => trim((string) ($row['title'] ?? '')),
+                    'meta'     => [],
+                    'subtitle' => trim((string) ($row['subtitle'] ?? '')),
+                    'link'     => $link,
+                    'button'   => $link === '' ? '' : (trim((string) ($row['button_text'] ?? '')) ?: lang('App.heroLearnMore')),
+                ];
+            }
+        }
+
+        if ($slides !== []) {
+            return $slides;
+        }
+
+        $events = $this->heroEventsBuilder()
+            ->where('image IS NOT NULL')
+            ->where('image !=', '')
+            ->orderBy('start_date', 'ASC')
+            ->limit($autoLimit)
+            ->get()
+            ->getResultArray();
+
+        return array_values(array_filter(array_map(fn (array $event): ?array => $this->eventSlide($event, ''), $events)));
+    }
+
+    private function heroEventsBuilder()
+    {
+        $builder = $this->eventModel->builder();
+        $builder->where('deleted_at', null)
+            ->where('status', 'active')
+            ->where('is_private', 0);
+        $this->applyUpcomingEventsFilter($builder);
+
+        return $builder;
+    }
+
+    private function eventSlide(array $event, string $image): ?array
+    {
+        $image = $image !== '' ? $image : (string) ($event['image'] ?? '');
+        if ($image === '') {
+            return null;
+        }
+
+        return [
+            'image'    => $this->normalizeEventImageUrl($image),
+            'title'    => event_text($event, 'title'),
+            'meta'     => array_values(array_filter([
+                ! empty($event['start_date']) ? date('d/m/Y H:i', strtotime((string) $event['start_date'])) : '',
+                (string) ($event['location'] ?? ''),
+            ])),
+            'subtitle' => '',
+            'link'     => base_url('events/' . $event['slug']),
+            'button'   => lang('App.heroViewEvent'),
+        ];
+    }
+
+    /**
+     * A slide link as entered in the admin: absolute http(s) URLs as they are, site paths under base_url().
+     */
+    private function heroLink(string $link): string
+    {
+        $link = trim($link);
+        if ($link === '') {
+            return '';
+        }
+        if (preg_match('#^https?://#i', $link) === 1) {
+            return $link;
+        }
+
+        return str_starts_with($link, '/') ? base_url(ltrim($link, '/')) : '';
     }
 
     public function eventsFeed()

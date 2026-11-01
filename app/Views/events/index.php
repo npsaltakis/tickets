@@ -6,6 +6,7 @@ $assetVersion = static function (string $relativePath): string {
 ?><?= $this->extend('layouts/main') ?>
 
 <?= $this->section('content') ?>
+<?= $this->include('events/_hero_slider') ?>
 <main class="wrapper">
     <?php $isAdmin = session()->get('is_logged_in') === true && (string) session()->get('user_role') === 'admin'; ?>
 
@@ -145,6 +146,7 @@ $assetVersion = static function (string $relativePath): string {
     <?php endif; ?>
 </main>
 <script src="<?= base_url('assets/js/events-index.js') ?>?v=<?= esc($assetVersion('assets/js/events-index.js')) ?>"></script>
+<script src="<?= base_url('assets/js/hero-slider.js') ?>?v=<?= esc($assetVersion('assets/js/hero-slider.js')) ?>"></script>
 <script src="<?= base_url('assets/js/calendar.js') ?>?v=<?= esc($assetVersion('assets/js/calendar.js')) ?>"></script>
 <?= $this->endSection() ?>
 
