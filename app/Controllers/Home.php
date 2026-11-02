@@ -321,9 +321,8 @@ class Home extends EventBaseController
                 ->first() !== null;
         }
 
-        if ($isAdmin) {
-            $hasOnlineAccess = true;
-        } elseif ($isLoggedIn) {
+        // Admins see the online access details anyway, but their own tickets are listed like anyone else's.
+        if ($isLoggedIn) {
             $userTickets = $this->ticketModel
                 ->select('ticket_code')
                 ->where('event_id', (int) $event['id'])
@@ -337,7 +336,7 @@ class Home extends EventBaseController
                 $userTickets
             )));
 
-            $hasOnlineAccess = $userTicketCodes !== [];
+            $hasOnlineAccess = $isAdmin || $userTicketCodes !== [];
         }
 
         $canonicalUrl = base_url('events/' . (string) $event['slug']);
