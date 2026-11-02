@@ -31,6 +31,16 @@ class NotificationController extends BaseController
         ]);
     }
 
+    /**
+     * Deletes one, the ticked or all of the user's own notifications (see NotificationAdminController::selectedIds()).
+     */
+    public function delete(): RedirectResponse
+    {
+        UserNotifications::delete((int) session()->get('user_id'), NotificationAdminController::selectedIds($this->request));
+
+        return redirect()->to(base_url('notifications'));
+    }
+
     public function markRead(): RedirectResponse
     {
         UserNotifications::markAllRead((int) session()->get('user_id'));

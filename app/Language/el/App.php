@@ -1294,6 +1294,13 @@ return [
     'backupProgressFiles' => 'Αρχεία: {0}/{1}',
     'backupProgressZip' => 'Συμπίεση αρχείων...',
     'backupProgressKeepOpen' => 'Μην κλείσεις τη σελίδα μέχρι να τελειώσει.',
+    'notifSelectAll' => 'Επιλογή όλων',
+    'notifSelect' => 'Επιλογή ειδοποίησης',
+    'notifDelete' => 'Διαγραφή',
+    'notifDeleteSelected' => 'Διαγραφή επιλεγμένων',
+    'notifDeleteAll' => 'Διαγραφή όλων',
+    'notifDeleteAllConfirm' => 'Να διαγραφούν όλες οι ειδοποιήσεις σου;',
+    'notifDeleteAllConfirmAdmin' => 'Να διαγραφούν όλες οι ειδοποιήσεις; Θα σβηστούν για όλους τους διαχειριστές.',
 ];
 
 

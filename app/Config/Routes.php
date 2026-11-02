@@ -142,6 +142,7 @@ $routes->post('newsletter/unsubscribe/(:segment)', 'NewsletterController::unsubs
 $routes->post('admin/email-queue/(:segment)', 'AdminToolsController::emailQueueAction/$1');
 $routes->get('admin/notifications', 'NotificationAdminController::index');
 $routes->post('admin/notifications/read', 'NotificationAdminController::markRead');
+$routes->post('admin/notifications/delete', 'NotificationAdminController::delete');
 $routes->get('admin/backups', 'BackupAdminController::index');
 $routes->post('admin/backups/create', 'BackupAdminController::create');
 $routes->post('admin/backups/upload', 'BackupAdminController::upload');
@@ -151,6 +152,7 @@ $routes->post('admin/backups/delete/(:segment)', 'BackupAdminController::delete/
 $routes->post('admin/backups/restore/(:segment)', 'BackupAdminController::restore/$1');
 $routes->get('notifications', 'NotificationController::index');
 $routes->post('notifications/read', 'NotificationController::markRead');
+$routes->post('notifications/delete', 'NotificationController::delete');
 $routes->get('check-in/search', 'ReportController::checkInSearch');
 $routes->get('events/(:segment)/success', 'Home::bookingSuccess/$1');
 $routes->post('events/(:segment)/access', 'Home::grantAccess/$1');

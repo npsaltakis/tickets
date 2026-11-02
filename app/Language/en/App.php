@@ -1299,6 +1299,13 @@ Please check the event page for the latest information.',
     'backupProgressFiles' => 'Files: {0}/{1}',
     'backupProgressZip' => 'Compressing files...',
     'backupProgressKeepOpen' => 'Keep this page open until it finishes.',
+    'notifSelectAll' => 'Select all',
+    'notifSelect' => 'Select notification',
+    'notifDelete' => 'Delete',
+    'notifDeleteSelected' => 'Delete selected',
+    'notifDeleteAll' => 'Delete all',
+    'notifDeleteAllConfirm' => 'Delete all your notifications?',
+    'notifDeleteAllConfirmAdmin' => 'Delete all notifications? They are removed for every admin.',
 ];
 
 

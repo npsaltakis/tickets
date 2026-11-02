@@ -8,7 +8,7 @@
         <?php if (empty($notifications)): ?>
             <div class="empty"><?= esc(lang('App.notifEmpty')) ?></div>
         <?php else: ?>
-            <?= view('layouts/_notif_list', ['notifications' => $notifications]) ?>
+            <?= view('layouts/_notif_manage', ['notifications' => $notifications, 'notifBase' => 'admin/notifications', 'deleteAllConfirm' => lang('App.notifDeleteAllConfirmAdmin')]) ?>
 
             <?php if ($pages > 1): ?>
                 <nav class="notif-pager" aria-label="<?= esc(lang('App.notifTitle'), 'attr') ?>">

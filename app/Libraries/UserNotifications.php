@@ -106,6 +106,30 @@ class UserNotifications
     }
 
     /**
+     * Deletes the user's own notifications (others' ids are ignored). Null deletes all of theirs.
+     *
+     * @param list<int>|null $ids
+     */
+    public static function delete(int $userId, ?array $ids): int
+    {
+        try {
+            $builder = db_connect()->table('user_notifications')->where('user_id', $userId);
+            if ($ids !== null) {
+                $ids = array_values(array_filter(array_map('intval', $ids)));
+                if ($ids === []) {
+                    return 0;
+                }
+                $builder->whereIn('id', $ids);
+            }
+            $builder->delete();
+
+            return db_connect()->affectedRows();
+        } catch (Throwable) {
+            return 0;
+        }
+    }
+
+    /**
      * The notification's sentence in the current language, with its values filled in.
      */
     public static function text(array $row): string

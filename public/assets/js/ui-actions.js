@@ -16,6 +16,19 @@ document.addEventListener('keydown', (event) => {
     }
 });
 
+// A "select all" checkbox (data-check-all="<name>") ticks every checkbox of that name in its form.
+document.addEventListener('change', (event) => {
+    const toggle = event.target instanceof HTMLInputElement && event.target.dataset.checkAll ? event.target : null;
+    if (!toggle || !toggle.form) {
+        return;
+    }
+    toggle.form.querySelectorAll('input[type="checkbox"]').forEach((box) => {
+        if (box.name === toggle.dataset.checkAll) {
+            box.checked = toggle.checked;
+        }
+    });
+});
+
 // Forms marked data-submit-once (booking, waitlist) ignore a second submit for a few seconds.
 // Runs on window, after the form's own and the data-confirm handlers had their chance to cancel.
 window.addEventListener('submit', (event) => {

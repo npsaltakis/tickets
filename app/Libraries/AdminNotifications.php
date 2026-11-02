@@ -107,6 +107,32 @@ class AdminNotifications
     }
 
     /**
+     * Admin notifications are shared, so deleting one removes it for every admin. Null deletes them all.
+     *
+     * @param list<int>|null $ids
+     */
+    public static function delete(?array $ids): int
+    {
+        try {
+            $builder = db_connect()->table('admin_notifications');
+            if ($ids !== null) {
+                $ids = array_values(array_filter(array_map('intval', $ids)));
+                if ($ids === []) {
+                    return 0;
+                }
+                $builder->whereIn('id', $ids);
+            } else {
+                $builder->where('id >', 0);
+            }
+            $builder->delete();
+
+            return db_connect()->affectedRows();
+        } catch (Throwable) {
+            return 0;
+        }
+    }
+
+    /**
      * The notification's sentence in the current language, with its values filled in.
      */
     public static function text(array $row): string
