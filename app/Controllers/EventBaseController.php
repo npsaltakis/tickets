@@ -262,6 +262,9 @@ abstract class EventBaseController extends BaseController
         }
 
         $this->eventModel->update((int) $existingEvent['id'], $payload);
+        if ($status === 'cancelled' && (string) ($existingEvent['status'] ?? '') !== 'cancelled') {
+            $this->notifyTicketHoldersCancellation(array_merge($existingEvent, $payload));
+        }
         $this->notifyTicketHoldersEventChanged($existingEvent, $payload);
         $this->notifyWaitlist((int) $existingEvent['id']);
         $this->logAdminAction('event_update', 'event', [
@@ -659,13 +662,29 @@ abstract class EventBaseController extends BaseController
             $tTable = $db->prefixTable('tickets');
             $uTable = $db->prefixTable('users');
 
-            $holders = $db->table($tTable . ' t')
-                ->select('u.email, u.first_name, t.ticket_code')
+            $rows = $db->table($tTable . ' t')
+                ->select('u.email, u.first_name')
                 ->join($uTable . ' u', 'u.id = t.user_id')
                 ->where('t.event_id', (int) ($event['id'] ?? 0))
                 ->where('t.status', 'valid')
                 ->get()
                 ->getResultArray();
+
+            // People on the waiting list are told too, so they stop waiting for a seat.
+            if ($db->tableExists('waitlist')) {
+                $rows = array_merge($rows, $db->table($db->prefixTable('waitlist') . ' w')
+                    ->select('u.email, u.first_name')
+                    ->join($uTable . ' u', 'u.id = w.user_id')
+                    ->where('w.event_id', (int) ($event['id'] ?? 0))
+                    ->get()
+                    ->getResultArray());
+            }
+
+            // One e-mail per person, however many tickets they hold.
+            $holders = [];
+            foreach ($rows as $row) {
+                $holders[strtolower(trim((string) ($row['email'] ?? '')))] ??= $row;
+            }
 
             if (empty($holders)) {
                 return;
