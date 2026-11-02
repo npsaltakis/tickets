@@ -6,7 +6,7 @@ if (primaryMain && !primaryMain.id) {
 
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-        document.querySelectorAll('details.user-menu[open]').forEach((menu) => {
+        document.querySelectorAll('details.user-menu[open], details.admin-notif[open]').forEach((menu) => {
             menu.removeAttribute('open');
             const summary = menu.querySelector('summary');
             if (summary instanceof HTMLElement) {
@@ -54,7 +54,7 @@ document.addEventListener('submit', (event) => {
 document.addEventListener('click', (event) => {
     const target = event.target instanceof Element ? event.target : null;
     if (target) {
-        document.querySelectorAll('details.user-menu[open]').forEach((menu) => {
+        document.querySelectorAll('details.user-menu[open], details.admin-notif[open]').forEach((menu) => {
             if (!menu.contains(target)) {
                 menu.removeAttribute('open');
             }

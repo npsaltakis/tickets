@@ -74,7 +74,7 @@ class BookingController extends EventBaseController
             $bookingMessage .= ' ' . lang('App.bookingEmailFailed');
         }
 
-        $this->notifyCapacityAfterBooking($event);
+        $this->notifyCapacityAfterBooking($event, $requestedSeats);
 
         return redirect()->to(base_url('events/' . $slug . '/success'))
             ->with('booking_success_codes', $ticketCodes)
@@ -234,7 +234,7 @@ class BookingController extends EventBaseController
                 if (! $this->sendBookingConfirmationEmail($event, $result['seats'], $result['codes'], $result['amount'], $result['currency'])) {
                     $message .= ' ' . lang('App.bookingEmailFailed');
                 }
-                $this->notifyCapacityAfterBooking($event);
+                $this->notifyCapacityAfterBooking($event, (int) $result['seats']);
                 session()->setFlashdata('event_info', $message);
 
                 return $this->response->setJSON(['redirectUrl' => base_url('events/' . $slug)]);
@@ -356,12 +356,24 @@ class BookingController extends EventBaseController
         };
     }
 
-    private function notifyCapacityAfterBooking(array $event): void
+    /**
+     * After a booking: the admin notification for it, and the "almost full" / "full" alerts.
+     */
+    private function notifyCapacityAfterBooking(array $event, int $seats): void
     {
         $remaining = $this->getRemainingSeats($event);
         $capacity  = max(1, (int) ($event['capacity'] ?? 1));
+        $title     = (string) ($event['title'] ?? '');
+        $link      = 'events/' . ($event['slug'] ?? '') . '/edit';
+
+        \App\Libraries\AdminNotifications::add('booking_new', [
+            'name'  => (string) session()->get('user_name'),
+            'seats' => $seats,
+            'title' => $title,
+        ], $link);
 
         if ($remaining === 0) {
+            \App\Libraries\AdminNotifications::add('event_full', ['title' => $title, 'capacity' => (int) ($event['capacity'] ?? 0)], $link);
             $this->notifyAdminEventFull($event);
 
             return;
@@ -370,6 +382,7 @@ class BookingController extends EventBaseController
         if ($remaining / $capacity <= 0.2) {
             $cacheKey = 'event_80pct_notified_' . (int) $event['id'];
             if (! cache()->get($cacheKey)) {
+                \App\Libraries\AdminNotifications::add('event_almost_full', ['title' => $title, 'remaining' => $remaining], $link);
                 $this->notifyAdminCapacityAlert($event, $remaining, $capacity);
                 cache()->save($cacheKey, true, 86400);
             }

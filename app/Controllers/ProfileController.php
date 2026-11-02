@@ -296,6 +296,10 @@ class ProfileController extends BaseController
 
         $db->table($db->prefixTable('waitlist'))->where('user_id', $userId)->delete();
 
+        \App\Libraries\AdminNotifications::add('user_deleted', [
+            'name' => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')),
+        ]);
+
         $this->userModel->update($userId, [
             'first_name' => 'Deleted',
             'last_name'  => 'User',

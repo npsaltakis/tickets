@@ -140,6 +140,8 @@ $routes->post('admin/newsletter/(:num)/retry', 'NewsletterController::retry/$1')
 $routes->get('newsletter/unsubscribe/(:segment)', 'NewsletterController::unsubscribeForm/$1');
 $routes->post('newsletter/unsubscribe/(:segment)', 'NewsletterController::unsubscribe/$1');
 $routes->post('admin/email-queue/(:segment)', 'AdminToolsController::emailQueueAction/$1');
+$routes->get('admin/notifications', 'NotificationAdminController::index');
+$routes->post('admin/notifications/read', 'NotificationAdminController::markRead');
 $routes->get('check-in/search', 'ReportController::checkInSearch');
 $routes->get('events/(:segment)/success', 'Home::bookingSuccess/$1');
 $routes->post('events/(:segment)/access', 'Home::grantAccess/$1');

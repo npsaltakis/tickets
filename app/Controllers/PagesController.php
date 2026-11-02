@@ -79,6 +79,8 @@ class PagesController extends BaseController
 
         $cache->save($key, $count + 1, 3600);
 
+        \App\Libraries\AdminNotifications::add('contact_message', ['name' => $name, 'email' => $email]);
+
         $to = trim((string) getenv('ADMIN_NOTIFY_EMAIL')) ?: trim((string) env('email.fromEmail', ''));
         $ok = false;
 

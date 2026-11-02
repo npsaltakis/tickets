@@ -140,6 +140,11 @@ class LoginController extends BaseController
                 return redirect()->to(base_url('login'))->with('login_error', lang('App.googleFailed'));
             }
 
+            \App\Libraries\AdminNotifications::add('user_registered', [
+                'name'  => trim($profile['given_name'] . ' ' . $profile['family_name']),
+                'email' => $profile['email'],
+            ], 'users/' . (int) $userId . '/edit');
+
             $user = $this->userModel->find((int) $userId);
         } elseif ((string) ($user['status'] ?? '') === 'inactive') {
             // Google has verified the address, which is what the confirmation email was for.
@@ -320,6 +325,11 @@ class LoginController extends BaseController
         }
 
         $userId = (int) $userId;
+
+        \App\Libraries\AdminNotifications::add('user_registered', [
+            'name'  => trim($firstName . ' ' . $lastName),
+            'email' => $email,
+        ], 'users/' . $userId . '/edit');
 
         if ($this->request->getPost('newsletter_opt_in') === '1') {
             $this->userModel->setNewsletter($userId, true);

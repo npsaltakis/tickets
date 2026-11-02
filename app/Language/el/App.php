@@ -1222,6 +1222,21 @@ return [
     'heroSlideImageRequired' => 'Η διαφάνεια εικόνας χρειάζεται εικόνα.',
     'heroSlideImageInvalid'  => 'Η εικόνα πρέπει να είναι JPG, PNG ή WEBP έως 5 MB.',
     'heroSlideLinkInvalid'   => 'Ο σύνδεσμος πρέπει να ξεκινά με https:// ή /.',
+    'notifTitle' => 'Ειδοποιήσεις',
+    'notifEmpty' => 'Δεν υπάρχουν ειδοποιήσεις.',
+    'notifMarkAllRead' => 'Σημείωση όλων ως αναγνωσμένων',
+    'notifViewAll' => 'Όλες οι ειδοποιήσεις',
+    'notifUnread' => '{0} αδιάβαστες',
+    'notifSubtitle' => 'Νέοι χρήστες, εκδηλώσεις, κρατήσεις και μηνύματα. Τις βλέπουν μόνο οι διαχειριστές.',
+    'notif_user_registered' => 'Νέος χρήστης: {name} ({email})',
+    'notif_user_deleted' => 'Ο χρήστης {name} διέγραψε τον λογαριασμό του',
+    'notif_event_created' => 'Νέα εκδήλωση «{title}» από {name}',
+    'notif_event_cancelled' => 'Ακυρώθηκε η εκδήλωση «{title}» από {name}',
+    'notif_event_deleted' => 'Διαγράφηκε η εκδήλωση «{title}» από {name}',
+    'notif_event_full' => 'Γέμισε η εκδήλωση «{title}» ({capacity} θέσεις)',
+    'notif_event_almost_full' => 'Σχεδόν γεμάτη η εκδήλωση «{title}»: απομένουν {remaining} θέσεις',
+    'notif_booking_new' => 'Νέα κράτηση: {name}, {seats} θέσεις για «{title}»',
+    'notif_contact_message' => 'Νέο μήνυμα επικοινωνίας από {name} ({email})',
 ];
 
 

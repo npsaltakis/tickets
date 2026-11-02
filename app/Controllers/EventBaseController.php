@@ -244,6 +244,10 @@ abstract class EventBaseController extends BaseController
         if ($existingEvent === null) {
             $payload['created_by'] = (int) session()->get('user_id') ?: null;
             $eventId = $this->eventModel->insert($payload, true);
+            \App\Libraries\AdminNotifications::add('event_created', [
+                'title' => $title,
+                'name'  => (string) session()->get('user_name'),
+            ], 'events/' . $slug . '/edit');
             $this->logAdminAction('event_create', 'event', [
                 'target_event_id' => is_numeric($eventId) ? (int) $eventId : 0,
                 'slug' => $slug,
@@ -655,8 +659,17 @@ abstract class EventBaseController extends BaseController
         return (new BookingService())->remainingSeats($event);
     }
 
+    /**
+     * Called whenever an event becomes cancelled (status change, bulk action, edit form): e-mails ticket holders
+     * and the waiting list, and records the admin notification.
+     */
     protected function notifyTicketHoldersCancellation(array $event): void
     {
+        \App\Libraries\AdminNotifications::add('event_cancelled', [
+            'title' => (string) ($event['title'] ?? ''),
+            'name'  => (string) session()->get('user_name'),
+        ], 'events/' . ($event['slug'] ?? '') . '/edit');
+
         try {
             $db     = db_connect();
             $tTable = $db->prefixTable('tickets');

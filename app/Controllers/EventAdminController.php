@@ -151,8 +151,12 @@ class EventAdminController extends EventBaseController
 
         switch ($action) {
             case 'delete':
-                foreach ($eventIds as $id) {
-                    $this->eventModel->delete($id);
+                foreach ($events as $ev) {
+                    $this->eventModel->delete((int) $ev['id']);
+                    \App\Libraries\AdminNotifications::add('event_deleted', [
+                        'title' => (string) ($ev['title'] ?? ''),
+                        'name'  => (string) session()->get('user_name'),
+                    ], 'events/deleted');
                 }
                 break;
             case 'activate':
@@ -378,6 +382,10 @@ class EventAdminController extends EventBaseController
         }
 
         $this->eventModel->delete((int) $event['id']);
+        \App\Libraries\AdminNotifications::add('event_deleted', [
+            'title' => (string) ($event['title'] ?? ''),
+            'name'  => (string) session()->get('user_name'),
+        ], 'events/deleted');
 
         $this->logAdminAction('event_delete', 'event', [
             'target_event_id' => (int) ($event['id'] ?? 0),
