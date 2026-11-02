@@ -25,6 +25,11 @@
         sidebar.classList.toggle('is-collapsed', !mobile.matches && savedCollapsed());
     };
 
+    const setCollapsed = (collapsed) => {
+        sidebar.classList.toggle('is-collapsed', collapsed);
+        try { localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0'); } catch (e) { /* not stored */ }
+    };
+
     applyLayout();
     mobile.addEventListener('change', applyLayout);
 
@@ -35,9 +40,7 @@
             return;
         }
 
-        const collapsed = !sidebar.classList.contains('is-collapsed');
-        sidebar.classList.toggle('is-collapsed', collapsed);
-        try { localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0'); } catch (e) { /* not stored */ }
+        setCollapsed(!sidebar.classList.contains('is-collapsed'));
     });
 
     menuBtn?.addEventListener('click', () => setDrawer(!sidebar.classList.contains('is-mobile-open')));
@@ -66,6 +69,12 @@
         setGroup(group, group.dataset.active === '1');
 
         group.querySelector('.admin-nav-group-toggle')?.addEventListener('click', () => {
+            // In the icons-only sidebar a group shows just its icon: widen the sidebar with that group open.
+            if (sidebar.classList.contains('is-collapsed')) {
+                setCollapsed(false);
+                setGroup(group, true);
+                return;
+            }
             setGroup(group, !group.classList.contains('is-open'));
         });
     });

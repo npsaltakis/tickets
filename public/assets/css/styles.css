@@ -5274,19 +5274,35 @@ input[name="test_only"] {
     display: none;
 }
 
-/* Icons-only sidebar: no group headers, every icon stays reachable. */
-.admin-sidebar.is-collapsed .admin-nav-group-toggle {
+/* The group icon shows only in the icons-only sidebar. */
+.admin-nav-group-icon {
     display: none;
 }
 
+/* Icons-only sidebar: one icon per group; clicking it widens the sidebar with that group open (admin.js). */
 .admin-sidebar.is-collapsed .admin-nav-group {
     margin-top: 0;
-    padding-top: 6px;
-    border-top: 1px solid rgba(148, 163, 184, 0.1);
 }
 
-.admin-sidebar.is-collapsed .admin-nav-group-items[hidden] {
-    display: flex;
+.admin-sidebar.is-collapsed .admin-nav-group-toggle {
+    justify-content: flex-start;
+    padding: 7px 10px;
+    border-radius: 8px;
+    color: #94a3b8;
+}
+
+.admin-sidebar.is-collapsed .admin-nav-group[data-active="1"] .admin-nav-group-toggle {
+    color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.1);
+}
+
+.admin-sidebar.is-collapsed .admin-nav-group-icon {
+    display: block;
+}
+
+.admin-sidebar.is-collapsed .admin-nav-chevron,
+.admin-sidebar.is-collapsed .admin-nav-group-items {
+    display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
