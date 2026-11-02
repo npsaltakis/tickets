@@ -310,6 +310,8 @@ return [
     'eventEditTitle' => 'Επεξεργασία εκδήλωσης',
     'eventCreateSubtitle' => 'Συμπλήρωσε τα παρακάτω στοιχεία για να δημοσιεύσεις νέα εκδήλωση.',
     'eventEditSubtitle' => 'Ενημέρωσε τα στοιχεία της εκδήλωσης.',
+    'eventCreatedBy' => 'από {name}',
+    'eventCreatedByOn' => 'Δημιουργήθηκε από {name} στις {date}.',
     'eventCreateTitleLabel' => 'Τίτλος εκδήλωσης',
     'eventCreateSlugLabel' => 'Φιλική διεύθυνση (slug)',
     'eventCreateSlugHint' => 'Δημιουργείται αυτόματα από τον τίτλο της εκδήλωσης.',

@@ -3104,6 +3104,14 @@ button:focus-visible,
     color: var(--accent);
 }
 
+.admin-events-creator {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 400;
+}
+
 .admin-events-date {
     white-space: nowrap;
     color: var(--muted);
@@ -4816,6 +4824,11 @@ input[name="test_only"] {
         border-bottom: 0;
         font-weight: 600;
         overflow-wrap: anywhere;
+        flex-wrap: wrap;
+    }
+
+    .admin-events-table td.admin-events-title .admin-events-creator {
+        flex-basis: 100%;
     }
 
     .admin-events-table td.admin-events-actions {

@@ -32,11 +32,35 @@ abstract class EventBaseController extends BaseController
         $isEditMode = ! empty($event);
 
         return view('events/create', [
-            'event'      => $event,
-            'isEditMode' => $isEditMode,
+            'event'       => $event,
+            'isEditMode'  => $isEditMode,
+            'creatorName' => $isEditMode ? ($this->creatorNames([$event])[(int) ($event['created_by'] ?? 0)] ?? null) : null,
             'categories' => (new \App\Models\CategoryModel())->orderBy('name', 'ASC')->findAll(),
             'pageTitle'  => $isEditMode ? lang('App.eventEditPageTitle') : lang('App.eventCreatePageTitle'),
         ]);
+    }
+
+    /**
+     * Names of the users who created the given events, keyed by user id. Reads the users table directly
+     * so a creator whose account was deleted still shows; falls back to the e-mail when there is no name.
+     *
+     * @return array<int, string>
+     */
+    protected function creatorNames(array $events): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map(static fn ($event) => (int) ($event['created_by'] ?? 0), $events))));
+        if ($ids === []) {
+            return [];
+        }
+
+        $names = [];
+        $rows  = db_connect()->table('users')->select('id, first_name, last_name, email')->whereIn('id', $ids)->get()->getResultArray();
+        foreach ($rows as $row) {
+            $name = trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? ''));
+            $names[(int) $row['id']] = $name !== '' ? $name : (string) $row['email'];
+        }
+
+        return $names;
     }
 
     protected function saveEvent(?array $existingEvent = null): RedirectResponse
@@ -218,6 +242,7 @@ abstract class EventBaseController extends BaseController
         ];
 
         if ($existingEvent === null) {
+            $payload['created_by'] = (int) session()->get('user_id') ?: null;
             $eventId = $this->eventModel->insert($payload, true);
             $this->logAdminAction('event_create', 'event', [
                 'target_event_id' => is_numeric($eventId) ? (int) $eventId : 0,

@@ -39,6 +39,7 @@ class EventModel extends Model
         'title_en',
         'description_en',
         'donation_goal',
+        'created_by',
     ];
 
     protected bool $allowEmptyInserts = false;

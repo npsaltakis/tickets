@@ -37,6 +37,7 @@ class EventAdminController extends EventBaseController
         return view('events/admin_index', [
             'events'     => $events,
             'issuedMap'  => $issuedMap,
+            'creatorNames' => $this->creatorNames($events),
             'viewStats'  => \App\Libraries\EventViews::perEvent(),
             'pageTitle'  => lang('App.adminEventsPageTitle'),
         ]);
@@ -347,6 +348,7 @@ class EventAdminController extends EventBaseController
             'min_donation' => $event['min_donation'] ?? null,
             'status' => 'inactive',
             'bookings_enabled' => (int) ($event['bookings_enabled'] ?? 1),
+            'created_by' => (int) session()->get('user_id') ?: null,
         ];
 
         $newEventId = $this->eventModel->insert($payload, true);

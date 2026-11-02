@@ -37,6 +37,12 @@ $assetVersion = static function (string $relativePath): string {
         <div class="event-form-header">
             <h1 class="auth-title"><?= esc($heading) ?></h1>
             <p class="subtitle"><?= esc($subtitle) ?></p>
+            <?php if (! empty($creatorName)): ?>
+                <p class="meta"><?= esc(strtr(lang('App.eventCreatedByOn'), [
+                    '{name}' => $creatorName,
+                    '{date}' => ! empty($event['created_at']) ? date('d/m/Y H:i', strtotime((string) $event['created_at'])) : '—',
+                ])) ?></p>
+            <?php endif; ?>
         </div>
 
         <?php if (session()->getFlashdata('event_error')): ?>

@@ -74,6 +74,9 @@ $assetVersion = static function (string $relativePath): string {
                                 <a class="admin-events-title-link" href="<?= esc(base_url('events/' . $event['slug'])) ?>">
                                     <?= esc($event['title']) ?>
                                 </a>
+                                <?php if (isset($creatorNames[(int) ($event['created_by'] ?? 0)])): ?>
+                                    <span class="admin-events-creator"><?= esc(strtr(lang('App.eventCreatedBy'), ['{name}' => $creatorNames[(int) $event['created_by']]])) ?></span>
+                                <?php endif; ?>
                             </td>
                             <td data-label="<?= esc(lang('App.eventStatusLabel'), 'attr') ?>">
                                 <select class="js-status-select admin-status-select status-<?= esc($status) ?>" data-slug="<?= esc($event['slug']) ?>" aria-label="<?= esc(lang('App.eventStatusLabel') . ': ' . $event['title'], 'attr') ?>">

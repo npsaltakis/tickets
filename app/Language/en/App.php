@@ -310,6 +310,8 @@ return [
     'eventEditTitle' => 'Edit Event',
     'eventCreateSubtitle' => 'Fill in the details below to publish a new event.',
     'eventEditSubtitle' => 'Update the event details.',
+    'eventCreatedBy' => 'by {name}',
+    'eventCreatedByOn' => 'Created by {name} on {date}.',
     'eventCreateTitleLabel' => 'Event Title',
     'eventCreateSlugLabel' => 'Slug',
     'eventCreateSlugHint' => 'Generated automatically from the event title.',
