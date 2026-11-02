@@ -22,16 +22,26 @@ $formatSize = static fn (int $bytes): string => $bytes >= 1048576 ? number_forma
         <h2><?= esc(lang('App.backupCreateTitle')) ?></h2>
         <p class="meta"><?= esc(lang('App.backupCreateHelp')) ?></p>
         <div class="backup-actions">
-            <form method="post" action="<?= base_url('admin/backups/create') ?>" data-submit-once>
+            <form method="post" action="<?= base_url('admin/backups/create') ?>" data-submit-once data-backup-progress>
                 <?= csrf_field() ?>
                 <input type="hidden" name="type" value="db">
                 <button type="submit" class="admin-event-btn"><?= esc(lang('App.backupCreateDb')) ?></button>
             </form>
-            <form method="post" action="<?= base_url('admin/backups/create') ?>" data-submit-once>
+            <form method="post" action="<?= base_url('admin/backups/create') ?>" data-submit-once data-backup-progress>
                 <?= csrf_field() ?>
                 <input type="hidden" name="type" value="full">
                 <button type="submit" class="admin-event-btn"><?= esc(lang('App.backupCreateFull')) ?></button>
             </form>
+        </div>
+        <div class="backup-progress" id="backup-progress" hidden data-failed="<?= esc(lang('App.backupFailed'), 'attr') ?>" data-starting="<?= esc(lang('App.backupProgressStart'), 'attr') ?>">
+            <div class="backup-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="<?= esc(lang('App.backupCreateTitle'), 'attr') ?>">
+                <div class="backup-progress-bar"></div>
+            </div>
+            <div class="backup-progress-info">
+                <span class="backup-progress-message" aria-live="polite"></span>
+                <strong class="backup-progress-percent">0%</strong>
+            </div>
+            <p class="meta"><?= esc(lang('App.backupProgressKeepOpen')) ?></p>
         </div>
         <p class="meta"><?= esc(lang('App.backupCronHelp')) ?> <code>php spark db:backup</code></p>
     </section>
@@ -106,4 +116,8 @@ $formatSize = static fn (int $bytes): string => $bytes >= 1048576 ? number_forma
         </form>
     </section>
 </div>
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script src="<?= base_url('assets/js/admin-backups.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/admin-backups.js') ?: time() ?>"></script>
 <?= $this->endSection() ?>

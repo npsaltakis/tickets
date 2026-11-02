@@ -48,36 +48,57 @@ class Backups
     /**
      * Writes <prefix>-<time>.sql.gz and returns its file name.
      */
-    public function createDatabase(string $prefix = 'backup'): string
+    /**
+     * @param (callable(int, string): void)|null $progress Called with a percentage and a short message as work advances.
+     */
+    public function createDatabase(string $prefix = 'backup', ?callable $progress = null): string
     {
+        $progress ??= static function (int $percent, string $message): void {};
+
         $this->prepareDir();
         $name = $prefix . '-' . date('Ymd-His') . '.sql.gz';
-        $this->dumpDatabase($this->dir . DIRECTORY_SEPARATOR . $name);
+        $this->dumpDatabase($this->dir . DIRECTORY_SEPARATOR . $name, $progress, 0, 99);
+        $progress(100, $name);
 
         return $name;
     }
 
     /**
      * Writes backup-full-<time>.zip (database + files) and returns its file name.
+     *
+     * @param (callable(int, string): void)|null $progress See createDatabase().
      */
-    public function createFull(): string
+    public function createFull(?callable $progress = null): string
     {
+        $progress ??= static function (int $percent, string $message): void {};
+
         $this->prepareDir();
         $name    = 'backup-full-' . date('Ymd-His') . '.zip';
         $path    = $this->dir . DIRECTORY_SEPARATOR . $name;
         $sqlPath = $this->dir . DIRECTORY_SEPARATOR . 'tmp-' . bin2hex(random_bytes(6)) . '.sql.gz';
 
         try {
-            $this->dumpDatabase($sqlPath);
+            $this->dumpDatabase($sqlPath, $progress, 0, 40);
 
             $zip = new ZipArchive();
             if ($zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
                 throw new RuntimeException('Cannot create ' . $name);
             }
             $zip->addFile($sqlPath, 'database.sql.gz');
-            foreach ($this->backedUpFiles() as $relative => $absolute) {
+
+            $files = $this->backedUpFiles();
+            $total = count($files);
+            $done  = 0;
+            foreach ($files as $relative => $absolute) {
                 $zip->addFile($absolute, 'files/' . $relative);
+                $done++;
+                if ($done === $total || $done % max(1, intdiv($total, 50)) === 0) {
+                    $progress(40 + intdiv(45 * $done, max(1, $total)), lang('App.backupProgressFiles', [$done, $total]));
+                }
             }
+
+            // Compressing happens when the archive is closed, which takes most of the time for many images.
+            $progress(88, lang('App.backupProgressZip'));
             if (! $zip->close()) {
                 throw new RuntimeException('Cannot write ' . $name);
             }
@@ -88,6 +109,8 @@ class Backups
         } finally {
             @unlink($sqlPath);
         }
+
+        $progress(100, $name);
 
         return $name;
     }
@@ -245,7 +268,10 @@ class Backups
         return array_values(array_filter($tables, static fn (string $table): bool => $prefix === '' || str_starts_with($table, $prefix)));
     }
 
-    private function dumpDatabase(string $file): void
+    /**
+     * @param (callable(int, string): void)|null $progress Reported from $from to $to percent, one step per table.
+     */
+    private function dumpDatabase(string $file, ?callable $progress = null, int $from = 0, int $to = 100): void
     {
         $handle = gzopen($file, 'wb6');
         if ($handle === false) {
@@ -253,10 +279,14 @@ class Backups
         }
 
         try {
-            $db = db_connect();
+            $db     = db_connect();
+            $tables = $this->tables();
             gzwrite($handle, "-- Backup of {$db->getDatabase()} at " . date('c') . "\nSET FOREIGN_KEY_CHECKS=0;\nSET NAMES utf8mb4;\n\n");
 
-            foreach ($this->tables() as $table) {
+            foreach ($tables as $index => $table) {
+                if ($progress !== null) {
+                    $progress($from + intdiv(($to - $from) * $index, max(1, count($tables))), lang('App.backupProgressTable', [$table, $index + 1, count($tables)]));
+                }
                 $quoted = $db->escapeIdentifiers($table);
                 $create = $db->query('SHOW CREATE TABLE ' . $quoted)->getRowArray();
                 gzwrite($handle, 'DROP TABLE IF EXISTS ' . $quoted . ";\n" . (string) ($create['Create Table'] ?? '') . ";\n\n");

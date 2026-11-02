@@ -5702,3 +5702,51 @@ a.notif-text:hover {
         padding-top: 8px !important;
     }
 }
+
+.backup-progress {
+    margin: 4px 0 12px;
+}
+
+.backup-progress-track {
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.15);
+    overflow: hidden;
+}
+
+.backup-progress-bar {
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+    transition: width 0.25s ease;
+}
+
+.backup-progress.is-failed .backup-progress-bar {
+    background: #ef4444;
+}
+
+.backup-progress-info {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 6px;
+    font-size: 0.85rem;
+}
+
+.backup-progress-message {
+    color: #cbd5e1;
+    overflow-wrap: anywhere;
+}
+
+.backup-progress.is-failed .backup-progress-message {
+    color: #fca5a5;
+}
+
+.backup-progress p {
+    margin: 4px 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .backup-progress-bar { transition: none; }
+}

@@ -45,20 +45,68 @@ class BackupAdminController extends BaseController
         @set_time_limit(0);
         $full = $this->request->getPost('type') === 'full';
 
+        // The page's script asks for progress: one JSON line per step, sent as the backup is written.
+        $stream   = $this->request->getHeaderLine('X-Backup-Progress') === '1';
+        $progress = $stream ? $this->startProgressStream() : null;
+
         try {
-            $name = $full ? $this->backups->createFull() : $this->backups->createDatabase();
+            $name = $full ? $this->backups->createFull($progress) : $this->backups->createDatabase('backup', $progress);
         } catch (Throwable $exception) {
             log_message('error', 'Backup failed: {message}', ['message' => $exception->getMessage()]);
             AdminNotifications::add('backup_failed', ['error' => $exception->getMessage()], 'admin/backups');
+            session()->setFlashdata('backup_error', lang('App.backupFailed') . ' ' . $exception->getMessage());
 
-            return redirect()->to(base_url('admin/backups'))->with('backup_error', lang('App.backupFailed') . ' ' . $exception->getMessage());
+            return $stream ? $this->endProgressStream(['error' => $exception->getMessage()]) : redirect()->to(base_url('admin/backups'));
         }
 
         $this->backups->prune(Backups::keepDays());
         $this->logAdminAction('backup_create', 'system', ['file' => $name]);
         AdminNotifications::add('backup_created', ['file' => $name, 'name' => (string) session()->get('user_name')], 'admin/backups');
+        session()->setFlashdata('backup_info', strtr(lang('App.backupCreated'), ['{file}' => $name]));
 
-        return redirect()->to(base_url('admin/backups'))->with('backup_info', strtr(lang('App.backupCreated'), ['{file}' => $name]));
+        return $stream ? $this->endProgressStream(['done' => true, 'file' => $name]) : redirect()->to(base_url('admin/backups'));
+    }
+
+    /**
+     * Sends headers for a line-by-line JSON response and returns the callback that writes each progress line.
+     * Buffering is switched off everywhere it can be (PHP, zlib, nginx) so each line reaches the browser at once.
+     *
+     * @return callable(int, string): void
+     */
+    private function startProgressStream(): callable
+    {
+        @ini_set('zlib.output_compression', '0');
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        header('Content-Type: application/x-ndjson; charset=UTF-8');
+        header('Cache-Control: no-cache, no-store');
+        header('X-Accel-Buffering: no');
+
+        $last = -1;
+
+        return static function (int $percent, string $message) use (&$last): void {
+            if ($percent === $last && $percent < 100) {
+                return;
+            }
+            $last = $percent;
+            echo json_encode(['percent' => $percent, 'message' => $message], JSON_UNESCAPED_UNICODE) . "\n";
+            flush();
+        };
+    }
+
+    /**
+     * Writes the last line and ends the request here: the headers and body were already sent by hand.
+     * The flash message set before is shown when the page reloads.
+     */
+    private function endProgressStream(array $result): never
+    {
+        echo json_encode($result, JSON_UNESCAPED_UNICODE) . "\n";
+        flush();
+        session_write_close();
+
+        exit;
     }
 
     public function download(string $name): DownloadResponse|RedirectResponse

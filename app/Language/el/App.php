@@ -1289,6 +1289,11 @@ return [
     'notif_backup_failed' => 'Το αντίγραφο ασφαλείας απέτυχε: {error}',
     'notif_backup_restored' => 'Έγινε επαναφορά από το αντίγραφο {file} από {name}',
     'notif_restore_failed' => 'Η επαναφορά από το {file} απέτυχε: {error}',
+    'backupProgressStart' => 'Ξεκινά το αντίγραφο...',
+    'backupProgressTable' => 'Βάση: πίνακας {0} ({1}/{2})',
+    'backupProgressFiles' => 'Αρχεία: {0}/{1}',
+    'backupProgressZip' => 'Συμπίεση αρχείων...',
+    'backupProgressKeepOpen' => 'Μην κλείσεις τη σελίδα μέχρι να τελειώσει.',
 ];
 
 

@@ -1294,6 +1294,11 @@ Please check the event page for the latest information.',
     'notif_backup_failed' => 'Backup failed: {error}',
     'notif_backup_restored' => 'Restored from backup {file} by {name}',
     'notif_restore_failed' => 'Restore from {file} failed: {error}',
+    'backupProgressStart' => 'Starting the backup...',
+    'backupProgressTable' => 'Database: table {0} ({1}/{2})',
+    'backupProgressFiles' => 'Files: {0}/{1}',
+    'backupProgressZip' => 'Compressing files...',
+    'backupProgressKeepOpen' => 'Keep this page open until it finishes.',
 ];
 
 
