@@ -5698,7 +5698,7 @@ a.notif-text:hover {
         color: var(--muted);
     }
 
-    .backup-row-actions {
+    .backup-actions-cell {
         padding-top: 8px !important;
     }
 }
@@ -5749,4 +5749,9 @@ a.notif-text:hover {
 
 @media (prefers-reduced-motion: reduce) {
     .backup-progress-bar { transition: none; }
+}
+
+/* Text and buttons of a backup row on one line: cells centred vertically (the buttons sit in a flex wrapper). */
+.backup-table td {
+    vertical-align: middle;
 }

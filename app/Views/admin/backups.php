@@ -68,7 +68,7 @@ $formatSize = static fn (int $bytes): string => $bytes >= 1048576 ? number_forma
                         <td data-label="<?= esc(lang('App.type'), 'attr') ?>"><span class="table-pill"><?= esc($typeLabels[$backup['type']] ?? $backup['type']) ?></span></td>
                         <td data-label="<?= esc(lang('App.backupDate'), 'attr') ?>"><?= esc(date('d/m/Y H:i', $backup['time'])) ?></td>
                         <td data-label="<?= esc(lang('App.backupSize'), 'attr') ?>"><?= esc($formatSize($backup['size'])) ?></td>
-                        <td class="backup-row-actions">
+                        <td class="backup-actions-cell"><div class="backup-row-actions">
                             <a class="admin-event-btn admin-event-btn--secondary" href="<?= esc(base_url('admin/backups/download/' . $backup['name'])) ?>"><?= esc(lang('App.backupDownload')) ?></a>
                             <?php if ($backup['type'] !== 'code'): ?>
                                 <details class="backup-restore">
@@ -86,7 +86,7 @@ $formatSize = static fn (int $bytes): string => $bytes >= 1048576 ? number_forma
                                 <?= csrf_field() ?>
                                 <button type="submit" class="admin-event-btn admin-event-btn--secondary"><?= esc(lang('App.backupDelete')) ?></button>
                             </form>
-                        </td>
+                        </div></td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
