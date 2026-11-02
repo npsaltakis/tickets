@@ -50,14 +50,9 @@
         }
     });
 
-    // Menu groups: the one with the current page is open; the others open/close on click and are remembered.
-    const GROUPS_KEY = 'admin_nav_open_groups';
-    const readOpen = () => {
-        try { return JSON.parse(localStorage.getItem(GROUPS_KEY) || '[]'); } catch (e) { return []; }
-    };
-    const saveOpen = (list) => {
-        try { localStorage.setItem(GROUPS_KEY, JSON.stringify(list)); } catch (e) { /* not stored */ }
-    };
+    // Menu groups: only the one with the current page is open; the others open/close on click for this page only.
+    // Earlier versions remembered opened groups; drop what they stored.
+    try { localStorage.removeItem('admin_nav_open_groups'); } catch (e) { /* nothing stored */ }
 
     const setGroup = (group, open) => {
         const button = group.querySelector('.admin-nav-group-toggle');
@@ -67,16 +62,11 @@
         if (items) items.hidden = !open;
     };
 
-    const remembered = readOpen();
     sidebar.querySelectorAll('[data-nav-group]').forEach((group) => {
-        setGroup(group, group.dataset.active === '1' || remembered.includes(group.dataset.navGroup));
+        setGroup(group, group.dataset.active === '1');
 
         group.querySelector('.admin-nav-group-toggle')?.addEventListener('click', () => {
-            const open = !group.classList.contains('is-open');
-            setGroup(group, open);
-            const list = readOpen().filter((key) => key !== group.dataset.navGroup);
-            if (open) list.push(group.dataset.navGroup);
-            saveOpen(list);
+            setGroup(group, !group.classList.contains('is-open'));
         });
     });
 })();
