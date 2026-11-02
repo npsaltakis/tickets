@@ -348,6 +348,10 @@ class ReportController extends EventBaseController
         }
 
         $this->ticketModel->update((int) $ticket['id'], ['user_id' => (int) $recipient['id']]);
+        \App\Libraries\UserNotifications::add([(int) $recipient['id']], 'ticket_received', [
+            'name'  => (string) session()->get('user_name'),
+            'title' => (string) ($ticket['event_title'] ?? ''),
+        ], 'my-events');
 
         $event = [
             'id' => (int) ($ticket['event_id'] ?? 0),

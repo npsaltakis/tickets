@@ -676,7 +676,7 @@ abstract class EventBaseController extends BaseController
             $uTable = $db->prefixTable('users');
 
             $rows = $db->table($tTable . ' t')
-                ->select('u.email, u.first_name')
+                ->select('u.id, u.email, u.first_name')
                 ->join($uTable . ' u', 'u.id = t.user_id')
                 ->where('t.event_id', (int) ($event['id'] ?? 0))
                 ->where('t.status', 'valid')
@@ -686,7 +686,7 @@ abstract class EventBaseController extends BaseController
             // People on the waiting list are told too, so they stop waiting for a seat.
             if ($db->tableExists('waitlist')) {
                 $rows = array_merge($rows, $db->table($db->prefixTable('waitlist') . ' w')
-                    ->select('u.email, u.first_name')
+                    ->select('u.id, u.email, u.first_name')
                     ->join($uTable . ' u', 'u.id = w.user_id')
                     ->where('w.event_id', (int) ($event['id'] ?? 0))
                     ->get()
@@ -702,6 +702,10 @@ abstract class EventBaseController extends BaseController
             if (empty($holders)) {
                 return;
             }
+
+            \App\Libraries\UserNotifications::add(array_column($holders, 'id'), 'event_cancelled', [
+                'title' => (string) ($event['title'] ?? ''),
+            ], 'events/' . ($event['slug'] ?? ''));
 
             $title     = (string) ($event['title'] ?? '-');
             $startDate = ! empty($event['start_date']) ? date('d/m/Y H:i', strtotime((string) $event['start_date'])) : '-';
@@ -765,7 +769,7 @@ abstract class EventBaseController extends BaseController
         try {
             $db      = db_connect();
             $holders = $db->table($db->prefixTable('tickets') . ' t')
-                ->select('u.email, u.first_name')
+                ->select('u.id, u.email, u.first_name')
                 ->join($db->prefixTable('users') . ' u', 'u.id = t.user_id')
                 ->where('t.event_id', (int) $old['id'])
                 ->where('t.status', 'valid')
@@ -783,6 +787,12 @@ abstract class EventBaseController extends BaseController
             $url     = base_url('events/' . ($new['slug'] ?? ''));
             $subject = $this->bilingualSubject('App.eventUpdatedEmailSubject', [$title]);
             $queue   = new \App\Libraries\EmailQueue();
+
+            \App\Libraries\UserNotifications::add(array_column($holders, 'id'), 'event_updated', [
+                'title' => $title,
+                'date'  => $start,
+                'place' => $place !== '' ? $place : '-',
+            ], 'events/' . ($new['slug'] ?? ''));
 
             foreach ($holders as $holder) {
                 $name     = trim((string) ($holder['first_name'] ?? ''));

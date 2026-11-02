@@ -1237,6 +1237,13 @@ return [
     'notif_event_almost_full' => 'Σχεδόν γεμάτη η εκδήλωση «{title}»: απομένουν {remaining} θέσεις',
     'notif_booking_new' => 'Νέα κράτηση: {name}, {seats} θέσεις για «{title}»',
     'notif_contact_message' => 'Νέο μήνυμα επικοινωνίας από {name} ({email})',
+    'unotifSubtitle' => 'Κρατήσεις, αλλαγές και ακυρώσεις εκδηλώσεων, θέσεις από τη λίστα αναμονής και υπενθυμίσεις.',
+    'unotif_booking_confirmed' => 'Η κράτησή σου επιβεβαιώθηκε: {seats} εισιτήρια για «{title}»',
+    'unotif_ticket_received' => 'Ο/Η {name} σου μεταβίβασε εισιτήριο για «{title}»',
+    'unotif_event_updated' => 'Άλλαξαν τα στοιχεία της εκδήλωσης «{title}»: {date}, {place}',
+    'unotif_event_cancelled' => 'Η εκδήλωση «{title}» ακυρώθηκε',
+    'unotif_waitlist_seat' => 'Ελευθερώθηκε θέση στην εκδήλωση «{title}». Κλείσε τη θέση σου!',
+    'unotif_event_reminder' => 'Υπενθύμιση: η εκδήλωση «{title}» είναι στις {date}',
 ];
 
 

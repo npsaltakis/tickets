@@ -166,6 +166,8 @@ class Filters extends BaseFilters
                 'events/*/paypal/*',
                 'events/*/waitlist',
                 'events/*/waitlist/*',
+                'notifications',
+                'notifications/*',
             ],
         ],
     ];

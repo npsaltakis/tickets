@@ -306,7 +306,7 @@ class AdminToolsController extends BaseController
         $cutoff = date('Y-m-d H:i:s', strtotime('+' . $hoursAhead . ' hours'));
 
         $rows = $db->table($eventsTable . ' e')
-            ->select('e.id, e.title, e.slug, e.start_date, e.location, t.id AS ticket_id, t.ticket_code, u.email, u.first_name')
+            ->select('e.id, e.title, e.slug, e.start_date, e.location, t.id AS ticket_id, t.ticket_code, t.user_id, u.email, u.first_name')
             ->join($ticketsTable . ' t', 't.event_id = e.id')
             ->join($usersTable . ' u', 'u.id = t.user_id')
             ->where('e.status', 'active')
@@ -327,6 +327,7 @@ class AdminToolsController extends BaseController
             $key = $row['email'] . '|' . $row['id'];
             if (! isset($grouped[$key])) {
                 $grouped[$key] = [
+                    'user_id'    => (int) $row['user_id'],
                     'email'      => $row['email'],
                     'first_name' => $row['first_name'] ?? '',
                     'title'      => $row['title'] ?? '',
@@ -376,6 +377,10 @@ class AdminToolsController extends BaseController
                     $db->table($ticketsTable)
                         ->whereIn('id', $item['ticket_ids'])
                         ->update(['reminder_sent_at' => date('Y-m-d H:i:s')]);
+                    \App\Libraries\UserNotifications::add([$item['user_id']], 'event_reminder', [
+                        'title' => $item['title'],
+                        'date'  => $startLabel,
+                    ], 'my-events');
                 }
             } catch (\Throwable) {
             }

@@ -371,6 +371,10 @@ class BookingController extends EventBaseController
             'seats' => $seats,
             'title' => $title,
         ], $link);
+        \App\Libraries\UserNotifications::add([(int) session()->get('user_id')], 'booking_confirmed', [
+            'seats' => $seats,
+            'title' => $title,
+        ], 'my-events');
 
         if ($remaining === 0) {
             \App\Libraries\AdminNotifications::add('event_full', ['title' => $title, 'capacity' => (int) ($event['capacity'] ?? 0)], $link);

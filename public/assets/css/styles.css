@@ -5393,11 +5393,11 @@ input[type="submit"][aria-busy="true"] {
 }
 
 /* Admin notifications: bell in the topbar and Admin → Notifications. */
-.admin-notif {
+.notif {
     position: relative;
 }
 
-.admin-notif-bell {
+.notif-bell {
     position: relative;
     display: flex;
     align-items: center;
@@ -5410,22 +5410,22 @@ input[type="submit"][aria-busy="true"] {
     list-style: none;
 }
 
-.admin-notif-bell::-webkit-details-marker {
+.notif-bell::-webkit-details-marker {
     display: none;
 }
 
-.admin-notif-bell:hover,
-.admin-notif[open] .admin-notif-bell {
+.notif-bell:hover,
+.notif[open] .notif-bell {
     color: #f8fafc;
     background: rgba(148, 163, 184, 0.1);
 }
 
-.admin-notif-bell svg {
+.notif-bell svg {
     width: 20px;
     height: 20px;
 }
 
-.admin-notif-badge {
+.notif-badge {
     position: absolute;
     top: 2px;
     right: 1px;
@@ -5441,7 +5441,7 @@ input[type="submit"][aria-busy="true"] {
     text-align: center;
 }
 
-.admin-notif-panel {
+.notif-panel {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
@@ -5454,7 +5454,7 @@ input[type="submit"][aria-busy="true"] {
     overflow: hidden;
 }
 
-.admin-notif-head {
+.notif-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -5464,11 +5464,11 @@ input[type="submit"][aria-busy="true"] {
     font-size: 0.9rem;
 }
 
-.admin-notif-head form {
+.notif-head form {
     margin: 0;
 }
 
-.admin-notif-mark {
+.notif-mark {
     min-height: 0;
     padding: 0;
     border: 0;
@@ -5479,25 +5479,25 @@ input[type="submit"][aria-busy="true"] {
     cursor: pointer;
 }
 
-.admin-notif-empty {
+.notif-empty {
     margin: 0;
     padding: 18px 14px;
     color: var(--muted);
     font-size: 0.85rem;
 }
 
-.admin-notif-list {
+.notif-list {
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.admin-notif-panel .admin-notif-list {
+.notif-panel .notif-list {
     max-height: 360px;
     overflow-y: auto;
 }
 
-.admin-notif-item {
+.notif-item {
     display: flex;
     flex-direction: column;
     gap: 3px;
@@ -5506,7 +5506,7 @@ input[type="submit"][aria-busy="true"] {
     position: relative;
 }
 
-.admin-notif-item.is-unread::before {
+.notif-item.is-unread::before {
     content: "";
     position: absolute;
     top: 16px;
@@ -5517,28 +5517,28 @@ input[type="submit"][aria-busy="true"] {
     background: var(--accent);
 }
 
-.admin-notif-text {
+.notif-text {
     color: #cbd5e1;
     font-size: 0.86rem;
     line-height: 1.4;
     text-decoration: none;
 }
 
-.admin-notif-item.is-unread .admin-notif-text {
+.notif-item.is-unread .notif-text {
     color: #f8fafc;
     font-weight: 600;
 }
 
-a.admin-notif-text:hover {
+a.notif-text:hover {
     color: var(--accent);
 }
 
-.admin-notif-time {
+.notif-time {
     color: var(--muted);
     font-size: 0.74rem;
 }
 
-.admin-notif-all {
+.notif-all {
     display: block;
     padding: 10px 14px;
     color: var(--accent);
@@ -5548,13 +5548,61 @@ a.admin-notif-text:hover {
     text-decoration: none;
 }
 
-.admin-notif-all:hover {
+.notif-all:hover {
     background: rgba(148, 163, 184, 0.06);
 }
 
-.admin-notif-pager {
+.notif-pager {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
     margin-top: 16px;
+}
+
+/* Notifications in the site header and on /notifications. */
+.top-nav-right .notif-bell {
+    width: 36px;
+    height: 36px;
+}
+
+.notif-page {
+    padding: 0;
+    overflow: hidden;
+}
+
+.notif-page .empty {
+    margin: 0;
+}
+
+.notif-page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    color: #cbd5e1;
+    text-decoration: none;
+}
+
+.notif-page-link.is-active {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.notif-page .notif-pager {
+    margin: 0;
+    padding: 12px 14px;
+}
+
+/* Phones: the bell sits near the left edge, so the panel spans the screen instead of hanging off it. */
+@media (max-width: 640px) {
+    .notif-panel {
+        position: fixed;
+        top: 60px;
+        left: 16px;
+        right: 16px;
+        width: auto;
+    }
 }

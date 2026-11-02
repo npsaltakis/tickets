@@ -374,7 +374,7 @@ abstract class BaseController extends Controller
 
             $db      = db_connect();
             $waiting = $db->table($db->prefixTable('waitlist') . ' w')
-                ->select('w.id, u.email, u.first_name')
+                ->select('w.id, w.user_id, u.email, u.first_name')
                 ->join($db->prefixTable('users') . ' u', 'u.id = w.user_id')
                 ->where('w.event_id', $eventId)
                 ->where('w.notified_at', null)
@@ -408,6 +408,7 @@ abstract class BaseController extends Controller
 
                 if ($mail->send(false)) {
                     $db->table($db->prefixTable('waitlist'))->where('id', (int) $row['id'])->update(['notified_at' => date('Y-m-d H:i:s')]);
+                    \App\Libraries\UserNotifications::add([(int) $row['user_id']], 'waitlist_seat', ['title' => $title], 'events/' . ($event['slug'] ?? ''));
                 }
             }
         } catch (Throwable $exception) {

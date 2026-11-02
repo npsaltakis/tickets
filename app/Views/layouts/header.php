@@ -117,6 +117,11 @@ $structuredData = array_values(array_filter((array) ($structuredData ?? [])));
             </div>
 
             <?php if ($isLoggedIn): ?>
+                <?= view('layouts/_notif_bell', [
+                    'notifUnread' => \App\Libraries\UserNotifications::unreadCount((int) $session->get('user_id')),
+                    'notifLatest' => \App\Libraries\UserNotifications::latest((int) $session->get('user_id'), 8),
+                    'notifBase'   => 'notifications',
+                ]) ?>
                 <details class="user-menu">
                     <summary class="user-avatar" title="<?= esc($avatarTitle) ?>" aria-label="User menu">
                         <img src="<?= base_url('assets/images/avatar-default.svg') ?>" alt="User avatar" class="user-avatar-icon">

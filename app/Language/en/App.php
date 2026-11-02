@@ -1242,6 +1242,13 @@ Please check the event page for the latest information.',
     'notif_event_almost_full' => 'Event "{title}" is almost full: {remaining} seats left',
     'notif_booking_new' => 'New booking: {name}, {seats} seats for "{title}"',
     'notif_contact_message' => 'New contact message from {name} ({email})',
+    'unotifSubtitle' => 'Bookings, event changes and cancellations, waiting-list seats and reminders.',
+    'unotif_booking_confirmed' => 'Your booking is confirmed: {seats} tickets for "{title}"',
+    'unotif_ticket_received' => '{name} transferred a ticket for "{title}" to you',
+    'unotif_event_updated' => 'The details of "{title}" changed: {date}, {place}',
+    'unotif_event_cancelled' => 'The event "{title}" was cancelled',
+    'unotif_waitlist_seat' => 'A seat opened up for "{title}". Book it now!',
+    'unotif_event_reminder' => 'Reminder: "{title}" is on {date}',
 ];
 
 
