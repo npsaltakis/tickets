@@ -142,6 +142,13 @@ $routes->post('newsletter/unsubscribe/(:segment)', 'NewsletterController::unsubs
 $routes->post('admin/email-queue/(:segment)', 'AdminToolsController::emailQueueAction/$1');
 $routes->get('admin/notifications', 'NotificationAdminController::index');
 $routes->post('admin/notifications/read', 'NotificationAdminController::markRead');
+$routes->get('admin/backups', 'BackupAdminController::index');
+$routes->post('admin/backups/create', 'BackupAdminController::create');
+$routes->post('admin/backups/upload', 'BackupAdminController::upload');
+$routes->post('admin/backups/settings', 'BackupAdminController::settings');
+$routes->get('admin/backups/download/(:segment)', 'BackupAdminController::download/$1');
+$routes->post('admin/backups/delete/(:segment)', 'BackupAdminController::delete/$1');
+$routes->post('admin/backups/restore/(:segment)', 'BackupAdminController::restore/$1');
 $routes->get('notifications', 'NotificationController::index');
 $routes->post('notifications/read', 'NotificationController::markRead');
 $routes->get('check-in/search', 'ReportController::checkInSearch');

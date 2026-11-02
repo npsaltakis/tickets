@@ -27,6 +27,7 @@ class SiteSettings
         'org_address'     => '',
         'currency'        => 'EUR',
         'help_chat_enabled' => '1',
+        'backup_keep_days'  => '',
     ];
 
     /**

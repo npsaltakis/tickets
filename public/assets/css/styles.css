@@ -5606,3 +5606,99 @@ a.notif-text:hover {
         width: auto;
     }
 }
+
+/* Admin → Backups */
+.backup-card {
+    margin-bottom: 16px;
+}
+
+.backup-card h2 {
+    margin-top: 0;
+}
+
+.backup-actions,
+.backup-row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.backup-actions {
+    margin: 12px 0;
+}
+
+.backup-actions form,
+.backup-row-actions form {
+    margin: 0;
+}
+
+.backup-name {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
+}
+
+.backup-restore > summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+.backup-restore > summary::-webkit-details-marker {
+    display: none;
+}
+
+.backup-restore[open] {
+    flex-basis: 100%;
+}
+
+.backup-restore form,
+.backup-upload,
+.backup-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 420px;
+    margin-top: 10px;
+}
+
+.backup-restore p {
+    margin: 0;
+}
+
+.admin-event-btn.backup-danger {
+    background: #b91c1c;
+    border-color: #b91c1c;
+    color: #fff;
+}
+
+.admin-event-btn.backup-danger:hover {
+    background: #991b1b;
+}
+
+@media (max-width: 768px) {
+    .backup-table thead {
+        display: none;
+    }
+
+    .backup-table tr {
+        display: block;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .backup-table td {
+        display: block;
+        padding: 3px 0;
+        border: 0;
+    }
+
+    .backup-table td[data-label]::before {
+        content: attr(data-label) ": ";
+        color: var(--muted);
+    }
+
+    .backup-row-actions {
+        padding-top: 8px !important;
+    }
+}

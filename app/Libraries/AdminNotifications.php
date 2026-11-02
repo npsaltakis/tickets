@@ -18,6 +18,7 @@ class AdminNotifications
         'user_registered', 'user_deleted',
         'event_created', 'event_cancelled', 'event_deleted', 'event_full', 'event_almost_full',
         'booking_new', 'contact_message',
+        'backup_created', 'backup_failed', 'backup_restored', 'restore_failed',
     ];
 
     /**

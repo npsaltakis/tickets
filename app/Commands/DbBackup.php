@@ -2,84 +2,47 @@
 
 namespace App\Commands;
 
+use App\Libraries\Backups;
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
+use Throwable;
 
 /**
  * Pure-PHP logical backup (no mysqldump binary needed): writes writable/backups/backup-<timestamp>.sql.gz
  * and removes backups older than the retention period. Run it from cron, e.g. daily: `php spark db:backup`.
+ * Pass "full" to include the uploaded images and Wallet keys (backup-full-<timestamp>.zip).
  */
 class DbBackup extends BaseCommand
 {
     protected $group       = 'Tickets';
     protected $name        = 'db:backup';
-    protected $description = 'Creates a gzip-compressed SQL backup of the application database.';
-    protected $usage       = 'db:backup [keep_days]';
-    protected $arguments   = ['keep_days' => 'Delete backups older than this many days (default 14, or backup.keepDays in .env)'];
+    protected $description = 'Creates a backup of the database (or, with "full", database + uploaded files).';
+    protected $usage       = 'db:backup [keep_days] [full]';
+    protected $arguments   = [
+        'keep_days' => 'Delete backups older than this many days (default: Admin → Backups, backup.keepDays in .env, or 14)',
+        'full'      => 'Also back up uploaded images and Wallet keys',
+    ];
 
     public function run(array $params)
     {
-        $keepDays = max(1, (int) ($params[0] ?? env('backup.keepDays', 14)));
-        $dir      = WRITEPATH . 'backups';
+        $full     = in_array('full', $params, true);
+        $numbers  = array_values(array_filter($params, 'ctype_digit'));
+        $keepDays = max(1, (int) ($numbers[0] ?? Backups::keepDays()));
+        $backups  = new Backups();
 
-        if (! is_dir($dir) && ! mkdir($dir, 0750, true) && ! is_dir($dir)) {
-            CLI::error('Cannot create ' . $dir);
-
-            return EXIT_ERROR;
-        }
-
-        if (! is_file($dir . DIRECTORY_SEPARATOR . '.htaccess')) {
-            @file_put_contents($dir . DIRECTORY_SEPARATOR . '.htaccess', "<IfModule authz_core_module>\n    Require all denied\n</IfModule>\n<IfModule !authz_core_module>\n    Deny from all\n</IfModule>\n");
-        }
-        if (! is_file($dir . DIRECTORY_SEPARATOR . 'index.html')) {
-            @file_put_contents($dir . DIRECTORY_SEPARATOR . 'index.html', '');
-        }
-        $file   = $dir . DIRECTORY_SEPARATOR . 'backup-' . date('Ymd-His') . '.sql.gz';
-        $handle = gzopen($file, 'wb9');
-
-        if ($handle === false) {
-            CLI::error('Cannot write ' . $file);
+        try {
+            $name = $full ? $backups->createFull() : $backups->createDatabase();
+        } catch (Throwable $exception) {
+            \App\Libraries\AdminNotifications::add('backup_failed', ['error' => $exception->getMessage()], 'admin/backups');
+            CLI::error('Backup failed: ' . $exception->getMessage());
 
             return EXIT_ERROR;
         }
 
-        $db = db_connect();
-        gzwrite($handle, "-- Backup of {$db->getDatabase()} at " . date('c') . "\nSET FOREIGN_KEY_CHECKS=0;\nSET NAMES utf8mb4;\n\n");
+        $removed = $backups->prune($keepDays);
+        $path    = $backups->path($name);
 
-        $tables = array_map(static fn (array $row): string => (string) reset($row), $db->query('SHOW TABLES')->getResultArray());
-        $rows   = 0;
-
-        foreach ($tables as $table) {
-            $create = $db->query('SHOW CREATE TABLE ' . $db->escapeIdentifiers($table))->getRowArray();
-            gzwrite($handle, 'DROP TABLE IF EXISTS ' . $db->escapeIdentifiers($table) . ";\n" . (string) ($create['Create Table'] ?? '') . ";\n\n");
-
-            $offset = 0;
-            do {
-                $chunk = $db->query('SELECT * FROM ' . $db->escapeIdentifiers($table) . ' LIMIT 500 OFFSET ' . $offset)->getResultArray();
-
-                foreach ($chunk as $row) {
-                    $values = array_map(static fn ($v): string => $v === null ? 'NULL' : $db->escape((string) $v), array_values($row));
-                    gzwrite($handle, 'INSERT INTO ' . $db->escapeIdentifiers($table) . ' VALUES (' . implode(',', $values) . ");\n");
-                    $rows++;
-                }
-
-                $offset += 500;
-            } while (count($chunk) === 500);
-
-            gzwrite($handle, "\n");
-        }
-
-        gzwrite($handle, "SET FOREIGN_KEY_CHECKS=1;\n");
-        gzclose($handle);
-
-        $removed = 0;
-        foreach (glob($dir . DIRECTORY_SEPARATOR . 'backup-*.sql.gz') ?: [] as $old) {
-            if (filemtime($old) < time() - ($keepDays * 86400) && unlink($old)) {
-                $removed++;
-            }
-        }
-
-        CLI::write(sprintf('Backup written: %s (%d tables, %d rows, %s KB). Old backups removed: %d', basename($file), count($tables), $rows, number_format(filesize($file) / 1024, 1), $removed), 'green');
+        CLI::write(sprintf('Backup written: %s (%s KB). Old backups removed: %d', $name, number_format(((int) filesize((string) $path)) / 1024, 1), $removed), 'green');
 
         return EXIT_SUCCESS;
     }

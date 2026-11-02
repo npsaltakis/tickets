@@ -53,7 +53,10 @@ class HealthCheck extends BaseCommand
             $problems[] = 'Low disk space: ' . number_format($free / 1048576) . ' MB free.';
         }
 
-        $backups = glob(WRITEPATH . 'backups' . DIRECTORY_SEPARATOR . 'backup-*.sql.gz') ?: [];
+        $backups = array_merge(
+            glob(WRITEPATH . 'backups' . DIRECTORY_SEPARATOR . 'backup-*.sql.gz') ?: [],
+            glob(WRITEPATH . 'backups' . DIRECTORY_SEPARATOR . 'backup-full-*.zip') ?: []
+        );
         if ($backups === []) {
             $problems[] = 'No database backup found (schedule `php spark db:backup`).';
         } else {
